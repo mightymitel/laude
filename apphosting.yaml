@@ -1,19 +1,15 @@
 # Firebase App Hosting configuration
 # https://firebase.google.com/docs/app-hosting
 
-# Build from monorepo root to access shared packages
+# Override build and run commands to disable Next.js framework adapter
+# and use Express.js instead
 scripts:
-  runCommand: npm install && npm run build -w @laudasist/shared && npm run build -w @laudasist/api
-
-# The API entrypoint
-runConfig:
+  buildCommand: npm run build -w @laudasist/shared && npm run build -w @laudasist/api
   runCommand: node apps/api/dist/index.js
 
 env:
   - variable: NODE_ENV
     value: production
-  - variable: PORT
-    value: "3001"
   - variable: FRONTEND_URL
     value: https://laudasist-1c1d2.web.app
   # Firebase Admin credentials are automatically available in App Hosting
