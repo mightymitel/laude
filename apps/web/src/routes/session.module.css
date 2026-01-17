@@ -377,3 +377,126 @@
     color: #0070f3;
     font-size: 0.9rem;
 }
+
+/* QR Code Modal */
+.qrOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.qrModal {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    max-width: 360px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.qrModal h2 {
+    margin: 0 0 1.5rem;
+    font-size: 1.5rem;
+    color: var(--foreground);
+}
+
+.qrUrl {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--secondary);
+    word-break: break-all;
+}
+
+.qrCopyBtn {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.qrCopyBtn:hover {
+    background: #f5f5f5;
+}
+
+.qrCloseBtn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.qrCloseBtn:hover {
+    background: #e0e0e0;
+}
+
+.viewportLinks {
+    margin: 1rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.viewportLabel {
+    font-size: 0.85rem;
+    color: #666;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.viewportBtns {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.viewportBtn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.viewportBtn:hover {
+    background: #e9e9e9;
+    border-color: var(--primary);
+}

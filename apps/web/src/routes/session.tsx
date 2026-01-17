@@ -7,6 +7,7 @@ import {
     useMemo,
     Suspense,
 } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import { useSongs, useSong } from '@/hooks/useSongs'
 import {
     useCommunitySongs,
@@ -87,6 +88,9 @@ function SessionPageContent() {
         broadcastUpdate,
         getShareUrl,
     } = useLiveSession()
+
+    // QR Code modal state
+    const [showQR, setShowQR] = useState(false)
 
     // Get full song data
     const { data: currentSong } = useSong(currentSongId || '')
@@ -190,6 +194,12 @@ function SessionPageContent() {
                         (isLive ? (
                             <>
                                 <span className={styles.liveIndicator}>🔴 LIVE</span>
+                                <button
+                                    onClick={() => setShowQR(true)}
+                                    className={styles.shareBtn}
+                                >
+                                    📱 QR Code
+                                </button>
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(getShareUrl())
@@ -349,6 +359,55 @@ function SessionPageContent() {
                     )}
                 </main>
             </div>
+
+            {/* QR Code Modal */}
+            {showQR && (
+                <div className={styles.qrOverlay} onClick={() => setShowQR(false)}>
+                    <div className={styles.qrModal} onClick={(e) => e.stopPropagation()}>
+                        <h2>Scan to Join</h2>
+                        <QRCodeSVG
+                            value={getShareUrl()}
+                            size={220}
+                            level="H"
+                            includeMargin
+                            bgColor="#ffffff"
+                            fgColor="#000000"
+                        />
+                        <p className={styles.qrUrl}>{getShareUrl()}</p>
+
+                        <div className={styles.viewportLinks}>
+                            <span className={styles.viewportLabel}>Quick Links:</span>
+                            <div className={styles.viewportBtns}>
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=audience`)}
+                                    className={styles.viewportBtn}
+                                >
+                                    🎤 Audience
+                                </button>
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=instrument`)}
+                                    className={styles.viewportBtn}
+                                >
+                                    🎹 Instrument
+                                </button>
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=stage`)}
+                                    className={styles.viewportBtn}
+                                >
+                                    🎸 Stage
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowQR(false)}
+                            className={styles.qrCloseBtn}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

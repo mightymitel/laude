@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { io } from 'socket.io-client'
 import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
-import type { Key } from '@laudasist/shared'
+import type { Key, ChordStyle } from '@laudasist/shared'
 import styles from './view.module.css'
 
 interface LiveSessionState {
@@ -29,11 +29,13 @@ export const Route = createFileRoute('/view/$code/')({
 function GuestViewPage() {
     const { code } = Route.useParams()
     const { type } = Route.useSearch()
+    const navigate = useNavigate()
 
     const [sessionState, setSessionState] = useState<LiveSessionState | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
 
     // Fullscreen toggle
     const toggleFullscreen = useCallback(() => {
@@ -191,6 +193,29 @@ function GuestViewPage() {
                 <div className={styles.songMeta}>
                     {song.author} • Key: {sessionState.key}
                 </div>
+                <div className={styles.controls}>
+                    <select
+                        className={styles.select}
+                        value={type}
+                        onChange={(e) => navigate({ to: '.', search: { type: e.target.value as ViewportType } })}
+                    >
+                        <option value="audience">🎤 Audience</option>
+                        <option value="stage">🎸 Stage</option>
+                        <option value="instrument">🎹 Instrument</option>
+                        <option value="subtitles">📺 Subtitles</option>
+                    </select>
+                    {(type === 'stage' || type === 'instrument') && (
+                        <select
+                            className={styles.select}
+                            value={chordStyle}
+                            onChange={(e) => setChordStyle(e.target.value as ChordStyle)}
+                        >
+                            <option value="letters">C D E</option>
+                            <option value="solfege">Do Re Mi</option>
+                            <option value="german">C D E (H)</option>
+                        </select>
+                    )}
+                </div>
             </header>
 
             <main className={styles.lyrics}>
@@ -202,8 +227,8 @@ function GuestViewPage() {
                                 {type === 'stage' || type === 'instrument' ? (
                                     <StageLine
                                         text={line.text}
-                                        originalKey={song.originalKey}
                                         displayKey={sessionState.key}
+                                        chordStyle={chordStyle}
                                     />
                                 ) : (
                                     extractChordsFromLine(line.text).text
@@ -237,10 +262,11 @@ function GuestViewPage() {
 function StageLine({
     text,
     displayKey,
+    chordStyle,
 }: {
     text: string
-    originalKey: Key
     displayKey: Key
+    chordStyle: ChordStyle
 }) {
     const { chords, text: cleanText } = extractChordsFromLine(text)
 
@@ -249,7 +275,7 @@ function StageLine({
 
     chords.forEach((chord) => {
         const spaces = ' '.repeat(Math.max(0, chord.index - lastIndex))
-        const chordStr = formatChord(chord.chord, displayKey, 'letters')
+        const chordStr = formatChord(chord.chord, displayKey, chordStyle)
         chordLine += spaces + chordStr
         lastIndex = chord.index + chordStr.length
     })
