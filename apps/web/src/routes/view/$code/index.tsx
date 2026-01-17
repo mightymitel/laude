@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useCallback } from 'react'
 import { io } from 'socket.io-client'
-import { useSong } from '@/hooks/useSongs'
 import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Key } from '@laudasist/shared'
@@ -98,7 +97,16 @@ function GuestViewPage() {
         }
     }, [code])
 
-    const { data: song } = useSong(sessionState?.songId || '')
+    // Fetch song data using public session endpoint (no auth required)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [song, setSong] = useState<any>(null)
+    useEffect(() => {
+        if (!sessionState?.songId || !code) return
+
+        api.get(`/api/sessions/song/${code}/${sessionState.songId}`)
+            .then(setSong)
+            .catch(() => setSong(null))
+    }, [sessionState?.songId, code])
 
     if (error) {
         return <div className={styles.container}>{error}</div>

@@ -121,4 +121,46 @@ router.get('/join/:accessCode', async (req, res) => {
     }
 });
 
+/**
+ * GET /api/sessions/song/:accessCode/:songId
+ * Get song data for a live session viewer (PUBLIC - no auth required)
+ * Only returns song if it matches the current session song
+ */
+import { getSongsCollection } from '../models/Song.js';
+
+router.get('/song/:accessCode/:songId', async (req, res) => {
+    try {
+        const { accessCode, songId } = req.params;
+
+        // Verify the session exists and is active
+        const session = await getLiveSessionByCode(accessCode.toUpperCase());
+        if (!session || session.status !== 'active') {
+            return res.status(404).json({ error: 'Session not found or ended' });
+        }
+
+        // Only allow fetching the song that's currently in the session
+        if (session.currentSongId !== songId) {
+            return res.status(403).json({ error: 'Song not available in this session' });
+        }
+
+        // Fetch the song
+        const songDoc = await getSongsCollection().doc(songId).get();
+        if (!songDoc.exists) {
+            return res.status(404).json({ error: 'Song not found' });
+        }
+
+        const song = songDoc.data();
+        return res.json({
+            id: songDoc.id,
+            title: song?.title,
+            author: song?.author,
+            originalKey: song?.originalKey,
+            parts: song?.parts,
+        });
+    } catch (error) {
+        console.error('Error fetching session song:', error);
+        return res.status(500).json({ error: 'Failed to fetch song' });
+    }
+});
+
 export default router;
