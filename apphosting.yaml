@@ -1,9 +1,13 @@
 # Firebase App Hosting configuration
-# This tells App Hosting to use the API subdirectory
 # https://firebase.google.com/docs/app-hosting
 
-# Point to the API app within the monorepo
-rootDirectory: apps/api
+# Build from monorepo root to access shared packages
+scripts:
+  runCommand: npm install && npm run build -w @laudasist/shared && npm run build -w @laudasist/api
+
+# The API entrypoint
+runConfig:
+  runCommand: node apps/api/dist/index.js
 
 env:
   - variable: NODE_ENV
