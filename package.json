@@ -15,7 +15,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "test": "mkdir -p test-output && npm run test --workspaces --if-present 2>&1 | tee test-output/unit-tests.log",
     "storybook": "npm run storybook -w packages/ui",
-    "deploy": "npm run build && firebase deploy"
+    "deploy": "npm run build && firebase deploy",
+    "apphosting:build": "npm run build -w @laudasist/shared && npm run build -w @laudasist/api"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
