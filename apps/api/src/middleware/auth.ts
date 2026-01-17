@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getFirebaseAuth, isFirebaseInitialized } from '../config/firebase.js';
 import { getUsersCollection, UserDocument } from '../models/User.js';
-import type { UserRole, ChordStyle } from '@laudasist/shared';
+import type { UserRole, ChordStyle } from '../shared/index.js';
 
 export interface AuthenticatedRequest extends Request {
     userId?: string;

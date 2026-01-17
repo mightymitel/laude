@@ -4,7 +4,7 @@
 # Override build and run commands to disable Next.js framework adapter
 # and use Express.js instead
 scripts:
-  buildCommand: rm -rf node_modules && npm install --include=dev && cd packages/shared && npm run build && cd ../../apps/api && npm run build
+  buildCommand: cd apps/api && npm install && npm run build
   runCommand: node apps/api/dist/index.js
 
 env:

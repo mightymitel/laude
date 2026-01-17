@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getSongsCollection, SongDocument } from '../models/Song.js';
-import type { LibraryType, Visibility } from '@laudasist/shared';
+import type { LibraryType, Visibility } from '../shared/index.js';
 
 // Helper to handle async errors would be nice, but standard try/catch for now
 

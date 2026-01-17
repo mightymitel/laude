@@ -1,4 +1,4 @@
-import type { SongPart, Key } from '@laudasist/shared';
+import type { SongPart, Key } from '../shared/index.js';
 
 export interface ScrapedSong {
     title: string;

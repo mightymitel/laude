@@ -1,5 +1,5 @@
 import { getFirestore } from '../config/firebase.js';
-import type { User as UserType } from '@laudasist/shared';
+import type { User as UserType } from '../shared/index.js';
 
 export interface UserDocument extends Omit<UserType, 'id'> {
     firebaseUid: string;

@@ -1,5 +1,5 @@
 import { getFirestore } from '../config/firebase.js';
-import type { Song as SongType } from '@laudasist/shared';
+import type { Song as SongType } from '../shared/index.js';
 
 export interface SongDocument extends Omit<SongType, 'id'> {
     // Add any backend-specific fields here if needed

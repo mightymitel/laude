@@ -1,5 +1,5 @@
 import { getFirestore } from '../config/firebase.js';
-import type { Service } from '@laudasist/shared';
+import type { Service } from '../shared/index.js';
 
 const COLLECTION_NAME = 'services';
 

@@ -1,5 +1,5 @@
 import { getFirestore } from '../config/firebase.js';
-import type { Key, ChordStyle } from '@laudasist/shared';
+import type { Key, ChordStyle } from '../shared/index.js';
 
 export interface LiveSession {
     id: string;

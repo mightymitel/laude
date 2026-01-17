@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getServicesCollection, ServiceDocument } from '../models/Service.js';
-import type { ServiceStatus, Key } from '@laudasist/shared';
+import type { ServiceStatus, Key } from '../shared/index.js';
 
 /**
  * List services for the authenticated user

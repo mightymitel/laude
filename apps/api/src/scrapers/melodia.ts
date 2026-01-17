@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio';
 import type { Scraper, ScrapedSong } from './index.js';
-import type { SongPart, Key, PartType } from '@laudasist/shared';
+import type { SongPart, Key, PartType } from '../shared/index.js';
 
 const MELODIA_DOMAIN = 'melodia.ro';
 
