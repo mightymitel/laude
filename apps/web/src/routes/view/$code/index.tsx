@@ -53,55 +53,90 @@ function GuestViewPage() {
         return () => document.removeEventListener('fullscreenchange', handler)
     }, [])
 
-    // Fetch initial state and connect socket
-    // Song state is received via WebSocket updates from presenter
+    // Song state
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [song, setSong] = useState<any>(null)
 
+    // Fetch initial state, then poll for updates (WebSocket may not work on App Hosting)
     useEffect(() => {
+        let mounted = true
+        let pollInterval: ReturnType<typeof setInterval> | null = null
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let socket: any
+        let socket: any = null
 
-        const connect = async () => {
+        const fetchSessionState = async () => {
             try {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const initial = await api.get<any>(`/api/sessions/join/${code}`)
+                const data = await api.get<any>(`/api/sessions/join/${code}`)
+                if (!mounted) return
+
                 setSessionState({
-                    songId: initial.currentSongId,
-                    partIndex: initial.currentPartIndex,
-                    key: initial.displayKey,
-                    status: initial.status,
+                    songId: data.currentSongId,
+                    partIndex: data.currentPartIndex,
+                    key: data.displayKey,
+                    status: data.status,
                 })
 
-                if (initial.status === 'ended') return
+                // Mark as connected after first successful fetch
+                setIsConnected(true)
 
-                socket = io(API_URL)
-
-                socket.on('connect', () => {
-                    setIsConnected(true)
-                    socket.emit('session:join', code)
-                })
-
-                // Handle session updates - includes song data from presenter
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                socket.on('session:update', (data: any) => {
-                    setSessionState((prev) => (prev ? { ...prev, ...data } : data))
-                    // Update song if included in the update
-                    if (data.song) {
-                        setSong(data.song)
+                // Fetch song data if session has a song
+                if (data.currentSongId) {
+                    try {
+                        const songData = await api.get(`/api/sessions/song/${code}/${data.currentSongId}`)
+                        if (mounted) setSong(songData)
+                    } catch {
+                        // Song fetch failed, will retry on next poll
                     }
-                })
+                }
 
-                socket.on('session:end', () => {
-                    setSessionState((prev) => (prev ? { ...prev, status: 'ended' } : null))
-                })
+                return data.status
             } catch (err) {
-                setError('Session not found or connection failed')
+                if (mounted) setError('Session not found or connection failed')
+                return null
             }
         }
 
+        const connect = async () => {
+            const status = await fetchSessionState()
+            if (!mounted || status === 'ended') return
+
+            // Try WebSocket for real-time updates (optional enhancement)
+            try {
+                socket = io(API_URL)
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                socket.on('session:update', (data: any) => {
+                    if (!mounted) return
+                    setSessionState((prev) => (prev ? { ...prev, ...data } : data))
+                    if (data.song) setSong(data.song)
+                })
+
+                socket.on('session:end', () => {
+                    if (mounted) setSessionState((prev) => (prev ? { ...prev, status: 'ended' } : null))
+                })
+
+                socket.on('connect', () => {
+                    socket.emit('session:join', code)
+                })
+            } catch {
+                // WebSocket failed, rely on polling
+            }
+
+            // Poll every 2 seconds as fallback (or primary if WebSocket fails)
+            pollInterval = setInterval(async () => {
+                const newStatus = await fetchSessionState()
+                if (newStatus === 'ended' && pollInterval) {
+                    clearInterval(pollInterval)
+                }
+            }, 2000)
+        }
+
         connect()
+
         return () => {
+            mounted = false
+            if (pollInterval) clearInterval(pollInterval)
             if (socket) socket.disconnect()
         }
     }, [code])
