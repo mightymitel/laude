@@ -54,6 +54,10 @@ function GuestViewPage() {
     }, [])
 
     // Fetch initial state and connect socket
+    // Song state is received via WebSocket updates from presenter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [song, setSong] = useState<any>(null)
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let socket: any
@@ -78,9 +82,14 @@ function GuestViewPage() {
                     socket.emit('session:join', code)
                 })
 
+                // Handle session updates - includes song data from presenter
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 socket.on('session:update', (data: any) => {
                     setSessionState((prev) => (prev ? { ...prev, ...data } : data))
+                    // Update song if included in the update
+                    if (data.song) {
+                        setSong(data.song)
+                    }
                 })
 
                 socket.on('session:end', () => {
@@ -96,17 +105,6 @@ function GuestViewPage() {
             if (socket) socket.disconnect()
         }
     }, [code])
-
-    // Fetch song data using public session endpoint (no auth required)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [song, setSong] = useState<any>(null)
-    useEffect(() => {
-        if (!sessionState?.songId || !code) return
-
-        api.get(`/api/sessions/song/${code}/${sessionState.songId}`)
-            .then(setSong)
-            .catch(() => setSong(null))
-    }, [sessionState?.songId, code])
 
     if (error) {
         return <div className={styles.container}>{error}</div>

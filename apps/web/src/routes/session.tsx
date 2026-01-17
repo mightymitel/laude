@@ -118,9 +118,17 @@ function SessionPageContent() {
                 songId: currentSongId,
                 partIndex: currentPartIndex,
                 key: displayKey,
+                // Include full song data for guest viewers
+                song: currentSong ? {
+                    id: currentSong.id,
+                    title: currentSong.title,
+                    author: currentSong.author,
+                    originalKey: currentSong.originalKey,
+                    parts: currentSong.parts,
+                } : null,
             })
         }
-    }, [isLive, currentSongId, currentPartIndex, displayKey, broadcastUpdate])
+    }, [isLive, currentSongId, currentPartIndex, displayKey, currentSong, broadcastUpdate])
 
     const goLive = useCallback(
         (song: Song) => {

@@ -18,6 +18,14 @@ interface SessionUpdate {
     songId: string | null;
     partIndex: number;
     key: Key;
+    // Include full song data for guest viewers (no auth needed)
+    song?: {
+        id: string;
+        title: string;
+        author?: string;
+        originalKey: Key;
+        parts: unknown[];
+    } | null;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
