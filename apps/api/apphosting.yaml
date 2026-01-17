@@ -1,16 +1,11 @@
 # Firebase App Hosting configuration for the API
 # https://firebase.google.com/docs/app-hosting
 
-runConfig:
-  cpu: 1
-  memoryMiB: 512
-  concurrency: 80
-
 env:
   - variable: NODE_ENV
     value: production
   - variable: PORT
     value: "3001"
   - variable: FRONTEND_URL
-    value: https://laudasist-1c1d2.web.app
+    value: https://laudasist-next--laudasist-1c1d2.europe-west4.hosted.app
   # Firebase Admin credentials are automatically available in App Hosting

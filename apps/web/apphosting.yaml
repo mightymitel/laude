@@ -1,0 +1,11 @@
+# Firebase App Hosting configuration for the Web app
+# https://firebase.google.com/docs/app-hosting
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+
+env:
+  - variable: NODE_ENV
+    value: production
