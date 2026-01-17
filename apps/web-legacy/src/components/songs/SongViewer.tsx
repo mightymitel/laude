@@ -107,8 +107,7 @@ function SongLineDisplay({ line, currentKey, style }: { line: string; currentKey
     // Sort chords ascending
     const sortedChords = [...chords].sort((a, b) => a.index - b.index);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const segments: { type: 'text' | 'chord'; content: string }[] = [];
+    const segments = [];
     let lastIndex = 0;
 
     sortedChords.forEach((chordPos, k) => {

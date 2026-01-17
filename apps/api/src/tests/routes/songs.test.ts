@@ -1,34 +1,5 @@
 import request from 'supertest';
 import { app } from '../../index';
-import { getSongsCollection } from '../../models/Song';
-import { getFirestore } from '../../config/firebase';
-
-// Mock Song Model
-jest.mock('../../models/Song', () => ({
-    getSongsCollection: jest.fn()
-}));
-
-
-// Mock Firebase Admin
-jest.mock('../../config/firebase', () => ({
-    getFirestore: jest.fn(),
-    getFirebaseAuth: jest.fn(() => ({
-        verifyIdToken: jest.fn().mockResolvedValue({
-            uid: 'test-user-id',
-            email: 'test@example.com'
-        })
-    })),
-    initializeFirebase: jest.fn(),
-    isFirebaseInitialized: jest.fn(() => true)
-}));
-
-// Mock auth middleware
-jest.mock('../../middleware/auth', () => ({
-    authMiddleware: (req: any, _res: any, next: any) => {
-        req.userId = 'test-user-id';
-        next();
-    },
-}));
 
 // Mock Song Model (Firestore Collection)
 const mockCollection = {
@@ -41,15 +12,44 @@ const mockCollection = {
     doc: jest.fn(),
 };
 
-(getFirestore as jest.Mock).mockReturnValue({
-    collection: jest.fn().mockReturnValue(mockCollection)
-});
+// Mock auth middleware
+jest.mock('../../middleware/auth.js', () => ({
+    authMiddleware: (req: any, _res: any, next: any) => {
+        req.userId = 'test-user-id';
+        next();
+    },
+}));
 
-(getSongsCollection as jest.Mock).mockReturnValue(mockCollection);
+// Mock Firebase Admin
+jest.mock('../../config/firebase', () => ({
+    getFirestore: jest.fn(),
+    getFirebaseAuth: jest.fn(() => ({
+        verifyIdToken: jest.fn().mockResolvedValue({
+            uid: 'test-user-id',
+            email: 'test@example.com'
+        })
+    })),
+    initializeFirebase: jest.fn(),
+    isFirebaseInitialized: jest.fn(() => false)
+}));
 
+import { getFirestore } from '../../config/firebase';
+import { getSongsCollection } from '../../models/Song';
+
+// Mock Song Model
+jest.mock('../../models/Song', () => ({
+    getSongsCollection: jest.fn()
+}));
 
 describe('Song Routes', () => {
     // app is imported
+
+    beforeEach(() => {
+        (getFirestore as jest.Mock).mockReturnValue({
+            collection: jest.fn().mockReturnValue(mockCollection)
+        });
+        (getSongsCollection as jest.Mock).mockReturnValue(mockCollection);
+    });
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -75,7 +75,9 @@ describe('Song Routes', () => {
                 size: 1
             });
 
-            const res = await request(app).get('/api/songs');
+            const res = await request(app)
+                .get('/api/songs')
+                .set('Authorization', 'Bearer test-user-id');
 
             expect(res.status).toBe(200);
             expect(res.body.data).toHaveLength(1);
@@ -98,6 +100,7 @@ describe('Song Routes', () => {
 
             const res = await request(app)
                 .post('/api/songs')
+                .set('Authorization', 'Bearer test-user-id')
                 .send(newSongData);
 
             expect(res.status).toBe(201);

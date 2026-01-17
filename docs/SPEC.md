@@ -8,7 +8,7 @@
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Next.js, TypeScript, CSS Modules, Storybook, Jest |
+| **Frontend** | React (Vite), TanStack Router, TanStack Query, TypeScript, CSS Modules |
 | **Backend** | Node.js, Express, Socket.io |
 | **Data Fetching** | TanStack Query |
 | **Database** | MongoDB |
@@ -453,7 +453,7 @@ Complete presenter dashboard:
 ```
 laudasist/
 ├── apps/
-│   ├── web/                    # Next.js frontend
+│   ├── web/                    # React + Vite frontend
 │   │   ├── src/
 │   │   │   ├── components/
 │   │   │   ├── pages/

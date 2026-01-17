@@ -14,8 +14,8 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "mkdir -p test-output && npm run test --workspaces --if-present 2>&1 | tee test-output/unit-tests.log",
-    "test:e2e": "mkdir -p test-output && npm run test:e2e -w web -- --project=public --project=authenticated 2>&1 | tee test-output/e2e-tests.log",
-    "test:e2e:setup": "mkdir -p test-output/.auth && npm run test:e2e:setup -w web",
+    "test:e2e": "mkdir -p test-output && npm run test:e2e -w web-legacy -- 2>&1 | tee test-output/e2e-tests.log",
+    "test:e2e:setup": "mkdir -p test-output/.auth && npm run test:e2e:setup -w web-legacy",
     "storybook": "npm run storybook -w packages/ui",
     "deploy": "npm run build && firebase deploy"
   },

@@ -1,0 +1,79 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette - Light Mode */
+  --background: #f8f9fa;
+  --foreground: #171717;
+
+  /* Brand Colors */
+  --primary: #0070f3;
+  --primary-hover: #0060df;
+  --secondary: #666666;
+  --accent: #7928ca;
+
+  /* UI Colors */
+  --border: #eaeaea;
+  --success: #0070f3;
+  --error: #e00;
+  --warning: #f5a623;
+
+  /* Spacing */
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Color Palette - Dark Mode */
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    --primary: #3291ff;
+    --primary-hover: #0070f3;
+    --secondary: #888888;
+
+    --border: #333333;
+  }
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Global Utility Classes if strictly needed, but prefer CSS Modules for components */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
