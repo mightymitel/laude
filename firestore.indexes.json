@@ -55,27 +55,7 @@
           "order": "DESCENDING"
         }
       ]
-    },
-    {
-        "collectionGroup": "songs",
-        "queryScope": "COLLECTION",
-        "fields": [
-          {
-            "fieldPath": "translationOf",
-            "order": "ASCENDING"
-          }
-        ]
-      },
-      {
-        "collectionGroup": "songs",
-        "queryScope": "COLLECTION",
-        "fields": [
-          {
-            "fieldPath": "clonedFrom",
-            "order": "ASCENDING"
-          }
-        ]
-      }
+    }
   ],
   "fieldOverrides": []
 }
