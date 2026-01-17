@@ -4,7 +4,8 @@ import type { Key, ChordStyle } from '../shared/index.js';
 export interface LiveSession {
     id: string;
     ownerId: string;
-    accessCode: string;      // 6-char alphanumeric code for sharing
+    accessCode: string;      // 6-char alphanumeric code for viewers
+    presenterCode: string;   // 6-char alphanumeric code for presenters
     status: 'active' | 'ended';
 
     // Current state (synced to viewers)
@@ -33,10 +34,12 @@ export function generateAccessCode(): string {
 export async function createLiveSession(ownerId: string): Promise<LiveSession> {
     const collection = getLiveSessionsCollection();
     const accessCode = generateAccessCode();
+    const presenterCode = generateAccessCode(); // Separate code for presenters
 
     const session: Omit<LiveSession, 'id'> = {
         ownerId,
         accessCode,
+        presenterCode,
         status: 'active',
         currentSongId: null,
         currentPartIndex: 0,
@@ -57,6 +60,22 @@ export async function getLiveSessionByCode(accessCode: string): Promise<LiveSess
     const collection = getLiveSessionsCollection();
     const snapshot = await collection
         .where('accessCode', '==', accessCode)
+        .where('status', '==', 'active')
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) return null;
+
+    const doc = snapshot.docs[0];
+    if (!doc) return null;
+
+    return { id: doc.id, ...doc.data() } as LiveSession;
+}
+
+export async function getLiveSessionByPresenterCode(presenterCode: string): Promise<LiveSession | null> {
+    const collection = getLiveSessionsCollection();
+    const snapshot = await collection
+        .where('presenterCode', '==', presenterCode)
         .where('status', '==', 'active')
         .limit(1)
         .get();

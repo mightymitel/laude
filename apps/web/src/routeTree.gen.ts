@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
+import { Route as PresentCodeIndexRouteImport } from './routes/present/$code/index'
 import { Route as LibraryIdIndexRouteImport } from './routes/library/$id/index'
 import { Route as LibraryIdEditRouteImport } from './routes/library/$id/edit'
 
@@ -54,6 +55,11 @@ const ViewCodeIndexRoute = ViewCodeIndexRouteImport.update({
   path: '/view/$code/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PresentCodeIndexRoute = PresentCodeIndexRouteImport.update({
+  id: '/present/$code/',
+  path: '/present/$code/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryIdIndexRoute = LibraryIdIndexRouteImport.update({
   id: '/library/$id/',
   path: '/library/$id/',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id': typeof LibraryIdIndexRoute
+  '/present/$code': typeof PresentCodeIndexRoute
   '/view/$code': typeof ViewCodeIndexRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id': typeof LibraryIdIndexRoute
+  '/present/$code': typeof PresentCodeIndexRoute
   '/view/$code': typeof ViewCodeIndexRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/library/': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id/': typeof LibraryIdIndexRoute
+  '/present/$code/': typeof PresentCodeIndexRoute
   '/view/$code/': typeof ViewCodeIndexRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/library/$id/edit'
     | '/library/$id'
+    | '/present/$code'
     | '/view/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/library/$id/edit'
     | '/library/$id'
+    | '/present/$code'
     | '/view/$code'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/library/'
     | '/library/$id/edit'
     | '/library/$id/'
+    | '/present/$code/'
     | '/view/$code/'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   LibraryIndexRoute: typeof LibraryIndexRoute
   LibraryIdEditRoute: typeof LibraryIdEditRoute
   LibraryIdIndexRoute: typeof LibraryIdIndexRoute
+  PresentCodeIndexRoute: typeof PresentCodeIndexRoute
   ViewCodeIndexRoute: typeof ViewCodeIndexRoute
 }
 
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewCodeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/present/$code/': {
+      id: '/present/$code/'
+      path: '/present/$code'
+      fullPath: '/present/$code'
+      preLoaderRoute: typeof PresentCodeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/$id/': {
       id: '/library/$id/'
       path: '/library/$id'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryIndexRoute: LibraryIndexRoute,
   LibraryIdEditRoute: LibraryIdEditRoute,
   LibraryIdIndexRoute: LibraryIdIndexRoute,
+  PresentCodeIndexRoute: PresentCodeIndexRoute,
   ViewCodeIndexRoute: ViewCodeIndexRoute,
 }
 export const routeTree = rootRouteImport

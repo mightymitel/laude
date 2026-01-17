@@ -3,6 +3,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import {
     createLiveSession,
     getLiveSessionByCode,
+    getLiveSessionByPresenterCode,
     getLiveSessionById,
     endLiveSession,
     updateLiveSession,
@@ -160,6 +161,64 @@ router.get('/song/:accessCode/:songId', async (req, res) => {
     } catch (error) {
         console.error('Error fetching session song:', error);
         return res.status(500).json({ error: 'Failed to fetch song' });
+    }
+});
+
+/**
+ * GET /api/sessions/presenter/:presenterCode
+ * Join a session as presenter (PUBLIC - no auth required, uses presenter code)
+ */
+router.get('/presenter/:presenterCode', async (req, res) => {
+    try {
+        const { presenterCode } = req.params;
+
+        const session = await getLiveSessionByPresenterCode(presenterCode.toUpperCase());
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found or ended' });
+        }
+
+        // Return session info including ID for updates
+        return res.json({
+            id: session.id,
+            accessCode: session.accessCode, // So presenter can see viewer link
+            presenterCode: session.presenterCode,
+            status: session.status,
+            currentSongId: session.currentSongId,
+            currentPartIndex: session.currentPartIndex,
+            displayKey: session.displayKey,
+            chordStyle: session.chordStyle,
+        });
+    } catch (error) {
+        console.error('Error joining as presenter:', error);
+        return res.status(500).json({ error: 'Failed to join session' });
+    }
+});
+
+/**
+ * PUT /api/sessions/presenter/:presenterCode
+ * Update session state as presenter (PUBLIC - authenticated by presenter code)
+ */
+router.put('/presenter/:presenterCode', async (req, res) => {
+    try {
+        const { presenterCode } = req.params;
+        const { currentSongId, currentPartIndex, displayKey, chordStyle } = req.body;
+
+        const session = await getLiveSessionByPresenterCode(presenterCode.toUpperCase());
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found or ended' });
+        }
+
+        const updates: Record<string, unknown> = {};
+        if (currentSongId !== undefined) updates.currentSongId = currentSongId;
+        if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
+        if (displayKey !== undefined) updates.displayKey = displayKey;
+        if (chordStyle !== undefined) updates.chordStyle = chordStyle;
+
+        await updateLiveSession(session.id, updates);
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating session as presenter:', error);
+        return res.status(500).json({ error: 'Failed to update session' });
     }
 });
 

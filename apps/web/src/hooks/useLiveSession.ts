@@ -7,6 +7,7 @@ import type { Key, ChordStyle } from '@laudasist/shared';
 interface LiveSession {
     id: string;
     accessCode: string;
+    presenterCode: string;
     status: 'active' | 'ended';
     currentSongId: string | null;
     currentPartIndex: number;
@@ -105,6 +106,13 @@ export function useLiveSession() {
         return `${baseUrl}/view/${session.accessCode}`;
     }, [session]);
 
+    // Get presenter URL
+    const getPresenterUrl = useCallback(() => {
+        if (!session) return '';
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        return `${baseUrl}/present/${session.presenterCode}`;
+    }, [session]);
+
     // Cleanup on unmount
     useEffect(() => {
         return () => {
@@ -123,5 +131,6 @@ export function useLiveSession() {
         endLive,
         broadcastUpdate,
         getShareUrl,
+        getPresenterUrl,
     };
 }

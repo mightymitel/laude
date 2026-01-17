@@ -87,11 +87,13 @@ function SessionPageContent() {
         endLive,
         broadcastUpdate,
         getShareUrl,
+        getPresenterUrl,
     } = useLiveSession()
 
     // QR Code modal state
     const [showQR, setShowQR] = useState(false)
     const [selectedViewport, setSelectedViewport] = useState<'audience' | 'instrument' | 'stage'>('audience')
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
     // Get full song data
     const { data: currentSong } = useSong(currentSongId || '')
@@ -220,36 +222,47 @@ function SessionPageContent() {
 
             <div className={styles.layout}>
                 {/* Left Panel: Search */}
-                <aside className={styles.sidebar}>
-                    <div className={styles.searchBox}>
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="🔍 Search songs..."
-                            className={styles.searchInput}
-                            autoFocus
-                        />
-                    </div>
+                <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+                    <button
+                        className={styles.sidebarToggle}
+                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {sidebarCollapsed ? '→' : '←'}
+                    </button>
+                    {!sidebarCollapsed && (
+                        <>
+                            <div className={styles.searchBox}>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="🔍 Search songs..."
+                                    className={styles.searchInput}
+                                    autoFocus
+                                />
+                            </div>
 
-                    <div className={styles.resultsList}>
-                        {displaySongs?.map((song) => (
-                            <button
-                                key={song.id}
-                                onClick={() => goLive(song)}
-                                className={`${styles.resultItem} ${song.id === currentSongId ? styles.resultItemActive : ''}`}
-                            >
-                                <span className={styles.resultTitle}>{song.title}</span>
-                                <span className={styles.resultKey}>{song.originalKey}</span>
-                            </button>
-                        ))}
-                        {searchQuery && displaySongs?.length === 0 && (
-                            <div className={styles.noResults}>No songs found</div>
-                        )}
-                        {!displaySongs?.length && !searchQuery && (
-                            <div className={styles.hint}>No songs in library</div>
-                        )}
-                    </div>
+                            <div className={styles.resultsList}>
+                                {displaySongs?.map((song) => (
+                                    <button
+                                        key={song.id}
+                                        onClick={() => goLive(song)}
+                                        className={`${styles.resultItem} ${song.id === currentSongId ? styles.resultItemActive : ''}`}
+                                    >
+                                        <span className={styles.resultTitle}>{song.title}</span>
+                                        <span className={styles.resultKey}>{song.originalKey}</span>
+                                    </button>
+                                ))}
+                                {searchQuery && displaySongs?.length === 0 && (
+                                    <div className={styles.noResults}>No songs found</div>
+                                )}
+                                {!displaySongs?.length && !searchQuery && (
+                                    <div className={styles.hint}>No songs in library</div>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </aside>
 
                 {/* Right Panel: Live View */}
@@ -397,8 +410,21 @@ function SessionPageContent() {
                             }}
                             className={styles.qrCopyBtn}
                         >
-                            📋 Copy Link
+                            📋 Copy Viewer Link
                         </button>
+
+                        <div className={styles.presenterSection}>
+                            <span className={styles.presenterLabel}>🎙️ Presenter Link</span>
+                            <p className={styles.presenterUrl}>{getPresenterUrl()}</p>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(getPresenterUrl())
+                                }}
+                                className={styles.qrCopyBtn}
+                            >
+                                📋 Copy Presenter Link
+                            </button>
+                        </div>
 
                         <button
                             onClick={() => setShowQR(false)}
