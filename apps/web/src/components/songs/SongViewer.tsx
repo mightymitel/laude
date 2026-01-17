@@ -1,4 +1,3 @@
-'use client';
 
 import { useState } from 'react';
 import { Song, Key, ChordStyle, SongPart } from '@laudasist/shared';

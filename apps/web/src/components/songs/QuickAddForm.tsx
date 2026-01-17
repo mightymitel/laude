@@ -1,7 +1,5 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { useCreateSong } from '@/hooks/useSongs';
 import { parseSongFromMarkdown, Key, ParsedSong, embedChordsInLine } from '@laudasist/shared';
 import styles from './QuickAddForm.module.css';
@@ -18,7 +16,7 @@ interface QuickAddFormProps {
 }
 
 export function QuickAddForm({ initialData }: QuickAddFormProps) {
-    const router = useRouter();
+    const navigate = useNavigate();
     const createSong = useCreateSong();
 
     const [title, setTitle] = useState(initialData?.title || '');
@@ -77,7 +75,7 @@ export function QuickAddForm({ initialData }: QuickAddFormProps) {
                 parts: songParts,
                 visibility: 'private',
             });
-            router.push('/library'); // or to the song page
+            navigate({ to: '/library' }); // or to the song page
         } catch (err) {
             setError('Failed to create song: ' + (err as Error).message);
             console.error(err);

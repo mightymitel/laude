@@ -1,4 +1,3 @@
-'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import styles from './NashvilleInput.module.css';
