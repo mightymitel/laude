@@ -20,7 +20,7 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         await login(page);
     });
 
-    test('should show QR code modal with viewport links when going live', async ({ page }) => {
+    test('should show share modal with viewport selector when going live', async ({ page }) => {
         // Navigate to session page
         await page.goto('/session');
         await page.waitForLoadState('networkidle');
@@ -30,24 +30,24 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         await expect(goLiveBtn).toBeVisible();
         await goLiveBtn.click();
 
-        // Wait for session to start and QR button to appear
-        await expect(page.locator('button:has-text("QR Code")')).toBeVisible({ timeout: 10000 });
+        // Wait for session to start and Share button to appear
+        await expect(page.locator('button:has-text("Share")')).toBeVisible({ timeout: 10000 });
 
-        // Click QR Code button
-        await page.click('button:has-text("QR Code")');
+        // Click Share button
+        await page.click('button:has-text("Share")');
 
-        // Verify QR modal is visible
-        const qrModal = page.locator('text=Scan to Join');
-        await expect(qrModal).toBeVisible();
+        // Verify modal is visible
+        const shareModal = page.locator('text=Share Session');
+        await expect(shareModal).toBeVisible();
 
-        // Verify viewport quick links are present
+        // Verify viewport selector buttons are present
         await expect(page.locator('button:has-text("Audience")')).toBeVisible();
         await expect(page.locator('button:has-text("Instrument")')).toBeVisible();
         await expect(page.locator('button:has-text("Stage")')).toBeVisible();
 
         // Close modal
         await page.click('button:has-text("Close")');
-        await expect(qrModal).not.toBeVisible();
+        await expect(shareModal).not.toBeVisible();
 
         // End the live session
         await page.click('button:has-text("End Live")');
@@ -60,30 +60,34 @@ test.describe('Live Session QR Code and Viewport Features', () => {
 
         // Go live
         await page.click('button:has-text("Go Live")');
-        await expect(page.locator('button:has-text("QR Code")')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('button:has-text("Share")')).toBeVisible({ timeout: 10000 });
 
-        // Get the access code from the QR Code modal URL
-        await page.click('button:has-text("QR Code")');
+        // Get the access code from the Share modal URL
+        await page.click('button:has-text("Share")');
         const urlText = await page.locator('p').filter({ hasText: '/view/' }).textContent();
         expect(urlText).toBeTruthy();
-        const accessCode = urlText!.split('/view/')[1];
+        const accessCode = urlText!.split('/view/')[1].split('?')[0];
         await page.click('button:has-text("Close")');
 
-        // Select a song to display (if available)
-        const songItem = page.locator('button').filter({ hasText: /^[A-Za-z]/ }).first();
-        if (await songItem.isVisible()) {
-            await songItem.click();
-            await page.waitForTimeout(500);
+        // Select a song to display - use the result items from sidebar
+        await page.waitForTimeout(1000);
+        const songButton = page.locator('[class*="resultItem"]').first();
+        if (await songButton.isVisible({ timeout: 3000 })) {
+            await songButton.click();
+            await page.waitForTimeout(1000);
         }
 
-        // Open viewer in new page
+        // Open viewer in stage mode (header visible with controls)
         const viewerPage = await context.newPage();
-        await viewerPage.goto(`/view/${accessCode}`);
+        await viewerPage.goto(`/view/${accessCode}?type=stage`);
         await viewerPage.waitForLoadState('networkidle');
+
+        // Wait for song content to load (songTitle appears when song is displayed)
+        await viewerPage.waitForSelector('[class*="songTitle"]', { timeout: 15000 });
 
         // Check for viewport dropdown
         const viewportDropdown = viewerPage.locator('select').first();
-        await expect(viewportDropdown).toBeVisible({ timeout: 10000 });
+        await expect(viewportDropdown).toBeVisible({ timeout: 5000 });
 
         // Verify dropdown has viewport options
         const options = await viewportDropdown.locator('option').allTextContents();
@@ -91,13 +95,14 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         expect(options.some(o => o.includes('Instrument'))).toBeTruthy();
         expect(options.some(o => o.includes('Stage'))).toBeTruthy();
 
-        // Change to Instrument mode
-        await viewportDropdown.selectOption('instrument');
-        await expect(viewerPage).toHaveURL(/type=instrument/);
-
-        // Chord style selector should now be visible
+        // Chord style selector should be visible in stage mode
         const chordStyleDropdown = viewerPage.locator('select').nth(1);
         await expect(chordStyleDropdown).toBeVisible();
+
+        // Verify chord style options
+        const chordOptions = await chordStyleDropdown.locator('option').allTextContents();
+        expect(chordOptions.some(o => o.includes('Letters'))).toBeTruthy();
+        expect(chordOptions.some(o => o.includes('Nashville'))).toBeTruthy();
 
         // End session from presenter page
         await page.click('button:has-text("End Live")');

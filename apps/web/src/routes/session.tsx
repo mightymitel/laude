@@ -91,6 +91,7 @@ function SessionPageContent() {
 
     // QR Code modal state
     const [showQR, setShowQR] = useState(false)
+    const [selectedViewport, setSelectedViewport] = useState<'audience' | 'instrument' | 'stage'>('audience')
 
     // Get full song data
     const { data: currentSong } = useSong(currentSongId || '')
@@ -198,15 +199,7 @@ function SessionPageContent() {
                                     onClick={() => setShowQR(true)}
                                     className={styles.shareBtn}
                                 >
-                                    📱 QR Code
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(getShareUrl())
-                                    }}
-                                    className={styles.shareBtn}
-                                >
-                                    📋 Copy Link
+                                    📤 Share
                                 </button>
                                 <button onClick={endLive} className={styles.endLiveBtn}>
                                     End Live
@@ -360,44 +353,52 @@ function SessionPageContent() {
                 </main>
             </div>
 
-            {/* QR Code Modal */}
+            {/* Share Modal */}
             {showQR && (
                 <div className={styles.qrOverlay} onClick={() => setShowQR(false)}>
                     <div className={styles.qrModal} onClick={(e) => e.stopPropagation()}>
-                        <h2>Scan to Join</h2>
+                        <h2>Share Session</h2>
+
+                        <div className={styles.viewportSelector}>
+                            <button
+                                onClick={() => setSelectedViewport('audience')}
+                                className={`${styles.viewportBtn} ${selectedViewport === 'audience' ? styles.viewportBtnActive : ''}`}
+                            >
+                                🎤 Audience
+                            </button>
+                            <button
+                                onClick={() => setSelectedViewport('instrument')}
+                                className={`${styles.viewportBtn} ${selectedViewport === 'instrument' ? styles.viewportBtnActive : ''}`}
+                            >
+                                🎹 Instrument
+                            </button>
+                            <button
+                                onClick={() => setSelectedViewport('stage')}
+                                className={`${styles.viewportBtn} ${selectedViewport === 'stage' ? styles.viewportBtnActive : ''}`}
+                            >
+                                🎸 Stage
+                            </button>
+                        </div>
+
                         <QRCodeSVG
-                            value={getShareUrl()}
-                            size={220}
+                            value={`${getShareUrl()}?type=${selectedViewport}`}
+                            size={200}
                             level="H"
                             includeMargin
                             bgColor="#ffffff"
                             fgColor="#000000"
                         />
-                        <p className={styles.qrUrl}>{getShareUrl()}</p>
 
-                        <div className={styles.viewportLinks}>
-                            <span className={styles.viewportLabel}>Quick Links:</span>
-                            <div className={styles.viewportBtns}>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=audience`)}
-                                    className={styles.viewportBtn}
-                                >
-                                    🎤 Audience
-                                </button>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=instrument`)}
-                                    className={styles.viewportBtn}
-                                >
-                                    🎹 Instrument
-                                </button>
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(`${getShareUrl()}?type=stage`)}
-                                    className={styles.viewportBtn}
-                                >
-                                    🎸 Stage
-                                </button>
-                            </div>
-                        </div>
+                        <p className={styles.qrUrl}>{`${getShareUrl()}?type=${selectedViewport}`}</p>
+
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(`${getShareUrl()}?type=${selectedViewport}`)
+                            }}
+                            className={styles.qrCopyBtn}
+                        >
+                            📋 Copy Link
+                        </button>
 
                         <button
                             onClick={() => setShowQR(false)}

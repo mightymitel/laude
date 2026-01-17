@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { io } from 'socket.io-client'
 import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
@@ -36,6 +36,8 @@ function GuestViewPage() {
     const [isConnected, setIsConnected] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
+    const [showToolbar, setShowToolbar] = useState(true)
+    const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Fullscreen toggle
     const toggleFullscreen = useCallback(() => {
@@ -54,6 +56,41 @@ function GuestViewPage() {
         document.addEventListener('fullscreenchange', handler)
         return () => document.removeEventListener('fullscreenchange', handler)
     }, [])
+
+    // Auto-hide toolbar in fullscreen
+    const handleUserActivity = useCallback(() => {
+        setShowToolbar(true)
+        if (hideTimeoutRef.current) {
+            clearTimeout(hideTimeoutRef.current)
+        }
+        if (isFullscreen) {
+            hideTimeoutRef.current = setTimeout(() => {
+                setShowToolbar(false)
+            }, 3000)
+        }
+    }, [isFullscreen])
+
+    useEffect(() => {
+        if (isFullscreen) {
+            document.addEventListener('mousemove', handleUserActivity)
+            document.addEventListener('touchstart', handleUserActivity)
+            document.addEventListener('keydown', handleUserActivity)
+            handleUserActivity() // Start the initial timer
+        } else {
+            setShowToolbar(true)
+            if (hideTimeoutRef.current) {
+                clearTimeout(hideTimeoutRef.current)
+            }
+        }
+        return () => {
+            document.removeEventListener('mousemove', handleUserActivity)
+            document.removeEventListener('touchstart', handleUserActivity)
+            document.removeEventListener('keydown', handleUserActivity)
+            if (hideTimeoutRef.current) {
+                clearTimeout(hideTimeoutRef.current)
+            }
+        }
+    }, [isFullscreen, handleUserActivity])
 
     // Song state
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -193,30 +230,36 @@ function GuestViewPage() {
                 <div className={styles.songMeta}>
                     {song.author} • Key: {sessionState.key}
                 </div>
-                <div className={styles.controls}>
+            </header>
+
+            {/* Floating Toolbar - auto-hides in fullscreen */}
+            <div className={`${styles.toolbar} ${showToolbar ? styles.toolbarVisible : styles.toolbarHidden}`}>
+                <select
+                    className={styles.select}
+                    value={type}
+                    onChange={(e) => navigate({ to: '.', search: { type: e.target.value as ViewportType } })}
+                >
+                    <option value="audience">🎤 Audience</option>
+                    <option value="stage">🎸 Stage</option>
+                    <option value="instrument">🎹 Instrument</option>
+                    <option value="subtitles">📺 Subtitles</option>
+                </select>
+                {(type === 'stage' || type === 'instrument') && (
                     <select
                         className={styles.select}
-                        value={type}
-                        onChange={(e) => navigate({ to: '.', search: { type: e.target.value as ViewportType } })}
+                        value={chordStyle}
+                        onChange={(e) => setChordStyle(e.target.value as ChordStyle)}
                     >
-                        <option value="audience">🎤 Audience</option>
-                        <option value="stage">🎸 Stage</option>
-                        <option value="instrument">🎹 Instrument</option>
-                        <option value="subtitles">📺 Subtitles</option>
+                        <option value="letters">Letters (Am)</option>
+                        <option value="caseSensitive">Case (a)</option>
+                        <option value="nashville">Nashville</option>
+                        <option value="roman">Roman</option>
                     </select>
-                    {(type === 'stage' || type === 'instrument') && (
-                        <select
-                            className={styles.select}
-                            value={chordStyle}
-                            onChange={(e) => setChordStyle(e.target.value as ChordStyle)}
-                        >
-                            <option value="letters">C D E</option>
-                            <option value="solfege">Do Re Mi</option>
-                            <option value="german">C D E (H)</option>
-                        </select>
-                    )}
-                </div>
-            </header>
+                )}
+                <button className={styles.fullscreenBtn} onClick={toggleFullscreen}>
+                    {isFullscreen ? '⛶ Exit' : '⛶ Fullscreen'}
+                </button>
+            </div>
 
             <main className={styles.lyrics}>
                 {currentPart && (
@@ -248,13 +291,6 @@ function GuestViewPage() {
                     </div>
                 )}
             </main>
-
-            {/* Fullscreen button for audience mode */}
-            {type === 'audience' && (
-                <button className={styles.fullscreenBtn} onClick={toggleFullscreen}>
-                    {isFullscreen ? '⛶ Exit' : '⛶ Fullscreen'}
-                </button>
-            )}
         </div>
     )
 }
