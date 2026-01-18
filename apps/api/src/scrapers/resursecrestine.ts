@@ -66,15 +66,13 @@ export const resursecrestineScraper: Scraper = {
 };
 
 function parseResurseCrestineContent(html: string): SongPart[] {
-    // Convert HTML entities and normalize
-    let text = html
-        .replace(/&nbsp;/g, ' ')
-        .replace(/<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>[^<]*<\/a>/g, '[$1]')
-        .replace(/<br\s*\/?>/g, '\n')
-        .replace(/<[^>]+>/g, '') // Remove remaining HTML tags
-        .replace(/\n{3,}/g, '\n\n'); // Normalize multiple newlines
+    // First, extract chord positions before converting
+    // Chords are in <a class="nice-acord" rel="CHORD">
+    // and spaces are represented by &nbsp;
 
-    const lines = text.split('\n');
+    // Split by <br> to get lines
+    const rawLines = html.split(/<br\s*\/?>/i);
+
     const parts: SongPart[] = [];
     let currentPart: SongPart | null = null;
     const partCounts: Record<PartType, number> = {
@@ -82,22 +80,57 @@ function parseResurseCrestineContent(html: string): SongPart[] {
         outro: 0, intro: 0, tag: 0
     };
 
-    // Chord line pattern - line with mostly chords and spaces
+    let pendingChordLine: { chord: string; charIndex: number }[] = [];
 
-    let pendingChords: { chord: string; pos: number }[] = [];
+    for (const rawLine of rawLines) {
+        // Check if this line has chords
+        const chordRegex = /<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>[^<]*<\/a>/g;
+        const chords: { chord: string; charIndex: number }[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i] ?? '';
-        const trimmed = line.trim();
+        // Count character positions (each &nbsp; or chord = 1 visual char)
+        let visualPos = 0;
+        let lastIdx = 0;
+        let match;
+
+        // Clone regex for matching
+        const lineHtml = rawLine;
+
+        // Process the line to extract chord positions
+        while ((match = chordRegex.exec(lineHtml)) !== null) {
+            // Count spaces before this chord
+            const beforeChord = lineHtml.substring(lastIdx, match.index);
+            const spaceCount = (beforeChord.match(/&nbsp;/g) || []).length;
+            const textBeforeChord = beforeChord.replace(/&nbsp;/g, ' ').replace(/<[^>]+>/g, '');
+            visualPos += textBeforeChord.length + spaceCount;
+
+            chords.push({
+                chord: match[1] ?? '',
+                charIndex: visualPos
+            });
+
+            lastIdx = match.index + match[0].length;
+        }
+
+        // Clean the line: remove HTML, convert &nbsp; to space
+        let cleanLine = rawLine
+            .replace(/<a[^>]*class="nice-acord"[^>]*>[^<]*<\/a>/g, '') // Remove chord tags
+            .replace(/&nbsp;/g, ' ')
+            .replace(/<[^>]+>/g, '') // Remove other HTML tags
+            .trim();
 
         // Skip empty lines and header info (Capo line, etc.)
-        if (!trimmed || trimmed.match(/^Capo\s*#?\d+/i)) {
-            pendingChords = [];
+        if (!cleanLine && chords.length === 0) {
+            pendingChordLine = [];
+            continue;
+        }
+
+        if (cleanLine.match(/^Capo\s*#?\d+/i)) {
+            pendingChordLine = [];
             continue;
         }
 
         // Check for part markers: R:, V:, B:, etc.
-        const partMarkerMatch = trimmed.match(/^([RVB]):\s*(.*)/i);
+        const partMarkerMatch = cleanLine.match(/^([RVB]):\s*(.*)/i);
         if (partMarkerMatch) {
             const markerType = (partMarkerMatch[1] ?? '').toUpperCase();
             const restOfLine = partMarkerMatch[2];
@@ -120,24 +153,17 @@ function parseResurseCrestineContent(html: string): SongPart[] {
             if (restOfLine?.trim()) {
                 currentPart.lines.push({ text: restOfLine.trim() });
             }
-            pendingChords = [];
+            pendingChordLine = [];
             continue;
         }
 
-        // Check if this is a chord-only line (chords on their own line above lyrics)
-        const chordMatches = [...line.matchAll(/\[([^\]]+)\]/g)];
-        const textWithoutChords = line.replace(/\[[^\]]+\]/g, '').trim();
-
-        if (chordMatches.length > 0 && textWithoutChords.length < 3) {
-            // This line is mostly chords - save positions for next lyric line
-            pendingChords = chordMatches.map(m => ({
-                chord: m[1] ?? '',
-                pos: m.index ?? 0
-            }));
+        // If this line has chords but no real text, save as pending
+        if (chords.length > 0 && cleanLine.length < 3) {
+            pendingChordLine = chords;
             continue;
         }
 
-        // This is a lyrics line
+        // Create part if needed
         if (!currentPart) {
             partCounts.verse++;
             currentPart = {
@@ -149,30 +175,23 @@ function parseResurseCrestineContent(html: string): SongPart[] {
             parts.push(currentPart);
         }
 
-        // If we have pending chords, merge them with this line
-        let finalLine = trimmed;
-        if (pendingChords.length > 0 && chordMatches.length === 0) {
-            // Insert chords at approximate positions based on character count
-            const textLength = finalLine.length;
-            let insertions: { pos: number; chord: string }[] = [];
+        // Merge pending chords with this line
+        let finalLine = cleanLine;
+        const chordsToInsert = pendingChordLine.length > 0 ? pendingChordLine : chords;
 
-            for (const pc of pendingChords) {
-                // Approximate position in lyrics based on relative position
-                const approxPos = Math.min(pc.pos, textLength);
-                insertions.push({ pos: approxPos, chord: pc.chord });
+        if (chordsToInsert.length > 0) {
+            // Sort by position descending to insert from end to beginning
+            const sorted = [...chordsToInsert].sort((a, b) => b.charIndex - a.charIndex);
+
+            for (const c of sorted) {
+                const pos = Math.min(c.charIndex, finalLine.length);
+                finalLine = finalLine.slice(0, pos) + `[${c.chord}]` + finalLine.slice(pos);
             }
-
-            // Sort by position descending to insert from end
-            insertions.sort((a, b) => b.pos - a.pos);
-
-            for (const ins of insertions) {
-                finalLine = finalLine.slice(0, ins.pos) + `[${ins.chord}]` + finalLine.slice(ins.pos);
-            }
-
-            pendingChords = [];
         }
 
-        // Keep chords that are already inline
+        pendingChordLine = [];
+
+        // Add line if not empty
         if (finalLine.trim()) {
             currentPart.lines.push({ text: finalLine.trim() });
         }
@@ -180,3 +199,4 @@ function parseResurseCrestineContent(html: string): SongPart[] {
 
     return parts;
 }
+

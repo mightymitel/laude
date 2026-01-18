@@ -1,6 +1,14 @@
 import { getFirestore } from '../config/firebase.js';
 import type { Key, ChordStyle } from '../shared/index.js';
 
+export interface SessionPlaylistItem {
+    id: string;
+    songId: string;
+    key?: Key;
+    arrangement?: string;
+    isExternal?: boolean;  // True if from presenter (not owner's library)
+}
+
 export interface LiveSession {
     id: string;
     ownerId: string;
@@ -13,6 +21,9 @@ export interface LiveSession {
     currentPartIndex: number;
     displayKey: Key;
     chordStyle: ChordStyle;
+
+    // Session playlist (shared with presenters)
+    sessionPlaylist: SessionPlaylistItem[];
 
     createdAt: Date;
     endedAt?: Date;
@@ -45,6 +56,7 @@ export async function createLiveSession(ownerId: string): Promise<LiveSession> {
         currentPartIndex: 0,
         displayKey: 'C',
         chordStyle: 'letters',
+        sessionPlaylist: [],
         createdAt: new Date(),
     };
 

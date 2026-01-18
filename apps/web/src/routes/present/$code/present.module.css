@@ -260,3 +260,201 @@
     color: #6366f1;
     text-decoration: underline;
 }
+
+/* Layout with sidebar */
+.layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 280px;
+    background: var(--bg-secondary, #1e1e1e);
+    border-right: 1px solid var(--border, #333);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebarHeader {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border, #333);
+}
+
+.sidebarHeader h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.playlistList {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.playlistItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-bottom: 1px solid var(--border, #333);
+    background: transparent;
+    color: var(--text-primary, #fff);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+}
+
+.playlistItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.playlistItemActive {
+    background: rgba(99, 102, 241, 0.2);
+    border-left: 3px solid #6366f1;
+}
+
+.songKey {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.emptyPlaylist {
+    padding: 1.5rem;
+    text-align: center;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+.sessionInfo {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.sessionInfo strong {
+    color: #6366f1;
+    font-family: monospace;
+}
+
+.keyBadge {
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-secondary, #1e1e1e);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.partsNav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.partsNav button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border, #333);
+    border-radius: 6px;
+    background: var(--bg-secondary, #1e1e1e);
+    color: var(--text-primary, #fff);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.partsNav button:hover:not(:disabled) {
+    background: #333;
+}
+
+.partsNav button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.partsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.partCard {
+    padding: 0.75rem;
+    border: 2px solid var(--border, #333);
+    border-radius: 8px;
+    background: var(--bg-secondary, #1e1e1e);
+    color: var(--text-primary, #fff);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.partCard:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.partCardActive {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.partType {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #6366f1;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.partPreview {
+    font-size: 0.75rem;
+    color: #888;
+    overflow: hidden;
+}
+
+.previewLine {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.currentPart {
+    background: var(--bg-secondary, #1e1e1e);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.currentPart h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #6366f1;
+    margin: 0 0 1rem;
+}
+
+.lyrics {
+    font-size: 1.1rem;
+    line-height: 2;
+}
+
+.chords {
+    color: #6366f1;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.chords span {
+    margin-right: 1rem;
+}
+
+.lyricText {
+    margin-bottom: 0.5rem;
+}

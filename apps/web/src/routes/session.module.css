@@ -13,7 +13,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: white;
+    background: var(--bg-primary);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     z-index: 10;
 }
@@ -60,6 +60,37 @@
     width: 48px;
 }
 
+/* Mobile: Sidebar becomes slide-out panel */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 60px;
+        bottom: 0;
+        width: 320px;
+        z-index: 100;
+        transform: translateX(0);
+        transition: transform 0.3s ease;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebarCollapsed {
+        transform: translateX(-100%);
+        width: 320px;
+    }
+
+    .sidebarToggle {
+        position: fixed;
+        left: 0.5rem;
+        top: 70px;
+        z-index: 101;
+    }
+
+    .sidebarCollapsed+.mainContent {
+        margin-left: 0;
+    }
+}
+
 .sidebarToggle {
     position: absolute;
     top: 0.5rem;
@@ -102,6 +133,8 @@
     border-radius: 8px;
     font-size: 1rem;
     outline: none;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     transition: box-shadow 0.2s;
 }
 
@@ -123,6 +156,7 @@
     border: 1px solid transparent;
     border-radius: 6px;
     background: transparent;
+    color: var(--text-primary);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -137,6 +171,114 @@
 .resultItemActive {
     background: rgba(0, 112, 243, 0.1);
     border-color: var(--primary);
+}
+
+.resultContent {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: inherit;
+    text-align: left;
+}
+
+.addToPlaylistBtn {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--primary);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    margin-left: 0.5rem;
+}
+
+.resultItem:hover .addToPlaylistBtn {
+    opacity: 1;
+}
+
+.addToPlaylistBtn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Menu dropdown for search results */
+.resultMenu {
+    position: relative;
+}
+
+.menuBtn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.resultItem:hover .menuBtn {
+    opacity: 1;
+}
+
+.menuBtn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.menuDropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.25rem;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.resultMenu:focus-within .menuDropdown,
+.menuBtn:focus+.menuDropdown,
+.menuDropdown:hover {
+    display: flex;
+    flex-direction: column;
+}
+
+.menuDropdown button {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.menuDropdown button:hover {
+    background: var(--bg-tertiary);
 }
 
 .resultTitle {
@@ -171,7 +313,7 @@
 .songHeader {
     padding: 1rem 2rem;
     border-bottom: 1px solid var(--border);
-    background: white;
+    background: var(--bg-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -188,7 +330,8 @@
     padding: 0.5rem;
     border: 1px solid var(--border);
     border-radius: 6px;
-    background: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     font-size: 0.9rem;
 }
@@ -225,7 +368,7 @@
 }
 
 .activePart {
-    background: white;
+    background: var(--bg-tertiary);
     border-left-color: var(--primary);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     opacity: 1;
@@ -377,30 +520,31 @@
 .shareBtn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     border-radius: 8px;
-    background: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .shareBtn:hover {
-    background: #f5f5f5;
+    background: var(--bg-tertiary);
 }
 
 .endLiveBtn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
-    border: 1px solid #e94560;
+    border: 1px solid var(--error);
     border-radius: 8px;
-    background: white;
-    color: #e94560;
+    background: var(--bg-primary);
+    color: var(--error);
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 }
 
 .endLiveBtn:hover {
-    background: #e94560;
+    background: var(--error);
     color: white;
 }
 
@@ -436,11 +580,12 @@
 }
 
 .qrModal {
-    background: white;
+    background: var(--bg-primary);
     border-radius: 16px;
     padding: 2rem;
     text-align: center;
     max-width: 360px;
+    color: var(--text-primary);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     animation: scaleIn 0.2s ease;
 }
@@ -478,13 +623,14 @@
     font-weight: 500;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .qrCopyBtn:hover {
-    background: #f5f5f5;
+    background: var(--bg-tertiary);
 }
 
 .qrCloseBtn {
@@ -493,13 +639,14 @@
     font-size: 1rem;
     border: none;
     border-radius: 8px;
-    background: #f0f0f0;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .qrCloseBtn:hover {
-    background: #e0e0e0;
+    background: var(--bg-secondary);
 }
 
 .viewportSelector {
@@ -542,19 +689,20 @@
     font-weight: 500;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     transition: background 0.2s;
 }
 
 .qrCopyBtn:hover {
-    background: #f5f5f5;
+    background: var(--bg-tertiary);
 }
 
 .presenterSection {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--border);
     width: 100%;
 }
 
@@ -562,7 +710,7 @@
     display: block;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .presenterUrl {

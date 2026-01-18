@@ -14,9 +14,11 @@ import {
     useFavorites,
 } from '@/hooks/useCommunitySongs'
 import { useLiveSession } from '@/hooks/useLiveSession'
+import { PlaylistPanel, type SessionPlaylistItem } from '@/components/PlaylistPanel'
 import { formatChord, extractChordsFromLine } from '@laudasist/shared'
 import type { Key, ChordStyle, Song } from '@laudasist/shared'
 import styles from './session.module.css'
+import { usePlaylist } from '@/hooks/usePlaylists'
 
 const POSSIBLE_KEYS: Key[] = [
     'C',
@@ -38,6 +40,7 @@ export const Route = createFileRoute('/session')({
     validateSearch: (search: Record<string, unknown>) => {
         return {
             guest: search.guest === 'true' || search.guest === true,
+            playlistId: typeof search.playlistId === 'string' ? search.playlistId : undefined,
         }
     },
 })
@@ -51,13 +54,16 @@ function SessionPage() {
 }
 
 function SessionPageContent() {
-    // Guest mode detection
-    const { guest: isGuest } = Route.useSearch()
+    // Guest mode and playlist detection
+    const { guest: isGuest, playlistId } = Route.useSearch()
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('')
     const { data: searchResults } = useSongs({ search: searchQuery || undefined })
     const { data: allSongsData } = useSongs({}) // Fetch all songs
+
+    // Load playlist if provided
+    const { data: initialPlaylist } = usePlaylist(playlistId || '')
 
     // Community songs for guest mode
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -78,6 +84,22 @@ function SessionPageContent() {
     >('above')
     const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([])
     const [useOriginalKey, setUseOriginalKey] = useState(true) // Key preference toggle
+    const [sessionPlaylist, setSessionPlaylist] = useState<SessionPlaylistItem[]>([])
+    const [playlistLoaded, setPlaylistLoaded] = useState(false)
+
+    // Auto-load playlist from URL param
+    useEffect(() => {
+        if (initialPlaylist && !playlistLoaded) {
+            const items = initialPlaylist.items.map((item) => ({
+                id: `${Date.now()}-${item.songId}`,
+                songId: item.songId,
+                key: item.key,
+                arrangement: item.arrangement,
+            }))
+            setSessionPlaylist(items)
+            setPlaylistLoaded(true)
+        }
+    }, [initialPlaylist, playlistLoaded])
 
     // Live broadcasting
     const {
@@ -85,7 +107,9 @@ function SessionPageContent() {
         isLoading,
         startLive,
         endLive,
+        session,
         broadcastUpdate,
+        syncPlaylist,
         getShareUrl,
         getPresenterUrl,
     } = useLiveSession()
@@ -136,6 +160,13 @@ function SessionPageContent() {
             })
         }
     }, [isLive, currentSongId, currentPartIndex, displayKey, currentSong, broadcastUpdate])
+
+    // Sync playlist to server when live
+    useEffect(() => {
+        if (isLive) {
+            syncPlaylist(sessionPlaylist)
+        }
+    }, [isLive, sessionPlaylist, syncPlaylist])
 
     const goLive = useCallback(
         (song: Song) => {
@@ -245,14 +276,61 @@ function SessionPageContent() {
 
                             <div className={styles.resultsList}>
                                 {displaySongs?.map((song) => (
-                                    <button
+                                    <div
                                         key={song.id}
-                                        onClick={() => goLive(song)}
                                         className={`${styles.resultItem} ${song.id === currentSongId ? styles.resultItemActive : ''}`}
+                                        draggable
+                                        onDragStart={(e) => {
+                                            e.dataTransfer.setData('application/json', JSON.stringify({
+                                                songId: song.id,
+                                                key: song.originalKey,
+                                            }));
+                                            e.dataTransfer.effectAllowed = 'copy';
+                                        }}
                                     >
-                                        <span className={styles.resultTitle}>{song.title}</span>
-                                        <span className={styles.resultKey}>{song.originalKey}</span>
-                                    </button>
+                                        <button
+                                            className={styles.resultContent}
+                                            onClick={() => goLive(song)}
+                                        >
+                                            <span className={styles.resultTitle}>{song.title}</span>
+                                            <span className={styles.resultKey}>{song.originalKey}</span>
+                                        </button>
+                                        <div className={styles.resultMenu}>
+                                            <button
+                                                className={styles.menuBtn}
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="Song options"
+                                            >
+                                                ⋮
+                                            </button>
+                                            <div className={styles.menuDropdown}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSessionPlaylist((prev) => [
+                                                            ...prev,
+                                                            {
+                                                                id: `${Date.now()}-${song.id}`,
+                                                                songId: song.id,
+                                                                key: song.originalKey,
+                                                            },
+                                                        ]);
+                                                    }}
+                                                >
+                                                    ➕ Add to Playlist
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // TODO: Implement quick edit
+                                                        alert('Quick edit coming soon!');
+                                                    }}
+                                                >
+                                                    ✏️ Quick Edit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
                                 {searchQuery && displaySongs?.length === 0 && (
                                     <div className={styles.noResults}>No songs found</div>
@@ -262,6 +340,24 @@ function SessionPageContent() {
                                 )}
                             </div>
                         </>
+                    )}
+
+                    {/* Session Playlist */}
+                    {!sidebarCollapsed && (
+                        <PlaylistPanel
+                            sessionPlaylist={sessionPlaylist}
+                            currentSongId={currentSongId}
+                            onAddSong={(item) => setSessionPlaylist((prev) => [...prev, item])}
+                            onRemoveSong={(itemId) => setSessionPlaylist((prev) => prev.filter((i) => i.id !== itemId))}
+                            onUpdateItem={(itemId, updates) => setSessionPlaylist((prev) =>
+                                prev.map((i) => i.id === itemId ? { ...i, ...updates } : i)
+                            )}
+                            onSelectSong={(songId, key) => {
+                                setCurrentSongId(songId)
+                                if (key) setDisplayKey(key)
+                                setCurrentPartIndex(0)
+                            }}
+                        />
                     )}
                 </aside>
 

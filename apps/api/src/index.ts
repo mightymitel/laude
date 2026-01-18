@@ -46,6 +46,10 @@ app.use('/api/sessions', sessionsRouter);
 import communityRouter from './routes/community.js';
 app.use('/api/community', communityRouter);
 
+// Playlist routes - require auth
+import playlistsRouter from './routes/playlists.js';
+app.use('/api/playlists', authMiddleware, playlistsRouter);
+
 // Socket.io connection handling
 io.on('connection', socket => {
     console.log('Client connected:', socket.id);

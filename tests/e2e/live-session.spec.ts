@@ -110,4 +110,45 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         // Close viewer
         await viewerPage.close();
     });
+
+    test('should be able to add songs to session playlist', async ({ page }) => {
+        // Navigate to session page
+        await page.goto('/session');
+        await page.waitForLoadState('networkidle');
+
+        // Wait for playlist panel to be visible
+        const playlistPanel = page.locator('text=Session Playlist');
+        await expect(playlistPanel).toBeVisible({ timeout: 10000 });
+
+        // Initially the playlist should be empty
+        await expect(page.locator('text=No songs in playlist')).toBeVisible();
+
+        // Look for a song in search results
+        const searchInput = page.locator('input[placeholder*="Search"]');
+        await expect(searchInput).toBeVisible();
+
+        // Hover over a search result to show menu button
+        const songResult = page.locator('[class*="resultItem"]').first();
+        if (await songResult.isVisible({ timeout: 3000 })) {
+            await songResult.hover();
+
+            // Click the menu button
+            const menuBtn = page.locator('[class*="menuBtn"]').first();
+            if (await menuBtn.isVisible({ timeout: 2000 })) {
+                await menuBtn.click();
+
+                // Click "Add to Playlist"
+                const addBtn = page.locator('button:has-text("Add to Playlist")');
+                await expect(addBtn).toBeVisible({ timeout: 2000 });
+                await addBtn.click();
+
+                // Verify the playlist now has a song
+                await expect(page.locator('text=No songs in playlist')).not.toBeVisible();
+
+                // Verify playlist item is visible
+                const playlistItem = page.locator('[class*="playlistItem"]').first();
+                await expect(playlistItem).toBeVisible({ timeout: 3000 });
+            }
+        }
+    });
 });

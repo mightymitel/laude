@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SessionRouteImport } from './routes/session'
+import { Route as PlaylistsRouteImport } from './routes/playlists'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
+import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
 import { Route as PresentCodeIndexRouteImport } from './routes/present/$code/index'
@@ -23,6 +25,11 @@ import { Route as LibraryIdEditRouteImport } from './routes/library/$id/edit'
 const SessionRoute = SessionRouteImport.update({
   id: '/session',
   path: '/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistsRoute = PlaylistsRouteImport.update({
+  id: '/playlists',
+  path: '/playlists',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -44,6 +51,11 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   id: '/library/',
   path: '/library/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PlaylistsRoute,
 } as any)
 const LibraryNewRoute = LibraryNewRouteImport.update({
   id: '/library/new',
@@ -75,8 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
   '/library/new': typeof LibraryNewRoute
+  '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id': typeof LibraryIdIndexRoute
@@ -87,8 +101,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
   '/library/new': typeof LibraryNewRoute
+  '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id': typeof LibraryIdIndexRoute
@@ -100,8 +116,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
   '/library/new': typeof LibraryNewRoute
+  '/playlists/$id': typeof PlaylistsIdRoute
   '/library/': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id/': typeof LibraryIdIndexRoute
@@ -114,8 +132,10 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/playlists'
     | '/session'
     | '/library/new'
+    | '/playlists/$id'
     | '/library'
     | '/library/$id/edit'
     | '/library/$id'
@@ -126,8 +146,10 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/playlists'
     | '/session'
     | '/library/new'
+    | '/playlists/$id'
     | '/library'
     | '/library/$id/edit'
     | '/library/$id'
@@ -138,8 +160,10 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/playlists'
     | '/session'
     | '/library/new'
+    | '/playlists/$id'
     | '/library/'
     | '/library/$id/edit'
     | '/library/$id/'
@@ -151,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
+  PlaylistsRoute: typeof PlaylistsRouteWithChildren
   SessionRoute: typeof SessionRoute
   LibraryNewRoute: typeof LibraryNewRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
@@ -167,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/session'
       fullPath: '/session'
       preLoaderRoute: typeof SessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlists': {
+      id: '/playlists'
+      path: '/playlists'
+      fullPath: '/playlists'
+      preLoaderRoute: typeof PlaylistsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -196,6 +228,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/library'
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/playlists/$id': {
+      id: '/playlists/$id'
+      path: '/$id'
+      fullPath: '/playlists/$id'
+      preLoaderRoute: typeof PlaylistsIdRouteImport
+      parentRoute: typeof PlaylistsRoute
     }
     '/library/new': {
       id: '/library/new'
@@ -235,10 +274,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PlaylistsRouteChildren {
+  PlaylistsIdRoute: typeof PlaylistsIdRoute
+}
+
+const PlaylistsRouteChildren: PlaylistsRouteChildren = {
+  PlaylistsIdRoute: PlaylistsIdRoute,
+}
+
+const PlaylistsRouteWithChildren = PlaylistsRoute._addFileChildren(
+  PlaylistsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
+  PlaylistsRoute: PlaylistsRouteWithChildren,
   SessionRoute: SessionRoute,
   LibraryNewRoute: LibraryNewRoute,
   LibraryIndexRoute: LibraryIndexRoute,

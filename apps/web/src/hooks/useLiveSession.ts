@@ -99,6 +99,14 @@ export function useLiveSession() {
         }).catch(console.error);
     }, [session]);
 
+    // Sync session playlist to server
+    const syncPlaylist = useCallback((playlist: unknown[]) => {
+        if (!session) return;
+        api.put(`/api/sessions/live/${session.id}`, {
+            sessionPlaylist: playlist,
+        }).catch(console.error);
+    }, [session]);
+
     // Get share URL
     const getShareUrl = useCallback(() => {
         if (!session) return '';
@@ -130,6 +138,7 @@ export function useLiveSession() {
         startLive,
         endLive,
         broadcastUpdate,
+        syncPlaylist,
         getShareUrl,
         getPresenterUrl,
     };

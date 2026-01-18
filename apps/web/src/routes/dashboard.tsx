@@ -69,7 +69,7 @@ function DashboardPage() {
             </header>
 
             <div className={styles.heroAction}>
-                <Link to="/session" search={{ guest: false }} className={styles.startSessionButton}>
+                <Link to="/session" search={{ guest: false, playlistId: undefined }} className={styles.startSessionButton}>
                     <span className={styles.playIcon}>▶</span>
                     <div>
                         <span className={styles.buttonTitle}>Start Playing</span>
@@ -116,6 +116,9 @@ function DashboardPage() {
                     <div className={styles.actions} style={{ flexDirection: 'column' }}>
                         <Link to="/library" className={styles.link}>
                             Browse Song Library
+                        </Link>
+                        <Link to="/playlists" className={styles.link}>
+                            📋 Manage Playlists
                         </Link>
                         {/* <Link to="/services" className={styles.link}>
                             Manage Services (Coming Soon)

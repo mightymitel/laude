@@ -68,7 +68,7 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId!;
         const id = req.params.id!;
-        const { currentSongId, currentPartIndex, displayKey, chordStyle } = req.body;
+        const { currentSongId, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
 
         const session = await getLiveSessionById(id);
         if (!session) {
@@ -84,6 +84,7 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
         if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
         if (displayKey !== undefined) updates.displayKey = displayKey;
         if (chordStyle !== undefined) updates.chordStyle = chordStyle;
+        if (sessionPlaylist !== undefined) updates.sessionPlaylist = sessionPlaylist;
 
         await updateLiveSession(id, updates);
         return res.json({ success: true });
@@ -187,6 +188,7 @@ router.get('/presenter/:presenterCode', async (req, res) => {
             currentPartIndex: session.currentPartIndex,
             displayKey: session.displayKey,
             chordStyle: session.chordStyle,
+            sessionPlaylist: session.sessionPlaylist || [],
         });
     } catch (error) {
         console.error('Error joining as presenter:', error);
@@ -201,7 +203,7 @@ router.get('/presenter/:presenterCode', async (req, res) => {
 router.put('/presenter/:presenterCode', async (req, res) => {
     try {
         const { presenterCode } = req.params;
-        const { currentSongId, currentPartIndex, displayKey, chordStyle } = req.body;
+        const { currentSongId, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
 
         const session = await getLiveSessionByPresenterCode(presenterCode.toUpperCase());
         if (!session) {
@@ -213,6 +215,7 @@ router.put('/presenter/:presenterCode', async (req, res) => {
         if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
         if (displayKey !== undefined) updates.displayKey = displayKey;
         if (chordStyle !== undefined) updates.chordStyle = chordStyle;
+        if (sessionPlaylist !== undefined) updates.sessionPlaylist = sessionPlaylist;
 
         await updateLiveSession(session.id, updates);
         return res.json({ success: true });
