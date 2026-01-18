@@ -284,6 +284,14 @@ function SessionPageContent() {
                                             e.dataTransfer.setData('application/json', JSON.stringify({
                                                 songId: song.id,
                                                 key: song.originalKey,
+                                                // Include song data for presenter access
+                                                song: {
+                                                    id: song.id,
+                                                    title: song.title,
+                                                    author: song.author,
+                                                    originalKey: song.originalKey,
+                                                    parts: song.parts,
+                                                },
                                             }));
                                             e.dataTransfer.effectAllowed = 'copy';
                                         }}
@@ -313,6 +321,14 @@ function SessionPageContent() {
                                                                 id: `${Date.now()}-${song.id}`,
                                                                 songId: song.id,
                                                                 key: song.originalKey,
+                                                                // Embed song data for presenter access
+                                                                song: {
+                                                                    id: song.id,
+                                                                    title: song.title,
+                                                                    author: song.author,
+                                                                    originalKey: song.originalKey,
+                                                                    parts: song.parts,
+                                                                },
                                                             },
                                                         ]);
                                                     }}

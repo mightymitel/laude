@@ -1,19 +1,28 @@
 import { useState } from 'react';
 import { usePlaylists, type Playlist } from '@/hooks/usePlaylists';
 import { useSong } from '@/hooks/useSongs';
-import type { Key } from '@laudasist/shared';
+import type { Key, SongPart } from '@laudasist/shared';
 import styles from './PlaylistPanel.module.css';
 
 const POSSIBLE_KEYS: Key[] = [
     'C', 'G', 'D', 'A', 'E', 'B', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F',
 ];
 
-interface SessionPlaylistItem {
+// Embedded song data for presenter access
+export interface EmbeddedSong {
+    id: string;
+    title: string;
+    author?: string;
+    originalKey: Key;
+    parts: SongPart[];
+}
+
+export interface SessionPlaylistItem {
     id: string;
     songId: string;
     key?: Key;
     arrangement?: string;
-    isExternal?: boolean;
+    song?: EmbeddedSong;  // Full song data for presenter
 }
 
 interface PlaylistPanelProps {
@@ -39,7 +48,9 @@ function PlaylistItemRow({
     onUpdateKey: (key: Key) => void;
     isActive: boolean;
 }) {
-    const { data: song } = useSong(item.songId);
+    // Use embedded song data if available, otherwise fetch
+    const { data: fetchedSong } = useSong(item.song ? '' : item.songId);
+    const song = item.song || fetchedSong;
 
     return (
         <div
@@ -50,7 +61,6 @@ function PlaylistItemRow({
                 <span className={styles.itemTitle}>
                     {song?.title || 'Loading...'}
                 </span>
-                {item.isExternal && <span className={styles.externalBadge}>🔗</span>}
             </div>
             <div className={styles.itemActions}>
                 <select
@@ -116,6 +126,8 @@ export function PlaylistPanel({
                     id: `${Date.now()}-${data.songId}`,
                     songId: data.songId,
                     key: data.key,
+                    // Include embedded song data if available
+                    song: data.song,
                 });
             }
         } catch {
@@ -197,5 +209,3 @@ export function PlaylistPanel({
         </div>
     );
 }
-
-export type { SessionPlaylistItem };

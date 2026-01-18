@@ -2,19 +2,27 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { api } from '@/lib/api'
-import { useSong } from '@/hooks/useSongs'
+import { useCommunitySongs } from '@/hooks/useCommunitySongs'
 import { formatChord, extractChordsFromLine } from '@laudasist/shared'
-import type { Key, ChordStyle } from '@laudasist/shared'
+import type { Key, SongPart } from '@laudasist/shared'
 import styles from './present.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+// Embedded song data for presenter access
+interface EmbeddedSong {
+  id: string
+  title: string
+  author?: string
+  originalKey: Key
+  parts: SongPart[]
+}
 
 interface SessionPlaylistItem {
   id: string
   songId: string
   key?: Key
-  arrangement?: string
-  isExternal?: boolean
+  song?: EmbeddedSong
 }
 
 interface PresenterSession {
@@ -23,9 +31,9 @@ interface PresenterSession {
   presenterCode: string
   status: 'active' | 'ended'
   currentSongId: string | null
+  currentSong?: EmbeddedSong
   currentPartIndex: number
   displayKey: Key
-  chordStyle: ChordStyle
   sessionPlaylist: SessionPlaylistItem[]
 }
 
@@ -38,14 +46,15 @@ function PlaylistItemRow({ item, isActive, onClick }: {
   isActive: boolean
   onClick: () => void
 }) {
-  const { data: song } = useSong(item.songId)
+  // Use embedded song data
+  const song = item.song
 
   return (
     <button
       className={`${styles.playlistItem} ${isActive ? styles.playlistItemActive : ''}`}
       onClick={onClick}
     >
-      <span className={styles.songTitle}>{song?.title || 'Loading...'}</span>
+      <span className={styles.songTitle}>{song?.title || 'Unknown Song'}</span>
       <span className={styles.songKey}>{item.key || song?.originalKey || '?'}</span>
     </button>
   )
@@ -58,13 +67,14 @@ function PresenterPage() {
   const [loading, setLoading] = useState(true)
   const socketRef = useRef<Socket | null>(null)
 
-  // Current song state
-  const [currentSongId, setCurrentSongId] = useState<string | null>(null)
+  // Current song state - use embedded data from playlist/session
+  const [currentSong, setCurrentSong] = useState<EmbeddedSong | null>(null)
   const [currentPartIndex, setCurrentPartIndex] = useState(0)
   const [displayKey, setDisplayKey] = useState<Key>('C')
 
-  // Get song data
-  const { data: currentSong } = useSong(currentSongId || '')
+  // Search for community/official songs
+  const [searchQuery, setSearchQuery] = useState('')
+  const { data: searchResults } = useCommunitySongs({ search: searchQuery || undefined })
 
   // Fetch session on mount
   useEffect(() => {
@@ -72,9 +82,18 @@ function PresenterPage() {
       try {
         const data = await api.get<PresenterSession>(`/api/sessions/presenter/${code}`)
         setSession(data)
-        setCurrentSongId(data.currentSongId)
         setCurrentPartIndex(data.currentPartIndex)
         setDisplayKey(data.displayKey)
+
+        // Set current song from embedded data
+        if (data.currentSong) {
+          setCurrentSong(data.currentSong)
+        } else if (data.currentSongId && data.sessionPlaylist) {
+          const playlistItem = data.sessionPlaylist.find(i => i.songId === data.currentSongId)
+          if (playlistItem?.song) {
+            setCurrentSong(playlistItem.song)
+          }
+        }
 
         // Connect to socket
         const socket = io(API_URL)
@@ -83,9 +102,9 @@ function PresenterPage() {
 
         // Listen for updates from owner
         socket.on('session:state', (update) => {
-          if (update.songId !== undefined) setCurrentSongId(update.songId)
           if (update.partIndex !== undefined) setCurrentPartIndex(update.partIndex)
           if (update.key !== undefined) setDisplayKey(update.key)
+          if (update.song) setCurrentSong(update.song)
         })
 
       } catch (err) {
@@ -101,7 +120,15 @@ function PresenterPage() {
     const pollInterval = setInterval(async () => {
       try {
         const data = await api.get<PresenterSession>(`/api/sessions/presenter/${code}`)
-        setSession((prev) => prev ? { ...prev, sessionPlaylist: data.sessionPlaylist || [] } : null)
+        setSession((prev) => prev ? {
+          ...prev,
+          sessionPlaylist: data.sessionPlaylist || [],
+          currentSong: data.currentSong,
+        } : null)
+        // Update current song if changed
+        if (data.currentSong) {
+          setCurrentSong(data.currentSong)
+        }
       } catch {
         // Ignore polling errors
       }
@@ -116,19 +143,21 @@ function PresenterPage() {
   }, [code])
 
   // Broadcast update to viewers
-  const broadcastUpdate = useCallback((songId: string | null, partIndex: number, key: Key) => {
+  const broadcastUpdate = useCallback((song: EmbeddedSong | null, partIndex: number, key: Key) => {
     if (!session || !socketRef.current) return
 
     socketRef.current.emit('session:update', {
       accessCode: session.accessCode,
-      songId,
+      songId: song?.id || null,
       partIndex,
       key,
+      song,
     })
 
     // Also update via API
     api.put(`/api/sessions/presenter/${code}`, {
-      currentSongId: songId,
+      currentSongId: song?.id || null,
+      currentSong: song,
       currentPartIndex: partIndex,
       displayKey: key,
     }).catch(console.error)
@@ -136,19 +165,20 @@ function PresenterPage() {
 
   // Select song from playlist
   const selectSong = useCallback((item: SessionPlaylistItem) => {
-    setCurrentSongId(item.songId)
+    if (!item.song) return
+    setCurrentSong(item.song)
     setCurrentPartIndex(0)
     if (item.key) {
       setDisplayKey(item.key)
     }
-    broadcastUpdate(item.songId, 0, item.key || displayKey)
+    broadcastUpdate(item.song, 0, item.key || displayKey)
   }, [broadcastUpdate, displayKey])
 
   // Navigate parts
   const goToPart = useCallback((index: number) => {
     setCurrentPartIndex(index)
-    broadcastUpdate(currentSongId, index, displayKey)
-  }, [broadcastUpdate, currentSongId, displayKey])
+    broadcastUpdate(currentSong, index, displayKey)
+  }, [broadcastUpdate, currentSong, displayKey])
 
   const nextPart = useCallback(() => {
     if (currentSong && currentPartIndex < currentSong.parts.length - 1) {
@@ -166,6 +196,23 @@ function PresenterPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderChord = (chord: any) => {
     return formatChord(chord, displayKey, 'letters')
+  }
+
+  // Select community song
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const selectCommunitySong = (song: any) => {
+    const embedded: EmbeddedSong = {
+      id: song.id,
+      title: song.title,
+      author: song.author,
+      originalKey: song.originalKey,
+      parts: song.parts,
+    }
+    setCurrentSong(embedded)
+    setCurrentPartIndex(0)
+    setDisplayKey(song.originalKey)
+    setSearchQuery('')
+    broadcastUpdate(embedded, 0, song.originalKey)
   }
 
   if (loading) {
@@ -193,8 +240,34 @@ function PresenterPage() {
       </header>
 
       <div className={styles.layout}>
-        {/* Playlist Panel */}
+        {/* Sidebar with Playlist and Search */}
         <aside className={styles.sidebar}>
+          {/* Search Panel */}
+          <div className={styles.searchPanel}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search community songs..."
+              className={styles.searchInput}
+            />
+            {searchQuery && searchResults && searchResults.length > 0 && (
+              <div className={styles.searchResults}>
+                {searchResults.map((song) => (
+                  <button
+                    key={song.id}
+                    className={styles.searchResultItem}
+                    onClick={() => selectCommunitySong(song)}
+                  >
+                    <span>{song.title}</span>
+                    <span className={styles.songKey}>{song.originalKey}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Playlist Panel */}
           <div className={styles.sidebarHeader}>
             <h3>📋 Session Playlist</h3>
           </div>
@@ -205,7 +278,7 @@ function PresenterPage() {
                 <PlaylistItemRow
                   key={item.id}
                   item={item}
-                  isActive={item.songId === currentSongId}
+                  isActive={item.songId === currentSong?.id}
                   onClick={() => selectSong(item)}
                 />
               ))}
@@ -286,7 +359,7 @@ function PresenterPage() {
           ) : (
             <div className={styles.noSong}>
               <h2>No Song Selected</h2>
-              <p>Select a song from the playlist to begin.</p>
+              <p>Select a song from the playlist or search to begin.</p>
             </div>
           )}
         </main>

@@ -68,7 +68,7 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId!;
         const id = req.params.id!;
-        const { currentSongId, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
+        const { currentSongId, currentSong, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
 
         const session = await getLiveSessionById(id);
         if (!session) {
@@ -81,6 +81,7 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
 
         const updates: Record<string, unknown> = {};
         if (currentSongId !== undefined) updates.currentSongId = currentSongId;
+        if (currentSong !== undefined) updates.currentSong = currentSong;
         if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
         if (displayKey !== undefined) updates.displayKey = displayKey;
         if (chordStyle !== undefined) updates.chordStyle = chordStyle;
@@ -185,6 +186,7 @@ router.get('/presenter/:presenterCode', async (req, res) => {
             presenterCode: session.presenterCode,
             status: session.status,
             currentSongId: session.currentSongId,
+            currentSong: session.currentSong,
             currentPartIndex: session.currentPartIndex,
             displayKey: session.displayKey,
             chordStyle: session.chordStyle,
@@ -203,7 +205,7 @@ router.get('/presenter/:presenterCode', async (req, res) => {
 router.put('/presenter/:presenterCode', async (req, res) => {
     try {
         const { presenterCode } = req.params;
-        const { currentSongId, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
+        const { currentSongId, currentSong, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
 
         const session = await getLiveSessionByPresenterCode(presenterCode.toUpperCase());
         if (!session) {
@@ -212,6 +214,7 @@ router.put('/presenter/:presenterCode', async (req, res) => {
 
         const updates: Record<string, unknown> = {};
         if (currentSongId !== undefined) updates.currentSongId = currentSongId;
+        if (currentSong !== undefined) updates.currentSong = currentSong;
         if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
         if (displayKey !== undefined) updates.displayKey = displayKey;
         if (chordStyle !== undefined) updates.chordStyle = chordStyle;

@@ -1,12 +1,21 @@
 import { getFirestore } from '../config/firebase.js';
-import type { Key, ChordStyle } from '../shared/index.js';
+import type { Key, ChordStyle, SongPart } from '../shared/index.js';
+
+// Embedded song data for presenter access (no library fetch needed)
+export interface EmbeddedSong {
+    id: string;
+    title: string;
+    author?: string;
+    originalKey: Key;
+    parts: SongPart[];
+}
 
 export interface SessionPlaylistItem {
     id: string;
     songId: string;
     key?: Key;
     arrangement?: string;
-    isExternal?: boolean;  // True if from presenter (not owner's library)
+    song?: EmbeddedSong;  // Full song data for presenter
 }
 
 export interface LiveSession {
@@ -18,6 +27,7 @@ export interface LiveSession {
 
     // Current state (synced to viewers)
     currentSongId: string | null;
+    currentSong?: EmbeddedSong;  // Full song data for presenter/viewer
     currentPartIndex: number;
     displayKey: Key;
     chordStyle: ChordStyle;
