@@ -101,13 +101,13 @@ function PresenterPage() {
 
   const nextPart = useCallback(() => {
     if (session?.currentSong && (session.currentPartIndex ?? 0) < session.currentSong.parts.length - 1) {
-      goToPart((session.currentPartIndex ?? 0) + 1)
+      goToPart((session?.currentPartIndex ?? 0) + 1)
     }
   }, [session, goToPart])
 
   const prevPart = useCallback(() => {
     if ((session?.currentPartIndex ?? 0) > 0) {
-      goToPart((session.currentPartIndex ?? 0) - 1)
+      goToPart((session?.currentPartIndex ?? 0) - 1)
     }
   }, [session, goToPart])
 

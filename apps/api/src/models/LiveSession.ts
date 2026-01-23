@@ -91,7 +91,7 @@ export async function getLiveSessionByCode(accessCode: string): Promise<LiveSess
     const doc = snapshot.docs[0];
     if (!doc) return null;
 
-    const data = doc.data() as LiveSession;
+    const data = doc.data() as Omit<LiveSession, 'id'>;
 
     if (data.status !== 'active') return null; // Enforce active status in memory
 
@@ -111,7 +111,7 @@ export async function getLiveSessionByPresenterCode(presenterCode: string): Prom
     const doc = snapshot.docs[0];
     if (!doc) return null;
 
-    const data = doc.data() as LiveSession;
+    const data = doc.data() as Omit<LiveSession, 'id'>;
 
     if (data.status !== 'active') return null; // Enforce active status in memory
 
