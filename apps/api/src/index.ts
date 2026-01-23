@@ -18,10 +18,31 @@ const httpServer = createServer(app);
 // Socket.io setup
 const io = new SocketServer(httpServer, {
     cors: {
-        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        origin: (origin, callback) => {
+            const allowed = [
+                process.env.FRONTEND_URL || 'http://localhost:3000',
+                'http://localhost:5173',
+                'http://localhost:5174'
+            ];
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+
+            // Check against static whitelist
+            if (allowed.indexOf(origin) !== -1) return callback(null, true);
+
+            // Allow any localhost/127.0.0.1
+            if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error('Not allowed by CORS'));
+        },
         methods: ['GET', 'POST'],
     },
 });
+
+// Make io available to routes for server-side event emission
+app.set('io', io);
 
 // Middleware
 app.use(cors());
@@ -78,17 +99,71 @@ io.on('connection', socket => {
         console.log(`Socket ${socket.id} left ${room}`);
     });
 
-    // Presenter broadcasts update to all viewers
-    socket.on('session:update', (data: { accessCode: string; songId: string | null; partIndex: number; key: string }) => {
+    // === Session Sync Events ===
+    // All controllers (owner + presenters) can emit these events
+    // Server broadcasts state:sync to ALL clients in room (including sender for confirmation)
+
+    // Song change - when a controller selects a new song
+    socket.on('song:change', (data: {
+        accessCode: string;
+        songId: string | null;
+        song?: { id: string; title: string; author?: string; originalKey: string; parts: unknown[] } | null;
+        partIndex: number;
+        key: string
+    }) => {
         const room = `session:${data.accessCode.toUpperCase()}`;
-        socket.to(room).emit('session:update', {
+        // Broadcast to ALL in room including sender
+        io.to(room).emit('state:sync', {
             songId: data.songId,
+            song: data.song || null,
             partIndex: data.partIndex,
             key: data.key,
         });
+        console.log(`[${room}] song:change -> state:sync (songId: ${data.songId})`);
     });
 
-    // Presenter ends session
+    // Part change - when a controller navigates parts
+    socket.on('part:change', (data: { accessCode: string; partIndex: number }) => {
+        const room = `session:${data.accessCode.toUpperCase()}`;
+        io.to(room).emit('state:sync', { partIndex: data.partIndex });
+        console.log(`[${room}] part:change -> state:sync (partIndex: ${data.partIndex})`);
+    });
+
+    // Key change - when a controller changes the display key
+    socket.on('key:change', (data: { accessCode: string; key: string }) => {
+        const room = `session:${data.accessCode.toUpperCase()}`;
+        io.to(room).emit('state:sync', { key: data.key });
+        console.log(`[${room}] key:change -> state:sync (key: ${data.key})`);
+    });
+
+    // === NEW: Simple state change notification ===
+    // Clients emit this after updating state via API
+    // All clients in room refetch their session state
+    socket.on('state:changed', (data: { accessCode: string }) => {
+        const room = `session:${data.accessCode.toUpperCase()}`;
+        io.to(room).emit('state:changed');
+        console.log(`[${room}] state:changed broadcast`);
+    });
+
+    // Playlist change - notify presenters to re-fetch playlist via API
+    socket.on('playlist:change', (data: { accessCode: string }) => {
+        const room = `session:${data.accessCode.toUpperCase()}`;
+        io.to(room).emit('state:sync', { playlistUpdated: true });
+        console.log(`[${room}] playlist:change -> state:sync (playlistUpdated)`);
+    });
+
+    // Legacy: Keep session:update for backward compatibility during transition
+    socket.on('session:update', (data: { accessCode: string; songId: string | null; partIndex: number; key: string; song?: unknown }) => {
+        const room = `session:${data.accessCode.toUpperCase()}`;
+        io.to(room).emit('state:sync', {
+            songId: data.songId,
+            partIndex: data.partIndex,
+            key: data.key,
+            song: data.song || null,
+        });
+    });
+
+    // Session end - notify all clients
     socket.on('session:end', (accessCode: string) => {
         const room = `session:${accessCode.toUpperCase()}`;
         io.to(room).emit('session:end');

@@ -1,57 +1,44 @@
-
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useState, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
+import { useSessionState, type SessionState, type SessionUpdate, type SessionPlaylistItem, type EmbeddedSong } from './useSessionState';
 import type { Key, ChordStyle } from '@laudasist/shared';
 
-interface LiveSession {
+// Full session context including secret presenter code
+interface LiveSessionContext {
     id: string;
     accessCode: string;
     presenterCode: string;
-    status: 'active' | 'ended';
-    currentSongId: string | null;
-    currentPartIndex: number;
-    displayKey: Key;
-    chordStyle: ChordStyle;
 }
 
-interface SessionUpdate {
-    songId: string | null;
-    partIndex: number;
-    key: Key;
-    // Include full song data for guest viewers (no auth needed)
-    song?: {
-        id: string;
-        title: string;
-        author?: string;
-        originalKey: Key;
-        parts: unknown[];
-    } | null;
+// Extended session type combining context + state
+export interface LiveSession extends Omit<SessionState, 'id' | 'accessCode'> {
+    id: string;
+    accessCode: string;
+    presenterCode: string;
 }
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export function useLiveSession() {
-    const [session, setSession] = useState<LiveSession | null>(null);
+    // Static auth info (presenterCode is secret)
+    const [sessionContext, setSessionContext] = useState<LiveSessionContext | null>(null);
     const [isLive, setIsLive] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const socketRef = useRef<Socket | null>(null);
+
+    // TanStack Query sync - handles socket + polling
+    const { data: sessionState, updateSession, isUpdating } = useSessionState(sessionContext?.accessCode || null);
 
     // Start a live session
     const startLive = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const newSession = await api.post<LiveSession>('/api/sessions/live', {});
-            setSession(newSession);
+            const newSession = await api.post<LiveSessionContext>('/api/sessions/live', {});
+            setSessionContext({
+                id: newSession.id,
+                accessCode: newSession.accessCode,
+                presenterCode: newSession.presenterCode
+            });
             setIsLive(true);
-
-            // Connect to socket and join room as presenter
-            const socket = io(API_URL);
-            socketRef.current = socket;
-            socket.emit('session:join', newSession.accessCode);
-
             return newSession;
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to start session');
@@ -61,85 +48,115 @@ export function useLiveSession() {
         }
     }, []);
 
-    // End the live session
+    // End the session
     const endLive = useCallback(async () => {
-        if (!session) return;
-
+        if (!sessionContext) return;
         try {
-            await api.delete(`/api/sessions/live/${session.id}`);
-
-            // Notify all viewers
-            if (socketRef.current) {
-                socketRef.current.emit('session:end', session.accessCode);
-                socketRef.current.disconnect();
-                socketRef.current = null;
-            }
-
-            setSession(null);
+            await api.delete(`/api/sessions/live/${sessionContext.id}`);
+            setSessionContext(null);
             setIsLive(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to end session');
         }
-    }, [session]);
+    }, [sessionContext]);
 
-    // Broadcast update to viewers
-    const broadcastUpdate = useCallback((update: SessionUpdate) => {
-        if (!session || !socketRef.current) return;
+    // Merged session object for consumers
+    const session = useMemo((): LiveSession | null => {
+        if (!sessionContext) return null;
 
-        socketRef.current.emit('session:update', {
-            accessCode: session.accessCode,
-            ...update,
+        // Default state while loading
+        const defaults = {
+            status: 'active' as const,
+            currentSongId: null,
+            currentSong: null,
+            currentPartIndex: 0,
+            displayKey: 'C' as Key,
+            chordStyle: 'letters' as ChordStyle,
+            sessionPlaylist: [] as SessionPlaylistItem[]
+        };
+
+        return {
+            ...sessionContext,
+            ...(sessionState || defaults)
+        };
+    }, [sessionContext, sessionState]);
+
+    // Simple update methods that call the mutation
+    const selectSong = useCallback((songId: string | null, song: EmbeddedSong | null, key?: Key) => {
+        updateSession({
+            currentSongId: songId,
+            currentSong: song,
+            currentPartIndex: 0,
+            ...(key && { displayKey: key })
         });
+    }, [updateSession]);
 
-        // Also update via API for persistence
-        api.put(`/api/sessions/live/${session.id}`, {
+    const setPartIndex = useCallback((partIndex: number) => {
+        updateSession({ currentPartIndex: partIndex });
+    }, [updateSession]);
+
+    const setDisplayKey = useCallback((key: Key) => {
+        updateSession({ displayKey: key });
+    }, [updateSession]);
+
+    const setPlaylist = useCallback((playlist: SessionPlaylistItem[]) => {
+        updateSession({ sessionPlaylist: playlist });
+    }, [updateSession]);
+
+    // Legacy API for backward compatibility
+    const broadcastUpdate = useCallback((update: { songId: string | null; partIndex: number; key: Key }) => {
+        updateSession({
             currentSongId: update.songId,
             currentPartIndex: update.partIndex,
-            displayKey: update.key,
-        }).catch(console.error);
-    }, [session]);
+            displayKey: update.key
+        });
+    }, [updateSession]);
 
-    // Sync session playlist to server
-    const syncPlaylist = useCallback((playlist: unknown[]) => {
-        if (!session) return;
-        api.put(`/api/sessions/live/${session.id}`, {
-            sessionPlaylist: playlist,
-        }).catch(console.error);
-    }, [session]);
+    const syncPlaylist = useCallback((playlist: SessionPlaylistItem[]) => {
+        updateSession({ sessionPlaylist: playlist });
+    }, [updateSession]);
 
-    // Get share URL
+    // URLs
     const getShareUrl = useCallback(() => {
-        if (!session) return '';
+        if (!sessionContext) return '';
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${baseUrl}/view/${session.accessCode}`;
-    }, [session]);
+        return `${baseUrl}/view/${sessionContext.accessCode}`;
+    }, [sessionContext]);
 
-    // Get presenter URL
     const getPresenterUrl = useCallback(() => {
-        if (!session) return '';
+        if (!sessionContext) return '';
         const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${baseUrl}/present/${session.presenterCode}`;
-    }, [session]);
+        return `${baseUrl}/present/${sessionContext.presenterCode}`;
+    }, [sessionContext]);
 
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-        };
-    }, []);
+    // No-ops for legacy compatibility
+    const setOnRemoteUpdate = useCallback(() => { }, []);
+    const broadcastSongChange = useCallback(() => { }, []);
+    const broadcastPartChange = useCallback(() => { }, []);
+    const broadcastKeyChange = useCallback(() => { }, []);
 
     return {
         session,
         isLive,
         isLoading,
+        isUpdating,
         error,
         startLive,
         endLive,
+        // New API
+        selectSong,
+        setPartIndex,
+        setDisplayKey,
+        setPlaylist,
+        updateSession,
+        // Legacy API
         broadcastUpdate,
         syncPlaylist,
         getShareUrl,
         getPresenterUrl,
+        setOnRemoteUpdate,
+        broadcastSongChange,
+        broadcastPartChange,
+        broadcastKeyChange,
     };
 }

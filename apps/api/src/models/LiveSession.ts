@@ -80,9 +80,9 @@ export async function createLiveSession(ownerId: string): Promise<LiveSession> {
 
 export async function getLiveSessionByCode(accessCode: string): Promise<LiveSession | null> {
     const collection = getLiveSessionsCollection();
+    // Query by accessCode only to avoid composite index requirement
     const snapshot = await collection
         .where('accessCode', '==', accessCode)
-        .where('status', '==', 'active')
         .limit(1)
         .get();
 
@@ -91,14 +91,18 @@ export async function getLiveSessionByCode(accessCode: string): Promise<LiveSess
     const doc = snapshot.docs[0];
     if (!doc) return null;
 
-    return { id: doc.id, ...doc.data() } as LiveSession;
+    const data = doc.data() as LiveSession;
+
+    if (data.status !== 'active') return null; // Enforce active status in memory
+
+    return { id: doc.id, ...data };
 }
 
 export async function getLiveSessionByPresenterCode(presenterCode: string): Promise<LiveSession | null> {
     const collection = getLiveSessionsCollection();
+    // Query by presenterCode only to avoid composite index requirement
     const snapshot = await collection
         .where('presenterCode', '==', presenterCode)
-        .where('status', '==', 'active')
         .limit(1)
         .get();
 
@@ -107,7 +111,11 @@ export async function getLiveSessionByPresenterCode(presenterCode: string): Prom
     const doc = snapshot.docs[0];
     if (!doc) return null;
 
-    return { id: doc.id, ...doc.data() } as LiveSession;
+    const data = doc.data() as LiveSession;
+
+    if (data.status !== 'active') return null; // Enforce active status in memory
+
+    return { id: doc.id, ...data };
 }
 
 export async function getLiveSessionById(id: string): Promise<LiveSession | null> {

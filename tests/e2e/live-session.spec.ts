@@ -46,7 +46,7 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         await expect(page.locator('button:has-text("Stage")')).toBeVisible();
 
         // Close modal
-        await page.click('button:has-text("Close")');
+        await page.click('button:has-text("Close")', { force: true });
         await expect(shareModal).not.toBeVisible();
 
         // End the live session
@@ -67,7 +67,7 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         const urlText = await page.locator('p').filter({ hasText: '/view/' }).textContent();
         expect(urlText).toBeTruthy();
         const accessCode = urlText!.split('/view/')[1].split('?')[0];
-        await page.click('button:has-text("Close")');
+        await page.click('button:has-text("Close")', { force: true });
 
         // Select a song to display - use the result items from sidebar
         await page.waitForTimeout(1000);

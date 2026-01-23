@@ -1,15 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { useState, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { useSessionState } from '@/hooks/useSessionState'
 import { useCommunitySongs } from '@/hooks/useCommunitySongs'
 import { formatChord, extractChordsFromLine } from '@laudasist/shared'
 import type { Key, SongPart } from '@laudasist/shared'
 import styles from './present.module.css'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-
-// Embedded song data for presenter access
+// Embedded song data type matching API response
 interface EmbeddedSong {
   id: string
   title: string
@@ -25,7 +24,8 @@ interface SessionPlaylistItem {
   song?: EmbeddedSong
 }
 
-interface PresenterSession {
+// Response from /api/sessions/presenter/:code
+interface PresenterSessionInit {
   id: string
   accessCode: string
   presenterCode: string
@@ -46,7 +46,6 @@ function PlaylistItemRow({ item, isActive, onClick }: {
   isActive: boolean
   onClick: () => void
 }) {
-  // Use embedded song data
   const song = item.song
 
   return (
@@ -62,141 +61,55 @@ function PlaylistItemRow({ item, isActive, onClick }: {
 
 function PresenterPage() {
   const { code } = Route.useParams()
-  const [session, setSession] = useState<PresenterSession | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const socketRef = useRef<Socket | null>(null)
 
-  // Current song state - use embedded data from playlist/session
-  const [currentSong, setCurrentSong] = useState<EmbeddedSong | null>(null)
-  const [currentPartIndex, setCurrentPartIndex] = useState(0)
-  const [displayKey, setDisplayKey] = useState<Key>('C')
+  // 1. Initial fetch to validate presenter code and get accessCode
+  const { data: initialSession, error: initError, isLoading: initLoading } = useQuery({
+    queryKey: ['presenter-init', code],
+    queryFn: () => api.get<PresenterSessionInit>(`/api/sessions/presenter/${code}`),
+    retry: false
+  })
 
-  // Search for community/official songs
+  // 2. Real-time sync hook using accessCode
+  // This handles socket invalidation and polling automatically
+  const { data: sessionState, updateSession } = useSessionState(initialSession?.accessCode || null)
+
+  // Use the live state if available, otherwise initial state
+  const session = sessionState || initialSession
+
+  // Local state for UI (search)
   const [searchQuery, setSearchQuery] = useState('')
   const { data: searchResults } = useCommunitySongs({ search: searchQuery || undefined })
 
-  // Fetch session on mount
-  useEffect(() => {
-    async function fetchSession() {
-      try {
-        const data = await api.get<PresenterSession>(`/api/sessions/presenter/${code}`)
-        setSession(data)
-        setCurrentPartIndex(data.currentPartIndex)
-        setDisplayKey(data.displayKey)
-
-        // Set current song from embedded data
-        if (data.currentSong) {
-          setCurrentSong(data.currentSong)
-        } else if (data.currentSongId && data.sessionPlaylist) {
-          const playlistItem = data.sessionPlaylist.find(i => i.songId === data.currentSongId)
-          if (playlistItem?.song) {
-            setCurrentSong(playlistItem.song)
-          }
-        }
-
-        // Connect to socket
-        const socket = io(API_URL)
-        socketRef.current = socket
-        socket.emit('session:join', data.accessCode)
-
-        // Listen for updates from owner
-        socket.on('session:state', (update) => {
-          if (update.partIndex !== undefined) setCurrentPartIndex(update.partIndex)
-          if (update.key !== undefined) setDisplayKey(update.key)
-          if (update.song) setCurrentSong(update.song)
-        })
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Session not found')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSession()
-
-    // Poll for playlist updates every 5 seconds
-    const pollInterval = setInterval(async () => {
-      try {
-        const data = await api.get<PresenterSession>(`/api/sessions/presenter/${code}`)
-        setSession((prev) => prev ? {
-          ...prev,
-          sessionPlaylist: data.sessionPlaylist || [],
-          currentSong: data.currentSong,
-        } : null)
-        // Update current song if changed
-        if (data.currentSong) {
-          setCurrentSong(data.currentSong)
-        }
-      } catch {
-        // Ignore polling errors
-      }
-    }, 5000)
-
-    return () => {
-      clearInterval(pollInterval)
-      if (socketRef.current) {
-        socketRef.current.disconnect()
-      }
-    }
-  }, [code])
-
-  // Broadcast update to viewers
-  const broadcastUpdate = useCallback((song: EmbeddedSong | null, partIndex: number, key: Key) => {
-    if (!session || !socketRef.current) return
-
-    socketRef.current.emit('session:update', {
-      accessCode: session.accessCode,
-      songId: song?.id || null,
-      partIndex,
-      key,
-      song,
-    })
-
-    // Also update via API
-    api.put(`/api/sessions/presenter/${code}`, {
-      currentSongId: song?.id || null,
-      currentSong: song,
-      currentPartIndex: partIndex,
-      displayKey: key,
-    }).catch(console.error)
-  }, [session, code])
+  // --- ACTIONS ---
 
   // Select song from playlist
   const selectSong = useCallback((item: SessionPlaylistItem) => {
     if (!item.song) return
-    setCurrentSong(item.song)
-    setCurrentPartIndex(0)
-    if (item.key) {
-      setDisplayKey(item.key)
-    }
-    broadcastUpdate(item.song, 0, item.key || displayKey)
-  }, [broadcastUpdate, displayKey])
+
+    updateSession({
+      currentSongId: item.song.id,
+      currentSong: item.song,
+      currentPartIndex: 0,
+      displayKey: item.key || item.song.originalKey
+    })
+  }, [updateSession])
 
   // Navigate parts
   const goToPart = useCallback((index: number) => {
-    setCurrentPartIndex(index)
-    broadcastUpdate(currentSong, index, displayKey)
-  }, [broadcastUpdate, currentSong, displayKey])
+    updateSession({ currentPartIndex: index })
+  }, [updateSession])
 
   const nextPart = useCallback(() => {
-    if (currentSong && currentPartIndex < currentSong.parts.length - 1) {
-      goToPart(currentPartIndex + 1)
+    if (session?.currentSong && (session.currentPartIndex ?? 0) < session.currentSong.parts.length - 1) {
+      goToPart((session.currentPartIndex ?? 0) + 1)
     }
-  }, [currentSong, currentPartIndex, goToPart])
+  }, [session, goToPart])
 
   const prevPart = useCallback(() => {
-    if (currentPartIndex > 0) {
-      goToPart(currentPartIndex - 1)
+    if ((session?.currentPartIndex ?? 0) > 0) {
+      goToPart((session.currentPartIndex ?? 0) - 1)
     }
-  }, [currentPartIndex, goToPart])
-
-  // Render chord with transposition
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderChord = (chord: any) => {
-    return formatChord(chord, displayKey, 'letters')
-  }
+  }, [session, goToPart])
 
   // Select community song
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,27 +121,42 @@ function PresenterPage() {
       originalKey: song.originalKey,
       parts: song.parts,
     }
-    setCurrentSong(embedded)
-    setCurrentPartIndex(0)
-    setDisplayKey(song.originalKey)
+
     setSearchQuery('')
-    broadcastUpdate(embedded, 0, song.originalKey)
+    updateSession({
+      currentSongId: embedded.id,
+      currentSong: embedded,
+      currentPartIndex: 0,
+      displayKey: song.originalKey
+    })
   }
 
-  if (loading) {
+  // Render chord helper
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderChord = (chord: any) => {
+    return formatChord(chord, session?.displayKey || 'C', 'letters')
+  }
+
+  // --- RENDERING ---
+
+  if (initLoading) {
     return <div className={styles.container}><div className={styles.loading}>Connecting to session...</div></div>
   }
 
-  if (error || !session) {
+  if (initError || !session) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
           <h2>Session Not Found</h2>
-          <p>{error || 'Invalid presenter code'}</p>
+          <p>{(initError as Error)?.message || 'Invalid presenter code'}</p>
         </div>
       </div>
     )
   }
+
+  const currentSong = session.currentSong
+  const currentPartIndex = session.currentPartIndex ?? 0
+  const displayKey = session.displayKey || 'C'
 
   return (
     <div className={styles.container}>

@@ -19,6 +19,7 @@ import { formatChord, extractChordsFromLine } from '@laudasist/shared'
 import type { Key, ChordStyle, Song } from '@laudasist/shared'
 import styles from './session.module.css'
 import { usePlaylist } from '@/hooks/usePlaylists'
+import { api } from '@/lib/api'
 
 const POSSIBLE_KEYS: Key[] = [
     'C',
@@ -73,18 +74,22 @@ function SessionPageContent() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { isFavorite, addFavorite, removeFavorite } = useFavorites()
 
-    // Live state (Local only)
-    const [currentSongId, setCurrentSongId] = useState<string | null>(null)
-    const [currentPartIndex, setCurrentPartIndex] = useState(0)
-    const [displayKey, setDisplayKey] = useState<Key>('C')
+    // Local state for NON-LIVE practice mode only
+    const [localSongId, setLocalSongId] = useState<string | null>(null)
+    const [localPartIndex, setLocalPartIndex] = useState(0)
+    const [localDisplayKey, setLocalDisplayKey] = useState<Key>('C')
+
+    // Display preferences (always local)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
     const [showChords, setShowChords] = useState(true)
     const [chordDisplay, setChordDisplay] = useState<
         'above' | 'inline' | 'compact'
     >('above')
     const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([])
-    const [useOriginalKey, setUseOriginalKey] = useState(true) // Key preference toggle
-    const [sessionPlaylist, setSessionPlaylist] = useState<SessionPlaylistItem[]>([])
+    const [useOriginalKey, setUseOriginalKey] = useState(true)
+
+    // Local playlist for non-live mode
+    const [localPlaylist, setLocalPlaylist] = useState<SessionPlaylistItem[]>([])
     const [playlistLoaded, setPlaylistLoaded] = useState(false)
 
     // Auto-load playlist from URL param
@@ -96,7 +101,7 @@ function SessionPageContent() {
                 key: item.key,
                 arrangement: item.arrangement,
             }))
-            setSessionPlaylist(items)
+            setLocalPlaylist(items)
             setPlaylistLoaded(true)
         }
     }, [initialPlaylist, playlistLoaded])
@@ -108,8 +113,8 @@ function SessionPageContent() {
         startLive,
         endLive,
         session,
-        broadcastUpdate,
-        syncPlaylist,
+        updateSession,
+        setPlaylist,
         getShareUrl,
         getPresenterUrl,
     } = useLiveSession()
@@ -119,18 +124,54 @@ function SessionPageContent() {
     const [selectedViewport, setSelectedViewport] = useState<'audience' | 'instrument' | 'stage'>('audience')
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+    // === DERIVED STATE: Use session data when live, local state otherwise ===
+    const currentSongId = isLive && session ? session.currentSongId : localSongId
+    const currentPartIndex = isLive && session ? session.currentPartIndex : localPartIndex
+    const displayKey = isLive && session ? session.displayKey : localDisplayKey
+    const sessionPlaylist = isLive && session ? session.sessionPlaylist : localPlaylist
+
     // Get full song data
     const { data: currentSong } = useSong(currentSongId || '')
 
     // Refs for scrolling
     const partRefs = useRef<(HTMLDivElement | null)[]>([])
 
-    // Update display key when song changes
-    useEffect(() => {
-        if (currentSong?.originalKey) {
-            setDisplayKey(currentSong.originalKey)
+    // === UNIFIED STATE UPDATE HELPERS ===
+    // Routes updates to local state OR mutation based on live status
+
+    const setCurrentSongId = useCallback((songId: string | null) => {
+        if (isLive) {
+            updateSession({ currentSongId: songId })
+        } else {
+            setLocalSongId(songId)
         }
-    }, [currentSong])
+    }, [isLive, updateSession])
+
+    const setCurrentPartIndex = useCallback((partIndex: number) => {
+        if (isLive) {
+            updateSession({ currentPartIndex: partIndex })
+        } else {
+            setLocalPartIndex(partIndex)
+        }
+    }, [isLive, updateSession])
+
+    const setDisplayKey = useCallback((key: Key) => {
+        if (isLive) {
+            updateSession({ displayKey: key })
+        } else {
+            setLocalDisplayKey(key)
+        }
+    }, [isLive, updateSession])
+
+    const setSessionPlaylist = useCallback((updater: SessionPlaylistItem[] | ((prev: SessionPlaylistItem[]) => SessionPlaylistItem[])) => {
+        if (isLive) {
+            // For mutations, always pass the new value
+            const newPlaylist = typeof updater === 'function' ? updater(sessionPlaylist) : updater
+            setPlaylist(newPlaylist)
+        } else {
+            setLocalPlaylist(updater)
+        }
+    }, [isLive, sessionPlaylist, setPlaylist])
 
     // Auto-scroll to active part
     useEffect(() => {
@@ -142,31 +183,14 @@ function SessionPageContent() {
         }
     }, [currentPartIndex])
 
-    // Broadcast updates when live
+    // Sync local playlist to server when going live
     useEffect(() => {
-        if (isLive) {
-            broadcastUpdate({
-                songId: currentSongId,
-                partIndex: currentPartIndex,
-                key: displayKey,
-                // Include full song data for guest viewers
-                song: currentSong ? {
-                    id: currentSong.id,
-                    title: currentSong.title,
-                    author: currentSong.author,
-                    originalKey: currentSong.originalKey,
-                    parts: currentSong.parts,
-                } : null,
-            })
+        if (isLive && session && localPlaylist.length > 0) {
+            // Push local playlist to server when first going live
+            setPlaylist(localPlaylist)
         }
-    }, [isLive, currentSongId, currentPartIndex, displayKey, currentSong, broadcastUpdate])
-
-    // Sync playlist to server when live
-    useEffect(() => {
-        if (isLive) {
-            syncPlaylist(sessionPlaylist)
-        }
-    }, [isLive, sessionPlaylist, syncPlaylist])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLive])
 
     const goLive = useCallback(
         (song: Song) => {

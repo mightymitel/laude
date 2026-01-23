@@ -14,7 +14,7 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "mkdir -p test-output && npm run test --workspaces --if-present 2>&1 | tee test-output/unit-tests.log",
-    "test:e2e": "npx playwright test",
+    "test:e2e": "npx tsx scripts/e2e-runner.ts",
     "storybook": "npm run storybook -w packages/ui",
     "deploy": "npm run build && firebase deploy",
     "apphosting:build": "npm run build -w @laudasist/shared && npm run build -w @laudasist/api"

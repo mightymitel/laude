@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const API_PORT = process.env.TEST_API_PORT || '3001';
+const WEB_PORT = process.env.TEST_WEB_PORT || '5173';
+
 export default defineConfig({
     testDir: './tests/e2e',
     fullyParallel: false,
@@ -8,7 +11,7 @@ export default defineConfig({
     workers: 1,
     reporter: 'html',
     use: {
-        baseURL: 'http://localhost:5174',
+        baseURL: `http://127.0.0.1:${WEB_PORT}`,
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
     },
@@ -20,15 +23,15 @@ export default defineConfig({
     ],
     webServer: [
         {
-            command: 'npm run dev -w apps/api',
-            url: 'http://localhost:3001/health',
-            reuseExistingServer: true,
+            command: `PORT=${API_PORT} npm run dev -w apps/api`,
+            url: `http://127.0.0.1:${API_PORT}/health`,
+            reuseExistingServer: !process.env.CI, // Always reuse in dev, start fresh in CI/Test Runner
             timeout: 30000,
         },
         {
-            command: 'npm run dev -w apps/web',
-            url: 'http://localhost:5174',
-            reuseExistingServer: true,
+            command: `VITE_API_URL=http://127.0.0.1:${API_PORT} npm run dev -w apps/web -- --port ${WEB_PORT} --strictPort`,
+            url: `http://127.0.0.1:${WEB_PORT}`,
+            reuseExistingServer: !process.env.CI,
             timeout: 30000,
         },
     ],

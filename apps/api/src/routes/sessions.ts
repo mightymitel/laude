@@ -88,12 +88,41 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
         if (sessionPlaylist !== undefined) updates.sessionPlaylist = sessionPlaylist;
 
         await updateLiveSession(id, updates);
+
+        // Emit state change to all clients in the session room
+        const io = req.app.get('io');
+        io.to(`session:${session.accessCode.toUpperCase()}`).emit('state:changed');
+
         return res.json({ success: true });
     } catch (error) {
         console.error('Error updating live session:', error);
         return res.status(500).json({ error: 'Failed to update session' });
     }
 });
+
+/**
+ * GET /api/sessions/join/:accessCode
+ * Join a session by access code (PUBLIC - no auth required)
+ */
+import { getSongsCollection } from '../models/Song.js';
+
+// Helper to fetch song data if not embedded
+async function populateSessionSong(session: any) {
+    if (!session.currentSong && session.currentSongId) {
+        const songDoc = await getSongsCollection().doc(session.currentSongId).get();
+        if (songDoc.exists) {
+            const songData = songDoc.data();
+            return {
+                id: songDoc.id,
+                title: songData?.title,
+                author: songData?.author,
+                originalKey: songData?.originalKey,
+                parts: songData?.parts
+            };
+        }
+    }
+    return session.currentSong || null;
+}
 
 /**
  * GET /api/sessions/join/:accessCode
@@ -108,15 +137,19 @@ router.get('/join/:accessCode', async (req, res) => {
             return res.status(404).json({ error: 'Session not found or ended' });
         }
 
-        // Return session info (without ownerId for privacy)
+        const currentSong = await populateSessionSong(session);
+
+        // Return full session state for TanStack Query sync
         return res.json({
             id: session.id,
             accessCode: session.accessCode,
             status: session.status,
             currentSongId: session.currentSongId,
+            currentSong,
             currentPartIndex: session.currentPartIndex,
             displayKey: session.displayKey,
             chordStyle: session.chordStyle,
+            sessionPlaylist: session.sessionPlaylist || [],
         });
     } catch (error) {
         console.error('Error joining session:', error);
@@ -129,8 +162,6 @@ router.get('/join/:accessCode', async (req, res) => {
  * Get song data for a live session viewer (PUBLIC - no auth required)
  * Only returns song if it matches the current session song
  */
-import { getSongsCollection } from '../models/Song.js';
-
 router.get('/song/:accessCode/:songId', async (req, res) => {
     try {
         const { accessCode, songId } = req.params;
@@ -179,6 +210,8 @@ router.get('/presenter/:presenterCode', async (req, res) => {
             return res.status(404).json({ error: 'Session not found or ended' });
         }
 
+        const currentSong = await populateSessionSong(session);
+
         // Return session info including ID for updates
         return res.json({
             id: session.id,
@@ -186,7 +219,7 @@ router.get('/presenter/:presenterCode', async (req, res) => {
             presenterCode: session.presenterCode,
             status: session.status,
             currentSongId: session.currentSongId,
-            currentSong: session.currentSong,
+            currentSong,
             currentPartIndex: session.currentPartIndex,
             displayKey: session.displayKey,
             chordStyle: session.chordStyle,
@@ -221,9 +254,50 @@ router.put('/presenter/:presenterCode', async (req, res) => {
         if (sessionPlaylist !== undefined) updates.sessionPlaylist = sessionPlaylist;
 
         await updateLiveSession(session.id, updates);
+
+        // Emit state change to all clients in the session room
+        const io = req.app.get('io');
+        io.to(`session:${session.accessCode.toUpperCase()}`).emit('state:changed');
+
         return res.json({ success: true });
     } catch (error) {
         console.error('Error updating session as presenter:', error);
+        return res.status(500).json({ error: 'Failed to update session' });
+    }
+});
+
+/**
+ * PUT /api/sessions/update/:accessCode
+ * Update session state by access code (PUBLIC - used by generic session hook)
+ * This allows both owner and presenter to use the same hook
+ */
+router.put('/update/:accessCode', async (req, res) => {
+    try {
+        const { accessCode } = req.params;
+        const { currentSongId, currentSong, currentPartIndex, displayKey, chordStyle, sessionPlaylist } = req.body;
+
+        const session = await getLiveSessionByCode(accessCode.toUpperCase());
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found or ended' });
+        }
+
+        const updates: Record<string, unknown> = {};
+        if (currentSongId !== undefined) updates.currentSongId = currentSongId;
+        if (currentSong !== undefined) updates.currentSong = currentSong;
+        if (currentPartIndex !== undefined) updates.currentPartIndex = currentPartIndex;
+        if (displayKey !== undefined) updates.displayKey = displayKey;
+        if (chordStyle !== undefined) updates.chordStyle = chordStyle;
+        if (sessionPlaylist !== undefined) updates.sessionPlaylist = sessionPlaylist;
+
+        await updateLiveSession(session.id, updates);
+
+        // Emit state change to all clients in the session room
+        const io = req.app.get('io');
+        io.to(`session:${accessCode.toUpperCase()}`).emit('state:changed');
+
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating session:', error);
         return res.status(500).json({ error: 'Failed to update session' });
     }
 });
