@@ -448,6 +448,8 @@ export function SongEditor({
                             draggedChord.originalLineIndex !== undefined &&
                             draggedChord.originalCharIndex !== undefined) {
 
+                            const { originalLineIndex, originalCharIndex } = draggedChord;
+
                             setEditingSong(prev => {
                                 const parts = [...(prev.parts || [])];
                                 // Assuming single part for now - adjust if multi-part
@@ -455,14 +457,14 @@ export function SongEditor({
                                 if (!part) return prev;
 
                                 const lines = [...part.lines];
-                                const line = lines[draggedChord.originalLineIndex];
+                                const line = lines[originalLineIndex];
                                 if (!line) return prev;
 
                                 const { text: pureText, chords } = extractChordsFromLine(line.text);
 
                                 // Remove the chord
                                 const remainingChords = chords.filter(c =>
-                                    !(c.index === draggedChord.originalCharIndex &&
+                                    !(c.index === originalCharIndex &&
                                         formatChord(c.chord, currentKey, 'nashville') === draggedChord.chord)
                                 );
 
@@ -476,7 +478,7 @@ export function SongEditor({
                                 }
                                 newText += pureText.substring(lastIndex);
 
-                                lines[draggedChord.originalLineIndex] = { text: newText };
+                                lines[originalLineIndex] = { text: newText };
                                 parts[0] = { ...part, lines };
 
                                 return { ...prev, parts };

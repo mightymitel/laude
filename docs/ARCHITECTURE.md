@@ -7,7 +7,6 @@
 | **Frontend** | React (Vite), TanStack Router, TanStack Query, TypeScript, CSS Modules |
 | **Backend** | Node.js, Express, Socket.io |
 | **Data Fetching** | TanStack Query |
-| **Database** | MongoDB |
 | **Auth & Storage** | Firebase Authentication, Firebase Storage |
 | **Deployment** | Firebase Hosting |
 | **Bible Data** | Self-hosted database (NIV, KJV, NTR, VDCC) |
