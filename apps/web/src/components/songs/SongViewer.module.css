@@ -78,34 +78,4 @@
     gap: 1rem;
 }
 
-/* SongLine Display */
-.lineWrapper {
-    line-height: 2.5;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-}
-
-.textSegment {
-    white-space: pre-wrap;
-}
-
-.chordSegment {
-    display: inline-flex;
-    flex-direction: column;
-    vertical-align: bottom;
-    height: 1.2em;
-    /* Reserve vertical space for visual alignment context if needed */
-    position: relative;
-    width: 0;
-    overflow: visible;
-}
-
-.chordSymbol {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    font-weight: bold;
-    color: #0070f3;
-    white-space: nowrap;
-}
+/* End of file - line rendering styles moved to SongLine.module.css */

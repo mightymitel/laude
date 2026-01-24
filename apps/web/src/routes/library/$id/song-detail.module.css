@@ -1,0 +1,38 @@
+/* Component specific styles */
+
+.backLink {
+    color: #666;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.backLink:hover {
+    color: var(--color-primary, #0070f3);
+    text-decoration: underline;
+}
+
+.editButton {
+    padding: 0.5rem 1rem;
+    background: var(--color-primary, #0070f3);
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.editButton:hover {
+    background: var(--color-primary-hover, #0060df);
+    text-decoration: none;
+}
+
+.error {
+    color: #ef4444;
+}

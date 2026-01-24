@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
+import { Route as DebugSongEditorRouteImport } from './routes/debug/song-editor'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
 import { Route as PresentCodeIndexRouteImport } from './routes/present/$code/index'
 import { Route as LibraryIdIndexRouteImport } from './routes/library/$id/index'
@@ -62,6 +63,11 @@ const LibraryNewRoute = LibraryNewRouteImport.update({
   path: '/library/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DebugSongEditorRoute = DebugSongEditorRouteImport.update({
+  id: '/debug/song-editor',
+  path: '/debug/song-editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ViewCodeIndexRoute = ViewCodeIndexRouteImport.update({
   id: '/view/$code/',
   path: '/view/$code/',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library/': typeof LibraryIndexRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
     | '/library'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
     | '/library'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
     | '/library/'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PlaylistsRoute: typeof PlaylistsRouteWithChildren
   SessionRoute: typeof SessionRoute
+  DebugSongEditorRoute: typeof DebugSongEditorRoute
   LibraryNewRoute: typeof LibraryNewRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   LibraryIdEditRoute: typeof LibraryIdEditRoute
@@ -243,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/debug/song-editor': {
+      id: '/debug/song-editor'
+      path: '/debug/song-editor'
+      fullPath: '/debug/song-editor'
+      preLoaderRoute: typeof DebugSongEditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/view/$code/': {
       id: '/view/$code/'
       path: '/view/$code'
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PlaylistsRoute: PlaylistsRouteWithChildren,
   SessionRoute: SessionRoute,
+  DebugSongEditorRoute: DebugSongEditorRoute,
   LibraryNewRoute: LibraryNewRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   LibraryIdEditRoute: LibraryIdEditRoute,

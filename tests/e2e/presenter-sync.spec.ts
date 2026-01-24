@@ -119,14 +119,14 @@ test.describe('Presenter Sync Workflow', () => {
         await presenterPage.waitForTimeout(1500);
 
         // Presenter should see song content
-        const presenterSongHeader = presenterPage.locator('[class*="songHeader"] h2');
+        const presenterSongHeader = presenterPage.locator('[data-testid="song-header"] h2');
         await expect(presenterSongHeader).toBeVisible({ timeout: 5000 });
         const presenterSongTitle = await presenterSongHeader.textContent();
 
         // === Step 8: Owner sees the change ===
         // Wait for sync - owner's view should show the same song
         await ownerPage.waitForTimeout(2500);
-        const ownerSongHeader = ownerPage.locator('[class*="songHeader"] h2');
+        const ownerSongHeader = ownerPage.locator('[data-testid="song-header"] h2');
         await expect(ownerSongHeader).toBeVisible({ timeout: 5000 });
         const ownerSongTitle = await ownerSongHeader.textContent();
 
@@ -177,7 +177,7 @@ test.describe('Presenter Sync Workflow', () => {
 
         // Owner should now see the song
         await ownerPage.waitForTimeout(1000);
-        const ownerSongHeader = ownerPage.locator('[class*="songHeader"] h2');
+        const ownerSongHeader = ownerPage.locator('[data-testid="song-header"] h2');
         await expect(ownerSongHeader).toBeVisible({ timeout: 10000 });
         await expect(ownerSongHeader).toContainText(songTitle || '', { timeout: 5000 });
     });
@@ -209,11 +209,11 @@ test.describe('Presenter Sync Workflow', () => {
         await ownerPlaylistItem.click();
         await ownerPage.waitForTimeout(1000);
 
-        const ownerSongTitle = await ownerPage.locator('[class*="songHeader"] h2').textContent();
+        const ownerSongTitle = await ownerPage.locator('[data-testid="song-header"] h2').textContent();
 
         // Presenter should see the same song (wait for 5-second poll interval)
         await presenterPage.waitForTimeout(6000);
-        const presenterSongHeader = presenterPage.locator('[class*="songHeader"] h2');
+        const presenterSongHeader = presenterPage.locator('[data-testid="song-header"] h2');
         await expect(presenterSongHeader).toBeVisible({ timeout: 10000 });
         await expect(presenterSongHeader).toContainText(ownerSongTitle || '', { timeout: 5000 });
     });
@@ -236,7 +236,7 @@ test.describe('Presenter Sync Workflow', () => {
         await ownerPage.locator('[class*="resultContent"]').first().click();
         await ownerPage.waitForTimeout(1000);
 
-        const ownerSongTitle = await ownerPage.locator('[class*="songHeader"] h2').textContent();
+        const ownerSongTitle = await ownerPage.locator('[data-testid="song-header"] h2').textContent();
 
         // Presenter opens view - should immediately see the current song from initial fetch
         await presenterPage.goto(`/present/${presenterCode}`);
@@ -244,7 +244,7 @@ test.describe('Presenter Sync Workflow', () => {
 
         // Wait for initial data fetch to complete
         await presenterPage.waitForTimeout(3000);
-        const presenterSongHeader = presenterPage.locator('[class*="songHeader"] h2');
+        const presenterSongHeader = presenterPage.locator('[data-testid="song-header"] h2');
         await expect(presenterSongHeader).toBeVisible({ timeout: 10000 });
         await expect(presenterSongHeader).toContainText(ownerSongTitle || '', { timeout: 5000 });
 
@@ -302,8 +302,9 @@ test.describe('Presenter Sync Workflow', () => {
         await viewerPage.waitForTimeout(2000);
         await expect(viewerPage.locator('[class*="songTitle"]')).toBeVisible({ timeout: 10000 });
 
-        const ownerSongTitle = await ownerPage.locator('[class*="songHeader"] h2').textContent();
+        const ownerSongTitle = await ownerPage.locator('[data-testid="song-header"] h2').textContent();
         await expect(viewerPage.locator('[class*="songTitle"]')).toContainText(ownerSongTitle || '', { timeout: 5000 });
+
 
         // Now have presenter also open and make a change
         const presenterCode = await getPresenterCode(ownerPage);

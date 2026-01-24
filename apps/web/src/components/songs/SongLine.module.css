@@ -1,0 +1,104 @@
+/* Base Styles */
+.line {
+    font-family: 'Fira Code', 'SF Mono', monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Compact Mode */
+.lineCompact {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+    font-family: 'Fira Code', 'SF Mono', monospace;
+}
+
+.chordsStart {
+    color: var(--color-primary, #6366f1);
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* Inline Mode */
+.chordInline {
+    color: var(--color-primary, #6366f1);
+    font-weight: bold;
+    margin: 0 0.2rem;
+}
+
+/* Above Mode */
+.lineAbove {
+    font-family: 'Fira Code', 'SF Mono', monospace;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+
+    /* Flex container with wrapping */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+
+    /* Reset line height for container, let segments handle it */
+    line-height: normal;
+}
+
+/* Segment Component */
+.segment {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    /* Ensure segments stay together but flow */
+    white-space: pre;
+
+    /* Alignment */
+    vertical-align: bottom;
+
+    /* Ensure minimum height line up */
+    min-height: 2.8rem;
+}
+
+.segmentChords {
+    display: flex;
+    flex-wrap: nowrap;
+    /* Chords for one segment should stay together */
+    gap: 0.3rem;
+
+    /* Positioning above text */
+    margin-bottom: 0.2rem;
+
+    /* Font styles */
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--color-primary, #6366f1);
+    line-height: 1;
+
+    /* Ensure it has height even if empty? No, flex will handle */
+    min-height: 1em;
+}
+
+/* If no chords, we might want to occupy space? 
+   User said "overlap" was issue, so maybe we WANT it to occupy space 
+   only if there are chords. 
+*/
+
+.segmentChord {
+    white-space: nowrap;
+}
+
+.segmentText {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    white-space: pre;
+    /* Respect spaces in text */
+    color: inherit;
+    /* Ensure it keeps height even if empty */
+    min-height: 1.5em;
+}
+
+/* Force height if empty using zero-width space */
+.segmentText::before {
+    content: '\200b';
+    display: inline-block;
+    width: 0;
+}

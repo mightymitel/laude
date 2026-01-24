@@ -20,6 +20,7 @@ import type { Key, ChordStyle, Song } from '@laudasist/shared'
 import styles from './session.module.css'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import { api } from '@/lib/api'
+import { SongLine } from '@/components/songs/SongLine'
 
 const POSSIBLE_KEYS: Key[] = [
     'C',
@@ -405,7 +406,7 @@ function SessionPageContent() {
                 <main className={styles.mainContent}>
                     {currentSong ? (
                         <>
-                            <div className={styles.songHeader}>
+                            <div className={styles.songHeader} data-testid="song-header">
                                 <h2>{currentSong.title}</h2>
                                 <div className={styles.controls}>
                                     <select
@@ -478,14 +479,13 @@ function SessionPageContent() {
                                         </div>
                                         <div className={styles.partContent}>
                                             {part.lines.map((line, lid) => (
-                                                <LiveLine
+                                                <SongLine
                                                     key={lid}
                                                     text={line.text}
                                                     displayKey={displayKey}
-                                                    originalKey={currentSong.originalKey}
                                                     chordStyle={chordStyle}
                                                     showChords={showChords}
-                                                    chordDisplay={chordDisplay}
+                                                    chordPosition={chordDisplay}
                                                 />
                                             ))}
                                         </div>
@@ -575,91 +575,4 @@ function SessionPageContent() {
     )
 }
 
-function LiveLine({
-    text,
-    displayKey,
-    chordStyle,
-    showChords,
-    chordDisplay,
-}: {
-    text: string
-    displayKey: Key
-    originalKey: Key
-    chordStyle: ChordStyle
-    showChords: boolean
-    chordDisplay: 'above' | 'inline' | 'compact'
-}) {
-    const { text: cleanText, chords } = extractChordsFromLine(text)
-
-    if (!showChords || chords.length === 0) {
-        return <div className={styles.line}>{cleanText}</div>
-    }
-
-    // Format all chords
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedChords = chords.map((c: any) =>
-        formatChord(c.chord, displayKey, chordStyle),
-    )
-
-    // COMPACT MODE: chords before lyrics, with lowdash if first chord is late
-    if (chordDisplay === 'compact') {
-        const firstChordIndex = chords[0]?.index ?? 0
-        const needsLowdash = firstChordIndex > 10
-        const chordPrefix = needsLowdash ? '_ ' : ''
-
-        return (
-            <div className={styles.lineCompact}>
-                <span className={styles.chordsStart}>
-                    {chordPrefix}
-                    {formattedChords.join(' ')}
-                </span>
-                <span>{cleanText}</span>
-            </div>
-        )
-    }
-
-    // INLINE MODE: chords in square brackets within text
-    if (chordDisplay === 'inline') {
-        const segments: React.ReactNode[] = []
-        let lastIndex = 0
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        chords.forEach((chordPos: any, i: number) => {
-            if (chordPos.index > lastIndex) {
-                segments.push(
-                    <span key={`t${i}`}>
-                        {cleanText.substring(lastIndex, chordPos.index)}
-                    </span>,
-                )
-            }
-            segments.push(
-                <span key={`c${i}`} className={styles.chordInline}>
-                    [{formattedChords[i]}]
-                </span>,
-            )
-            lastIndex = chordPos.index
-        })
-        if (lastIndex < cleanText.length) {
-            segments.push(<span key="end">{cleanText.substring(lastIndex)}</span>)
-        }
-        return <div className={styles.line}>{segments}</div>
-    }
-
-    // ABOVE MODE (default): chords positioned above text
-    return (
-        <div className={styles.lineAbove}>
-            <div className={styles.chordRow}>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {chords.map((chordPos: any, i: number) => (
-                    <span
-                        key={i}
-                        className={styles.chordAbove}
-                        style={{ left: `${chordPos.index}ch` }}
-                    >
-                        {formattedChords[i]}
-                    </span>
-                ))}
-            </div>
-            <div className={styles.textRow}>{cleanText}</div>
-        </div>
-    )
-}
+// End of file

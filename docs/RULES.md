@@ -13,6 +13,8 @@
 - **UI Components**: Reusable UI components belong in `packages/ui` (or `components/` if app-specific).
 
 ## Documentation
-- **User Clarifications**: When the user provides clarifications or new requirements, immediately update:
-  - `docs/SPEC.md` - Add/modify relevant sections
-  - `implementation_plan.md` - Update affected tasks and scope
+- **User Clarifications**: When the user provides clarifications or new requirements, update:
+  - `docs/OVERVIEW.md` — Core concepts and design decisions
+  - `docs/ROADMAP.md` — Phase progress and implementation todos
+  - `docs/features/*.md` — Detailed feature specifications
+

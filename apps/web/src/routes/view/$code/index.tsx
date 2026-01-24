@@ -226,7 +226,7 @@ function GuestViewPage() {
     return (
         <div className={containerClass}>
             <header className={styles.header}>
-                <div className={styles.songTitle}>{song.title}</div>
+                <div className={styles.songTitle} data-testid="song-title">{song.title}</div>
                 <div className={styles.songMeta}>
                     {song.author} • Key: {sessionState.key}
                 </div>
@@ -238,6 +238,7 @@ function GuestViewPage() {
                     className={styles.select}
                     value={type}
                     onChange={(e) => navigate({ to: '.', search: { type: e.target.value as ViewportType } })}
+                    data-testid="viewport-select"
                 >
                     <option value="audience">🎤 Audience</option>
                     <option value="stage">🎸 Stage</option>
@@ -249,6 +250,7 @@ function GuestViewPage() {
                         className={styles.select}
                         value={chordStyle}
                         onChange={(e) => setChordStyle(e.target.value as ChordStyle)}
+                        data-testid="chord-style-select"
                     >
                         <option value="letters">Letters (Am)</option>
                         <option value="caseSensitive">Case (a)</option>

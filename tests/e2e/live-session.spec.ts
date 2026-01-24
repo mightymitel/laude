@@ -83,10 +83,10 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         await viewerPage.waitForLoadState('networkidle');
 
         // Wait for song content to load (songTitle appears when song is displayed)
-        await viewerPage.waitForSelector('[class*="songTitle"]', { timeout: 15000 });
+        await viewerPage.waitForSelector('[data-testid="song-title"]', { timeout: 15000 });
 
         // Check for viewport dropdown
-        const viewportDropdown = viewerPage.locator('select').first();
+        const viewportDropdown = viewerPage.locator('[data-testid="viewport-select"]');
         await expect(viewportDropdown).toBeVisible({ timeout: 5000 });
 
         // Verify dropdown has viewport options
@@ -96,7 +96,7 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         expect(options.some(o => o.includes('Stage'))).toBeTruthy();
 
         // Chord style selector should be visible in stage mode
-        const chordStyleDropdown = viewerPage.locator('select').nth(1);
+        const chordStyleDropdown = viewerPage.locator('[data-testid="chord-style-select"]');
         await expect(chordStyleDropdown).toBeVisible();
 
         // Verify chord style options

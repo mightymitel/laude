@@ -222,7 +222,7 @@ function PresenterPage() {
         <main className={styles.main}>
           {currentSong ? (
             <>
-              <div className={styles.songHeader}>
+              <div className={styles.songHeader} data-testid="song-header">
                 <h2>{currentSong.title}</h2>
                 <div className={styles.controls}>
                   <span className={styles.keyBadge}>Key: {displayKey}</span>

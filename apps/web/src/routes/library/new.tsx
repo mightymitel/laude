@@ -1,8 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { QuickAddForm } from '@/components/songs/QuickAddForm'
+import { SongEditor } from '@/components/SongEditor/SongEditor'
+import { useCreateSong } from '@/hooks/useSongs'
 import { api } from '@/lib/api'
-import type { SongPart, Key } from '@laudasist/shared'
+import type { SongPart, Key, Song } from '@laudasist/shared'
 import styles from './new.module.css'
 
 interface ImportedSong {
@@ -18,6 +19,9 @@ export const Route = createFileRoute('/library/new')({
 })
 
 function NewSongPage() {
+    const navigate = useNavigate()
+    const createSong = useCreateSong()
+
     const [activeTab, setActiveTab] = useState<'manual' | 'import'>('manual')
     const [importUrl, setImportUrl] = useState('')
     const [importing, setImporting] = useState(false)
@@ -43,6 +47,16 @@ function NewSongPage() {
         }
     }
 
+    const handleSave = async (song: Song) => {
+        try {
+            const result = await createSong.mutateAsync(song)
+            navigate({ to: '/library/$id', params: { id: result.id } })
+        } catch (error) {
+            console.error('Failed to save song:', error)
+            alert('Failed to save song')
+        }
+    }
+
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>Add New Song</h1>
@@ -65,7 +79,10 @@ function NewSongPage() {
             <div className={styles.content}>
                 {activeTab === 'manual' && (
                     <div className={styles.card}>
-                        <QuickAddForm />
+                        <SongEditor
+                            onSave={handleSave}
+                            onCancel={() => navigate({ to: '/library' })}
+                        />
                     </div>
                 )}
 
@@ -88,6 +105,7 @@ function NewSongPage() {
                                     onClick={handleImportPreview}
                                     disabled={importing || !importUrl.trim()}
                                     className={styles.importButton}
+                                    style={{ opacity: importing || !importUrl.trim() ? 0.5 : 1 }}
                                 >
                                     {importing ? 'Loading...' : 'Preview'}
                                 </button>
@@ -108,34 +126,16 @@ function NewSongPage() {
                                         {importedSong.parts.length} parts found
                                     </p>
 
-                                    <div className={styles.previewLyrics}>
-                                        {importedSong.parts.slice(0, 2).map((part, i) => (
-                                            <div key={i} className={styles.previewPart}>
-                                                <strong>
-                                                    {part.type} {part.index}
-                                                </strong>
-                                                {part.lines.slice(0, 3).map((line, j) => (
-                                                    <div key={j}>{line.text}</div>
-                                                ))}
-                                                {part.lines.length > 3 && <div>...</div>}
-                                            </div>
-                                        ))}
+                                    <div className={styles.editorContainer} style={{ marginTop: '2rem' }}>
+                                        <SongEditor
+                                            song={importedSong as unknown as Song}
+                                            onSave={handleSave}
+                                            onCancel={() => {
+                                                setImportedSong(null)
+                                                setImportUrl('')
+                                            }}
+                                        />
                                     </div>
-
-                                    <QuickAddForm
-                                        initialData={{
-                                            title: importedSong.title,
-                                            author: importedSong.author || '',
-                                            originalKey: importedSong.originalKey,
-                                            content: importedSong.parts
-                                                .map((p) => {
-                                                    const partName =
-                                                        p.type.charAt(0).toUpperCase() + p.type.slice(1)
-                                                    return `#${partName} ${p.index}\n${p.lines.map((l) => l.text).join('\n')}`
-                                                })
-                                                .join('\n\n'),
-                                        }}
-                                    />
                                 </div>
                             )}
                         </div>
@@ -145,3 +145,4 @@ function NewSongPage() {
         </div>
     )
 }
+
