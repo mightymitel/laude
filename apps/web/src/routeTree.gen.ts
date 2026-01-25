@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TunerRouteImport } from './routes/tuner'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as PlaylistsRouteImport } from './routes/playlists'
 import { Route as LoginRouteImport } from './routes/login'
@@ -23,6 +24,11 @@ import { Route as PresentCodeIndexRouteImport } from './routes/present/$code/ind
 import { Route as LibraryIdIndexRouteImport } from './routes/library/$id/index'
 import { Route as LibraryIdEditRouteImport } from './routes/library/$id/edit'
 
+const TunerRoute = TunerRouteImport.update({
+  id: '/tuner',
+  path: '/tuner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SessionRoute = SessionRouteImport.update({
   id: '/session',
   path: '/session',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
   '/session': typeof SessionRoute
+  '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/playlists/$id': typeof PlaylistsIdRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
     | '/playlists/$id'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PlaylistsRoute: typeof PlaylistsRouteWithChildren
   SessionRoute: typeof SessionRoute
+  TunerRoute: typeof TunerRoute
   DebugSongEditorRoute: typeof DebugSongEditorRoute
   LibraryNewRoute: typeof LibraryNewRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
@@ -200,6 +213,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tuner': {
+      id: '/tuner'
+      path: '/tuner'
+      fullPath: '/tuner'
+      preLoaderRoute: typeof TunerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/session': {
       id: '/session'
       path: '/session'
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PlaylistsRoute: PlaylistsRouteWithChildren,
   SessionRoute: SessionRoute,
+  TunerRoute: TunerRoute,
   DebugSongEditorRoute: DebugSongEditorRoute,
   LibraryNewRoute: LibraryNewRoute,
   LibraryIndexRoute: LibraryIndexRoute,

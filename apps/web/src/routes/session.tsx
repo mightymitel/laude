@@ -21,6 +21,8 @@ import styles from './session.module.css'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import { api } from '@/lib/api'
 import { SongLine } from '@/components/songs/SongLine'
+import { Modal } from '@/components/Modal/Modal'
+import { Tuner } from '@/components/Tuner/Tuner'
 
 const POSSIBLE_KEYS: Key[] = [
     'C',
@@ -239,6 +241,9 @@ function SessionPageContent() {
 
     const displaySongs = searchQuery ? searchResults?.data : orderedSongs
 
+    // Tuner state
+    const [showTuner, setShowTuner] = useState(false);
+
     return (
         <div className={styles.container}>
             <header className={styles.header}>
@@ -249,6 +254,13 @@ function SessionPageContent() {
                     <h1>Worship Session</h1>
                 </div>
                 <div className={styles.headerRight}>
+                    <button
+                        onClick={() => setShowTuner(true)}
+                        className={styles.shareBtn} // reusing shareBtn style for now, or add new style
+                        title="Open Guitar Tuner"
+                    >
+                        🎸 Tuner
+                    </button>
                     {!isGuest &&
                         (isLive ? (
                             <>
@@ -571,6 +583,11 @@ function SessionPageContent() {
                     </div>
                 </div>
             )}
+
+            {/* Tuner Modal */}
+            <Modal isOpen={showTuner} onClose={() => setShowTuner(false)} title="Guitar Tuner">
+                <Tuner mode="mini" />
+            </Modal>
         </div>
     )
 }
