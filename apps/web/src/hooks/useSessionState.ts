@@ -21,6 +21,7 @@ export interface SessionPlaylistItem {
     songId: string;
     key?: Key;
     song?: EmbeddedSong;
+    temporary?: boolean; // Auto-added when owner selects a song not in playlist
 }
 
 // Session state returned from API
@@ -92,7 +93,16 @@ export function useSessionState(accessCode: string | null) {
             queryClient.invalidateQueries({ queryKey: ['sessionState', accessCode] });
         };
 
+        // Direct state sync (for fast part/key changes)
+        const handleStateSync = (data: Partial<SessionState>) => {
+            console.log('[Socket] Received state:sync', data);
+            queryClient.setQueryData(['sessionState', accessCode], (prev: SessionState | undefined) =>
+                prev ? { ...prev, ...data } : prev
+            );
+        };
+
         socket.on('state:changed', handleStateChanged);
+        socket.on('state:sync', handleStateSync);
         socket.on('session:end', handleStateChanged);
 
         return () => {
@@ -140,6 +150,14 @@ export function useSessionState(accessCode: string | null) {
         socketRef.current.emit('state:changed', { accessCode });
     }, [accessCode]);
 
+    // Fast part change via direct socket (with background persistence)
+    const emitPartChange = useCallback((partIndex: number) => {
+        if (!accessCode || !socketRef.current) return;
+        socketRef.current.emit('part:change', { accessCode, partIndex });
+        // Persist to Firestore in background (fire-and-forget)
+        api.put(`/api/sessions/update/${accessCode}`, { currentPartIndex: partIndex }).catch(console.error);
+    }, [accessCode]);
+
     return {
         data: query.data,
         isLoading: query.isLoading,
@@ -148,5 +166,6 @@ export function useSessionState(accessCode: string | null) {
         updateSessionAsync: mutation.mutateAsync,
         isUpdating: mutation.isPending,
         notifyStateChanged,
+        emitPartChange,
     };
 }

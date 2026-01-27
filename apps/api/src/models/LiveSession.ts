@@ -16,6 +16,7 @@ export interface SessionPlaylistItem {
     key?: Key;
     arrangement?: string;
     song?: EmbeddedSong;  // Full song data for presenter
+    temporary?: boolean;  // Auto-added when owner selects a song not in playlist
 }
 
 export interface LiveSession {

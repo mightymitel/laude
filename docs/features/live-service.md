@@ -52,6 +52,21 @@ graph LR
 - Changes sync in real-time via Socket.io
 - TanStack Query manages state consistency
 
+### Sync Patterns
+
+| Action | Pattern | Latency |
+|--------|---------|---------|
+| Part navigation | Direct socket (`part:change` → `state:sync`) | ~50ms |
+| Song selection | HTTP + socket notification | ~500ms |
+| Playlist changes | HTTP + socket notification | ~500ms |
+
+### Temporary Playlist Items
+
+When the owner selects a song not in the playlist, it's automatically added as a **temporary** item:
+- Appears in the playlist for presenters to see and control
+- Marked with a visual indicator (dot)
+- Includes full song data (no library fetch needed)
+
 ---
 
 ## Access Links

@@ -80,6 +80,17 @@
     background: var(--primary-hover);
 }
 
+.playlistItemTemporary {
+    opacity: 0.8;
+    border-left: 2px solid var(--text-muted);
+}
+
+.tempBadge {
+    margin-left: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.6rem;
+}
+
 .itemInfo {
     display: flex;
     align-items: center;

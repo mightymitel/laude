@@ -23,6 +23,7 @@ export interface SessionPlaylistItem {
     key?: Key;
     arrangement?: string;
     song?: EmbeddedSong;  // Full song data for presenter
+    temporary?: boolean;  // Auto-added when owner selects a song not in playlist
 }
 
 interface PlaylistPanelProps {
@@ -54,12 +55,13 @@ function PlaylistItemRow({
 
     return (
         <div
-            className={`${styles.playlistItem} ${isActive ? styles.playlistItemActive : ''}`}
+            className={`${styles.playlistItem} ${isActive ? styles.playlistItemActive : ''} ${item.temporary ? styles.playlistItemTemporary : ''}`}
             onClick={onSelect}
         >
             <div className={styles.itemInfo}>
                 <span className={styles.itemTitle}>
                     {song?.title || 'Loading...'}
+                    {item.temporary && <span className={styles.tempBadge}>•</span>}
                 </span>
             </div>
             <div className={styles.itemActions}>

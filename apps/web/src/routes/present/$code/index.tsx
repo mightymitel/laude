@@ -71,7 +71,7 @@ function PresenterPage() {
 
   // 2. Real-time sync hook using accessCode
   // This handles socket invalidation and polling automatically
-  const { data: sessionState, updateSession } = useSessionState(initialSession?.accessCode || null)
+  const { data: sessionState, updateSession, emitPartChange } = useSessionState(initialSession?.accessCode || null)
 
   // Use the live state if available, otherwise initial state
   const session = sessionState || initialSession
@@ -94,10 +94,10 @@ function PresenterPage() {
     })
   }, [updateSession])
 
-  // Navigate parts
+  // Navigate parts (fast direct socket)
   const goToPart = useCallback((index: number) => {
-    updateSession({ currentPartIndex: index })
-  }, [updateSession])
+    emitPartChange(index)
+  }, [emitPartChange])
 
   const nextPart = useCallback(() => {
     if (session?.currentSong && (session.currentPartIndex ?? 0) < session.currentSong.parts.length - 1) {

@@ -197,13 +197,45 @@ function SessionPageContent() {
 
     const goLive = useCallback(
         (song: Song) => {
-            setCurrentSongId(song.id)
-            setCurrentPartIndex(0)
-            // Respect key preference
-            if (useOriginalKey) {
-                setDisplayKey(song.originalKey)
+            // If live and song not in playlist, add it as temporary
+            if (isLive) {
+                const isInPlaylist = sessionPlaylist.some((item) => item.songId === song.id)
+                if (!isInPlaylist) {
+                    const tempItem = {
+                        id: `temp-${Date.now()}-${song.id}`,
+                        songId: song.id,
+                        key: song.originalKey,
+                        song: {
+                            id: song.id,
+                            title: song.title,
+                            author: song.author,
+                            originalKey: song.originalKey,
+                            parts: song.parts,
+                        },
+                        temporary: true,
+                    }
+                    setSessionPlaylist((prev) => [...prev, tempItem])
+                }
+                // Update session with embedded song data
+                updateSession({
+                    currentSongId: song.id,
+                    currentSong: {
+                        id: song.id,
+                        title: song.title,
+                        author: song.author,
+                        originalKey: song.originalKey,
+                        parts: song.parts,
+                    },
+                    currentPartIndex: 0,
+                    displayKey: useOriginalKey ? song.originalKey : displayKey,
+                })
+            } else {
+                setCurrentSongId(song.id)
+                setCurrentPartIndex(0)
+                if (useOriginalKey) {
+                    setDisplayKey(song.originalKey)
+                }
             }
-            // If useOriginalKey is false, keep current displayKey
             setSearchQuery('')
             // Track recently played
             setRecentlyPlayed((prev) => {
@@ -211,7 +243,7 @@ function SessionPageContent() {
                 return [song.id, ...filtered].slice(0, 20)
             })
         },
-        [useOriginalKey],
+        [isLive, sessionPlaylist, useOriginalKey, displayKey, setSessionPlaylist, updateSession, setCurrentSongId, setCurrentPartIndex, setDisplayKey],
     )
 
     // Smart ordering for library view when search is empty

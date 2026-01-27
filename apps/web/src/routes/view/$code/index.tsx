@@ -151,6 +151,22 @@ function GuestViewPage() {
                     if (data.song) setSong(data.song)
                 })
 
+                // Direct state sync for fast part/key changes
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                socket.on('state:sync', (data: any) => {
+                    if (!mounted) return
+                    if (data.partIndex !== undefined) {
+                        setSessionState((prev) => prev ? { ...prev, partIndex: data.partIndex } : prev)
+                    }
+                    if (data.key !== undefined) {
+                        setSessionState((prev) => prev ? { ...prev, key: data.key } : prev)
+                    }
+                    if (data.songId !== undefined) {
+                        setSessionState((prev) => prev ? { ...prev, songId: data.songId } : prev)
+                        if (data.song) setSong(data.song)
+                    }
+                })
+
                 socket.on('session:end', () => {
                     if (mounted) setSessionState((prev) => (prev ? { ...prev, status: 'ended' } : null))
                 })
