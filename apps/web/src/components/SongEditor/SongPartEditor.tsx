@@ -1,3 +1,4 @@
+import { useState, useCallback, useRef } from 'react';
 import { SongPart, Key, ChordStyle } from '@laudasist/shared';
 import { DraggedChord, DropPosition } from './types';
 import { SongLineEditor } from './SongLineEditor';
@@ -16,7 +17,7 @@ interface SongPartEditorProps {
     onUpdateLine: (lineIndex: number, text: string) => void;
     onAddLine: () => void;
     onDropPositionChange: (position: DropPosition | null) => void;
-    onChordDrop: (position: DropPosition) => void;
+    onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
     onChordDragEnd: () => void;
 }
@@ -48,6 +49,28 @@ export function SongPartEditor({
     onChordDragStart,
     onChordDragEnd,
 }: SongPartEditorProps) {
+    // Track last known drop position locally to handle race conditions
+    const lastDropPositionRef = useRef<DropPosition | null>(null);
+
+    const handleDropPositionChange = useCallback((lineIndex: number, charIndex: number | null) => {
+        if (charIndex !== null) {
+            const position = { partIndex, lineIndex, charIndex };
+            lastDropPositionRef.current = position;
+            onDropPositionChange(position);
+        } else {
+            // Don't clear ref immediately - keep it for drop
+            onDropPositionChange(null);
+        }
+    }, [partIndex, onDropPositionChange]);
+
+    const handleChordDrop = useCallback((lineIndex: number, dataTransfer?: DataTransfer) => {
+        // Use the most recent position we have
+        const position = dropPosition ?? lastDropPositionRef.current;
+        if (position && position.partIndex === partIndex && position.lineIndex === lineIndex) {
+            onChordDrop(position, dataTransfer);
+        }
+        lastDropPositionRef.current = null;
+    }, [dropPosition, partIndex, onChordDrop]);
 
     const defaultLabel = `${PART_TYPE_LABELS[part.type] || part.type} ${part.index || ''}`;
 
@@ -115,18 +138,8 @@ export function SongPartEditor({
                         }
                         onTextChange={(text) => onUpdateLine(lineIndex, text)}
                         onKeyDown={(e) => handleKeyDown(e, lineIndex)}
-                        onDropPositionChange={(charIndex) => {
-                            if (charIndex !== null) {
-                                onDropPositionChange({ partIndex, lineIndex, charIndex });
-                            } else {
-                                onDropPositionChange(null);
-                            }
-                        }}
-                        onChordDrop={() => {
-                            if (dropPosition) {
-                                onChordDrop(dropPosition);
-                            }
-                        }}
+                        onDropPositionChange={(charIndex) => handleDropPositionChange(lineIndex, charIndex)}
+                        onChordDrop={(dataTransfer) => handleChordDrop(lineIndex, dataTransfer)}
                         onChordDragStart={onChordDragStart}
                         onChordDragEnd={onChordDragEnd}
                     />

@@ -18,7 +18,7 @@ interface SongLineEditorProps {
     onTextChange: (text: string) => void;
     onKeyDown: (e: React.KeyboardEvent) => void;
     onDropPositionChange: (charIndex: number | null) => void;
-    onChordDrop: () => void;
+    onChordDrop: (dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
     onChordDragEnd: () => void;
 }
@@ -51,14 +51,22 @@ export function SongLineEditor({
         onDropPositionChange(globalCharIndex);
     }, [onDropPositionChange]);
 
-    const handleDragLeave = useCallback(() => {
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        // Only clear position when actually leaving the container,
+        // not when entering a child element (segment)
+        const relatedTarget = e.relatedTarget as Node | null;
+        if (containerRef.current && relatedTarget && containerRef.current.contains(relatedTarget)) {
+            // Moving to a child element, don't clear
+            return;
+        }
         setActiveSegmentIndex(null);
         onDropPositionChange(null);
     }, [onDropPositionChange]);
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        onChordDrop();
+        e.stopPropagation();
+        onChordDrop(e.dataTransfer);
         setDraggingChordIndex(null);
         setActiveSegmentIndex(null);
     }, [onChordDrop]);
@@ -75,15 +83,23 @@ export function SongLineEditor({
         onTextChange(newLine);
     }, [segments, onTextChange]);
 
-    const handleChordDragStartWrapper = (chordIndex: number, formattedChord: string, originalChord: string, originalCharIndex: number) => {
+    const handleChordDragStartWrapper = (e: React.DragEvent, chordIndex: number, formattedChord: string, originalChord: string, originalCharIndex: number) => {
         setDraggingChordIndex(chordIndex);
-        onChordDragStart({
+
+        const chordData: DraggedChord = {
             chord: originalChord,
             source: 'line',
             originalPartIndex: partIndex,
             originalLineIndex: lineIndex,
             originalCharIndex: originalCharIndex,
-        });
+        };
+
+        // Store chord data in dataTransfer for reliable access during drop
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('application/x-chord', JSON.stringify(chordData));
+        e.dataTransfer.setData('text/plain', originalChord);
+
+        onChordDragStart(chordData);
     };
 
     const handleNavigate = useCallback((index: number, dir: 'prev' | 'next') => {
@@ -112,6 +128,7 @@ export function SongLineEditor({
                         key={i}
                         segment={seg}
                         segmentIndex={i}
+                        totalSegments={segments.length}
                         draggingChordIndex={draggingChordIndex}
                         activeSegmentIndex={activeSegmentIndex}
                         isDropTarget={isDropTarget}
@@ -120,7 +137,9 @@ export function SongLineEditor({
                         lyricsLocked={lyricsLocked}
                         onTextChange={handleSegmentTextChange}
                         onNavigate={handleNavigate}
-                        onChordDragStart={handleChordDragStartWrapper}
+                        onChordDragStart={(e, chordIndex, display, originalChord, originalCharIndex) =>
+                            handleChordDragStartWrapper(e, chordIndex, display, originalChord, originalCharIndex)
+                        }
                         onChordDragEnd={() => {
                             setDraggingChordIndex(null);
                             onChordDragEnd();

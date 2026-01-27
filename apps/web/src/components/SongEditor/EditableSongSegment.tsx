@@ -5,6 +5,7 @@ import styles from './SongEditor.module.css';
 interface EditableSongSegmentProps {
     segment: SegmentData;
     segmentIndex: number;
+    totalSegments: number;
     draggingChordIndex: number | null;
     activeSegmentIndex: number | null;
     isDropTarget: boolean;
@@ -13,7 +14,7 @@ interface EditableSongSegmentProps {
     lyricsLocked: boolean;
     onTextChange: (segmentIndex: number, newText: string) => void;
     onNavigate: (segmentIndex: number, direction: 'prev' | 'next') => void;
-    onChordDragStart: (chordIndex: number, display: string, originalChord: string, originalCharIndex: number) => void;
+    onChordDragStart: (e: React.DragEvent, chordIndex: number, display: string, originalChord: string, originalCharIndex: number) => void;
     onChordDragEnd: () => void;
     // New prop for signaling hover position
     onHover: (segmentIndex: number, charIndex: number | null) => void;
@@ -22,6 +23,7 @@ interface EditableSongSegmentProps {
 export function EditableSongSegment({
     segment,
     segmentIndex,
+    totalSegments,
     draggingChordIndex,
     activeSegmentIndex,
     isDropTarget,
@@ -147,7 +149,7 @@ export function EditableSongSegment({
                         draggable
                         onDragStart={(e) => {
                             e.stopPropagation();
-                            onChordDragStart(c.chordIndex, c.display, c.originalChord, c.index);
+                            onChordDragStart(e, c.chordIndex, c.display, c.originalChord, c.index);
                         }}
                         onDragEnd={onChordDragEnd}
                     >
@@ -159,13 +161,14 @@ export function EditableSongSegment({
             <div className={styles.visualTextWrapper}>
                 <span
                     ref={textRef}
-                    className={styles.segmentText}
+                    className={`${styles.segmentText} ${!segment.text && totalSegments === 1 && segment.chords.length === 0 ? styles.emptyPlaceholder : ''}`}
                     contentEditable={!lyricsLocked}
                     suppressContentEditableWarning
                     onBlur={handleBlur}
                     onInput={handleInput}
                     onKeyDown={handleKeyDown}
                     spellCheck={false}
+                    data-placeholder="Type lyrics here..."
                 >
                     {segment.text}
                 </span>

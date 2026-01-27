@@ -353,6 +353,15 @@
     width: 0;
 }
 
+/* Placeholder for empty segments */
+.segmentText.emptyPlaceholder:empty::after {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    opacity: 0.6;
+    pointer-events: none;
+    font-style: italic;
+}
+
 /* Chord Badge - Positioned relative to anchor */
 /* Chord Badge - Flowing in segmentChords */
 .chordBadge {
