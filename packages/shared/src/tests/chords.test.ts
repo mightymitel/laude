@@ -104,4 +104,65 @@ describe('Chord Utilities', () => {
             expect(letterToNashville('invalid', 'C')).toBeNull();
         });
     });
+
+    describe('extractChordsFromLine - edge cases', () => {
+        it('handles empty line', () => {
+            const result = extractChordsFromLine('');
+            expect(result.text).toBe('');
+            expect(result.chords).toHaveLength(0);
+        });
+
+        it('handles line with leading whitespace and chord', () => {
+            const result = extractChordsFromLine('  [1]Amazing grace');
+            expect(result.text).toBe('  Amazing grace');
+            expect(result.chords).toHaveLength(1);
+            expect(result.chords[0]?.index).toBe(2); // After 2 spaces
+        });
+
+        it('handles multiple chords at same position', () => {
+            const result = extractChordsFromLine('[1][4]Word');
+            expect(result.text).toBe('Word');
+            expect(result.chords).toHaveLength(2);
+            expect(result.chords[0]?.index).toBe(0);
+            expect(result.chords[1]?.index).toBe(0);
+        });
+
+        it('handles chord at end of line', () => {
+            const result = extractChordsFromLine('End [1]');
+            expect(result.text).toBe('End ');
+            expect(result.chords).toHaveLength(1);
+            expect(result.chords[0]?.index).toBe(4);
+        });
+
+        it('preserves character indices correctly with multiple chords', () => {
+            const result = extractChordsFromLine('[1]A [4]B [5]C');
+            expect(result.text).toBe('A B C');
+            expect(result.chords[0]?.index).toBe(0); // Before 'A'
+            expect(result.chords[1]?.index).toBe(2); // Before 'B'
+            expect(result.chords[2]?.index).toBe(4); // Before 'C'
+        });
+
+        it('handles chord with quality', () => {
+            const result = extractChordsFromLine('[1maj7]Word');
+            expect(result.text).toBe('Word');
+            expect(result.chords).toHaveLength(1);
+            expect(result.chords[0]?.chord.degree).toBe(1);
+            expect(result.chords[0]?.chord.quality).toBe('maj7');
+        });
+
+        it('handles slash chord', () => {
+            const result = extractChordsFromLine('[1/5]Word');
+            expect(result.text).toBe('Word');
+            expect(result.chords).toHaveLength(1);
+            expect(result.chords[0]?.chord.degree).toBe(1);
+            expect(result.chords[0]?.chord.bass).toBe(5);
+        });
+
+        it('handles non-chord brackets', () => {
+            const result = extractChordsFromLine('[not a chord] [1]Word');
+            expect(result.text).toBe('[not a chord] Word');
+            expect(result.chords).toHaveLength(1);
+            expect(result.chords[0]?.chord.degree).toBe(1);
+        });
+    });
 });

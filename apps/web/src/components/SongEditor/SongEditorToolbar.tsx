@@ -36,6 +36,11 @@ export function SongEditorToolbar({
         if (menuOpen) return; // Don't drag if menu is trying to open
 
         e.dataTransfer.effectAllowed = 'move';
+        // Store chord data in dataTransfer for reliable access during drop
+        e.dataTransfer.setData('application/x-chord', JSON.stringify({
+            chord: chordDegree,
+            source: 'toolbar',
+        }));
         e.dataTransfer.setData('text/plain', chordDegree);
 
         onChordDragStart({
@@ -99,6 +104,7 @@ export function SongEditorToolbar({
                         onTouchStart={(e) => handleTouchStart(e, chord)}
                         onTouchEnd={handleTouchEnd}
                         onContextMenu={(e) => handleContextMenu(e, chord)}
+                        data-chord={chord}
                     >
                         {formatChordForDisplay(chord)}
                     </button>

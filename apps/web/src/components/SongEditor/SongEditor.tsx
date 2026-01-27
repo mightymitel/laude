@@ -164,8 +164,25 @@ export function SongEditor({
         setDropPosition(position);
     }, []);
 
-    const handleChordDrop = useCallback((position: DropPosition) => {
-        if (!draggedChord) return;
+    const handleChordDrop = useCallback((position: DropPosition, dataTransfer?: DataTransfer) => {
+        // Try to get chord from state first, then fall back to dataTransfer
+        let chord = draggedChord;
+        if (!chord && dataTransfer) {
+            try {
+                const chordData = dataTransfer.getData('application/x-chord');
+                if (chordData) {
+                    chord = JSON.parse(chordData) as DraggedChord;
+                }
+            } catch {
+                // Try plain text fallback
+                const plainChord = dataTransfer.getData('text/plain');
+                if (plainChord) {
+                    chord = { chord: plainChord, source: 'toolbar' };
+                }
+            }
+        }
+
+        if (!chord) return;
 
         setEditingSong(prev => {
             const parts = [...(prev.parts || [])];
@@ -181,19 +198,19 @@ export function SongEditor({
 
             // Step 1: Remove chord from original position if moving within same line
             let chordsToKeep = existingChords;
-            if (draggedChord.source === 'line' &&
-                draggedChord.originalLineIndex === position.lineIndex &&
-                draggedChord.originalCharIndex !== undefined) {
+            if (chord.source === 'line' &&
+                chord.originalLineIndex === position.lineIndex &&
+                chord.originalCharIndex !== undefined) {
 
                 // Filter out the chord being moved
                 chordsToKeep = existingChords.filter(c =>
-                    !(c.index === draggedChord.originalCharIndex &&
-                        formatChord(c.chord, currentKey, 'nashville') === draggedChord.chord)
+                    !(c.index === chord.originalCharIndex &&
+                        formatChord(c.chord, currentKey, 'nashville') === chord.chord)
                 );
             }
 
             // Step 2: Add the new chord at drop position
-            const parsedChord = parseNashville(draggedChord.chord);
+            const parsedChord = parseNashville(chord.chord);
             const newChord = {
                 index: position.charIndex,
                 chord: parsedChord || { degree: 1, root: 'C', quality: '', alterations: [] }
@@ -219,38 +236,38 @@ export function SongEditor({
             parts[position.partIndex] = { ...targetPart, lines: targetLines };
 
             // Step 4: Remove from original line if it was from a different line or part
-            if (draggedChord.source === 'line' &&
-                draggedChord.originalLineIndex !== undefined &&
-                draggedChord.originalCharIndex !== undefined &&
-                (draggedChord.originalLineIndex !== position.lineIndex ||
-                 draggedChord.originalPartIndex !== position.partIndex)) {
+            if (chord.source === 'line' &&
+                chord.originalLineIndex !== undefined &&
+                chord.originalCharIndex !== undefined &&
+                (chord.originalLineIndex !== position.lineIndex ||
+                 chord.originalPartIndex !== position.partIndex)) {
 
-                const sourcePartIndex = draggedChord.originalPartIndex ?? position.partIndex;
+                const sourcePartIndex = chord.originalPartIndex ?? position.partIndex;
                 const sourcePart = parts[sourcePartIndex];
                 if (sourcePart) {
                     const sourceLines = [...sourcePart.lines];
-                    const sourceLine = sourceLines[draggedChord.originalLineIndex];
+                    const sourceLine = sourceLines[chord.originalLineIndex];
 
                     if (sourceLine) {
                         const { text: sourcePureText, chords: sourceChords } = extractChordsFromLine(sourceLine.text);
 
                         // Remove the dragged chord
                         const remainingChords = sourceChords.filter(c =>
-                            !(c.index === draggedChord.originalCharIndex &&
-                                formatChord(c.chord, currentKey, 'nashville') === draggedChord.chord)
+                            !(c.index === chord.originalCharIndex &&
+                                formatChord(c.chord, currentKey, 'nashville') === chord.chord)
                         );
 
                         // Rebuild source line
                         let sourceText = '';
                         let sourceLastIndex = 0;
-                        for (const chord of remainingChords) {
-                            sourceText += sourcePureText.substring(sourceLastIndex, chord.index);
-                            sourceText += `[${formatChord(chord.chord, currentKey, 'nashville')}]`;
-                            sourceLastIndex = chord.index;
+                        for (const chd of remainingChords) {
+                            sourceText += sourcePureText.substring(sourceLastIndex, chd.index);
+                            sourceText += `[${formatChord(chd.chord, currentKey, 'nashville')}]`;
+                            sourceLastIndex = chd.index;
                         }
                         sourceText += sourcePureText.substring(sourceLastIndex);
 
-                        sourceLines[draggedChord.originalLineIndex] = { text: sourceText };
+                        sourceLines[chord.originalLineIndex] = { text: sourceText };
                         parts[sourcePartIndex] = { ...sourcePart, lines: sourceLines };
                     }
                 }
@@ -277,19 +294,68 @@ export function SongEditor({
         }
     }, [editingSong, onSave]);
 
-    // Raw mode sync
+    // Raw mode sync - parse raw content back into structured parts
     const handleRawChange = useCallback((rawContent: string) => {
-        // TODO: Parse raw content back into parts
-        // For now, just store in first part
-        setEditingSong(prev => {
-            const parts: SongPart[] = [{
-                id: 'raw',
+        const parts: SongPart[] = [];
+        const lines = rawContent.split('\n');
+
+        let currentPart: SongPart | null = null;
+        const partCounts: Record<string, number> = {};
+
+        for (const line of lines) {
+            // Check for part header: #verse 1, #chorus 1, etc.
+            const headerMatch = line.match(/^#(\w+(?:-\w+)?)\s*(\d*)$/i);
+
+            if (headerMatch) {
+                // Save previous part if exists
+                if (currentPart) {
+                    parts.push(currentPart);
+                }
+
+                const partType = headerMatch[1].toLowerCase() as PartType;
+                const explicitIndex = headerMatch[2] ? parseInt(headerMatch[2], 10) : null;
+
+                // Track part counts for ID generation
+                partCounts[partType] = (partCounts[partType] || 0) + 1;
+                const index = explicitIndex || partCounts[partType];
+
+                currentPart = {
+                    id: generatePartId(partType, parts),
+                    type: partType,
+                    index,
+                    lines: [],
+                };
+            } else if (currentPart) {
+                // Add line to current part
+                currentPart.lines.push({ text: line });
+            } else if (line.trim()) {
+                // No part yet, create a default verse
+                currentPart = {
+                    id: generatePartId('verse', parts),
+                    type: 'verse',
+                    index: 1,
+                    lines: [{ text: line }],
+                };
+                partCounts['verse'] = 1;
+            }
+        }
+
+        // Don't forget the last part
+        if (currentPart) {
+            parts.push(currentPart);
+        }
+
+        // Ensure at least one part exists
+        if (parts.length === 0) {
+            parts.push({
+                id: 'V1',
                 type: 'verse',
                 index: 1,
-                lines: rawContent.split('\n').map(text => ({ text })),
-            }];
-            return { ...prev, parts };
-        });
+                lines: [{ text: '' }],
+            });
+        }
+
+        setEditingSong(prev => ({ ...prev, parts }));
     }, []);
 
     const rawContent = useMemo(() => {
@@ -463,14 +529,28 @@ export function SongEditor({
                     }}
                     onDrop={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
 
-                        // Remove chord from original position
-                        if (draggedChord.source === 'line' &&
-                            draggedChord.originalPartIndex !== undefined &&
-                            draggedChord.originalLineIndex !== undefined &&
-                            draggedChord.originalCharIndex !== undefined) {
+                        // Try to get chord from state first, then fall back to dataTransfer
+                        let chord = draggedChord;
+                        if (!chord) {
+                            try {
+                                const chordData = e.dataTransfer.getData('application/x-chord');
+                                if (chordData) {
+                                    chord = JSON.parse(chordData) as DraggedChord;
+                                }
+                            } catch {
+                                // Ignore parse errors
+                            }
+                        }
 
-                            const { originalPartIndex, originalLineIndex, originalCharIndex } = draggedChord;
+                        // Remove chord from original position (only for line chords)
+                        if (chord?.source === 'line' &&
+                            chord.originalPartIndex !== undefined &&
+                            chord.originalLineIndex !== undefined &&
+                            chord.originalCharIndex !== undefined) {
+
+                            const { originalPartIndex, originalLineIndex, originalCharIndex } = chord;
 
                             setEditingSong(prev => {
                                 const parts = [...(prev.parts || [])];
@@ -486,16 +566,16 @@ export function SongEditor({
                                 // Remove the chord
                                 const remainingChords = chords.filter(c =>
                                     !(c.index === originalCharIndex &&
-                                        formatChord(c.chord, currentKey, 'nashville') === draggedChord.chord)
+                                        formatChord(c.chord, currentKey, 'nashville') === chord.chord)
                                 );
 
                                 // Rebuild line text
                                 let newText = '';
                                 let lastIndex = 0;
-                                for (const chord of remainingChords) {
-                                    newText += pureText.substring(lastIndex, chord.index);
-                                    newText += `[${formatChord(chord.chord, currentKey, 'nashville')}]`;
-                                    lastIndex = chord.index;
+                                for (const chd of remainingChords) {
+                                    newText += pureText.substring(lastIndex, chd.index);
+                                    newText += `[${formatChord(chd.chord, currentKey, 'nashville')}]`;
+                                    lastIndex = chd.index;
                                 }
                                 newText += pureText.substring(lastIndex);
 
