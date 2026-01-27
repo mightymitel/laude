@@ -144,6 +144,14 @@
     background: var(--accent);
 }
 
+.chordButton.songChord {
+    background: var(--success, #10b981);
+}
+
+.chordButton.customChord {
+    background: var(--warning, #f59e0b);
+}
+
 .customChordButton {
     padding: 0.5rem 0.75rem;
     background: var(--bg-primary);

@@ -35,6 +35,7 @@ export interface DraggedChord {
     /** Source: 'toolbar' for new chords, 'line' for existing */
     source: 'toolbar' | 'line';
     /** Original position if dragging from line */
+    originalPartIndex?: number;
     originalLineIndex?: number;
     originalCharIndex?: number;
 }

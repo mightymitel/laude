@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import {
     Song, SongPart, Key, ChordStyle, PartType,
-    formatChord, parseNashville, extractChordsFromLine
+    formatChord, parseNashville, extractChordsFromLine, NashvilleChord
 } from '@laudasist/shared';
 import { SongEditorProps, DraggedChord, DropPosition } from './types';
 import { SongEditorToolbar } from './SongEditorToolbar';
@@ -68,6 +68,24 @@ export function SongEditor({
     }, []);
 
     const currentKey = displayKey || editingSong.originalKey || 'C';
+
+    // Extract all unique chords from the current song for the palette
+    const songChords = useMemo(() => {
+        const chordSet = new Set<string>();
+        for (const part of editingSong.parts || []) {
+            for (const line of part.lines) {
+                const { chords } = extractChordsFromLine(line.text);
+                for (const c of chords) {
+                    // Convert NashvilleChord to string representation
+                    const chordStr = formatChord(c.chord, currentKey, 'nashville');
+                    if (chordStr) chordSet.add(chordStr);
+                }
+            }
+        }
+        // Filter out the default palette chords to avoid duplicates
+        const defaultChords = new Set(['1', '4', '5', '6m', '2m', '3m']);
+        return Array.from(chordSet).filter(c => !defaultChords.has(c));
+    }, [editingSong.parts, currentKey]);
 
     // Part handlers
     const handleAddPart = useCallback((type: PartType) => {
@@ -200,13 +218,15 @@ export function SongEditor({
             targetLines[position.lineIndex] = { text: newText };
             parts[position.partIndex] = { ...targetPart, lines: targetLines };
 
-            // Step 4: Remove from original line if it was from a different line
+            // Step 4: Remove from original line if it was from a different line or part
             if (draggedChord.source === 'line' &&
                 draggedChord.originalLineIndex !== undefined &&
-                draggedChord.originalLineIndex !== position.lineIndex &&
-                draggedChord.originalCharIndex !== undefined) {
+                draggedChord.originalCharIndex !== undefined &&
+                (draggedChord.originalLineIndex !== position.lineIndex ||
+                 draggedChord.originalPartIndex !== position.partIndex)) {
 
-                const sourcePart = parts[position.partIndex];
+                const sourcePartIndex = draggedChord.originalPartIndex ?? position.partIndex;
+                const sourcePart = parts[sourcePartIndex];
                 if (sourcePart) {
                     const sourceLines = [...sourcePart.lines];
                     const sourceLine = sourceLines[draggedChord.originalLineIndex];
@@ -231,7 +251,7 @@ export function SongEditor({
                         sourceText += sourcePureText.substring(sourceLastIndex);
 
                         sourceLines[draggedChord.originalLineIndex] = { text: sourceText };
-                        parts[position.partIndex] = { ...sourcePart, lines: sourceLines };
+                        parts[sourcePartIndex] = { ...sourcePart, lines: sourceLines };
                     }
                 }
             }
@@ -358,6 +378,7 @@ export function SongEditor({
                     onLockToggle={() => setLyricsLocked(!lyricsLocked)}
                     onChordDragStart={handleChordDragStart}
                     customChords={customChords}
+                    songChords={songChords}
                     onAddCustomChord={handleAddCustomChord}
                 />
             )}
@@ -445,15 +466,15 @@ export function SongEditor({
 
                         // Remove chord from original position
                         if (draggedChord.source === 'line' &&
+                            draggedChord.originalPartIndex !== undefined &&
                             draggedChord.originalLineIndex !== undefined &&
                             draggedChord.originalCharIndex !== undefined) {
 
-                            const { originalLineIndex, originalCharIndex } = draggedChord;
+                            const { originalPartIndex, originalLineIndex, originalCharIndex } = draggedChord;
 
                             setEditingSong(prev => {
                                 const parts = [...(prev.parts || [])];
-                                // Assuming single part for now - adjust if multi-part
-                                const part = parts[0];
+                                const part = parts[originalPartIndex];
                                 if (!part) return prev;
 
                                 const lines = [...part.lines];
@@ -479,7 +500,7 @@ export function SongEditor({
                                 newText += pureText.substring(lastIndex);
 
                                 lines[originalLineIndex] = { text: newText };
-                                parts[0] = { ...part, lines };
+                                parts[originalPartIndex] = { ...part, lines };
 
                                 return { ...prev, parts };
                             });

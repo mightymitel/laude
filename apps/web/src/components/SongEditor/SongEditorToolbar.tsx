@@ -11,6 +11,7 @@ interface SongEditorToolbarProps {
     onLockToggle: () => void;
     onChordDragStart: (chord: DraggedChord) => void;
     customChords?: string[];
+    songChords?: string[];  // Chords extracted from current song
     onAddCustomChord?: (chord: string) => void;
 }
 
@@ -25,6 +26,7 @@ export function SongEditorToolbar({
     onLockToggle,
     onChordDragStart,
     customChords = [],
+    songChords = [],
     onAddCustomChord,
 }: SongEditorToolbarProps) {
     const [menuOpen, setMenuOpen] = useState<{ chord: string; x: number; y: number } | null>(null);
@@ -112,6 +114,22 @@ export function SongEditorToolbar({
                         onTouchStart={(e) => handleTouchStart(e, chord)}
                         onTouchEnd={handleTouchEnd}
                         onContextMenu={(e) => handleContextMenu(e, chord)}
+                    >
+                        {formatChordForDisplay(chord)}
+                    </button>
+                ))}
+
+                {/* Chords from current song */}
+                {songChords.map((chord, i) => (
+                    <button
+                        key={`song-${chord}-${i}`}
+                        className={`${styles.chordButton} ${styles.songChord}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, chord)}
+                        onTouchStart={(e) => handleTouchStart(e, chord)}
+                        onTouchEnd={handleTouchEnd}
+                        onContextMenu={(e) => handleContextMenu(e, chord)}
+                        title="From this song"
                     >
                         {formatChordForDisplay(chord)}
                     </button>

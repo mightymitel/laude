@@ -80,6 +80,7 @@ export function SongLineEditor({
         onChordDragStart({
             chord: originalChord,
             source: 'line',
+            originalPartIndex: partIndex,
             originalLineIndex: lineIndex,
             originalCharIndex: originalCharIndex,
         });

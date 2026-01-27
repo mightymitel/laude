@@ -97,11 +97,11 @@ function parseResurseCrestineContent(html: string): SongPart[] {
 
         // Process the line to extract chord positions
         while ((match = chordRegex.exec(lineHtml)) !== null) {
-            // Count spaces before this chord
+            // Count visual characters before this chord
             const beforeChord = lineHtml.substring(lastIdx, match.index);
-            const spaceCount = (beforeChord.match(/&nbsp;/g) || []).length;
+            // Convert &nbsp; to space and strip HTML tags to get pure text length
             const textBeforeChord = beforeChord.replace(/&nbsp;/g, ' ').replace(/<[^>]+>/g, '');
-            visualPos += textBeforeChord.length + spaceCount;
+            visualPos += textBeforeChord.length;
 
             chords.push({
                 chord: match[1] ?? '',

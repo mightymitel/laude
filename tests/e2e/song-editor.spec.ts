@@ -25,24 +25,21 @@ test.describe('Song Editor', () => {
   test('should display chords above text', async ({ page }) => {
     await page.goto('/debug/song-editor');
 
-    // Find a line with chords
-    const line = page.locator('[class*="line"]').first();
-    await expect(line).toBeVisible();
-
-    // Check that chordRow exists above textRow
-    const chordRow = line.locator('[class*="chordRow"]');
-    const textRow = line.locator('[class*="textRow"]');
-
-    await expect(chordRow).toBeVisible();
-    await expect(textRow).toBeVisible();
-
-    // Chord badges should be in chord row with absolute positioning
-    const chordBadge = chordRow.locator('[class*="chordBadge"]').first();
+    // Find a chord badge - they exist in segments that have chords
+    // Note: First segment may have no chords (leading whitespace)
+    const chordBadge = page.locator('[class*="chordBadge"]').first();
     await expect(chordBadge).toBeVisible();
 
-    // Check that chord has position style (left: Xch)
-    const style = await chordBadge.getAttribute('style');
-    expect(style).toContain('left');
+    // Verify segmentChords containers exist (they hold the chord badges)
+    const segmentChords = page.locator('[class*="segmentChords"]').first();
+    await expect(segmentChords).toBeVisible();
+
+    // Verify text is also present in segments
+    const segmentText = page.locator('[class*="segmentText"]').first();
+    await expect(segmentText).toBeVisible();
+
+    // Verify we have the expected chord (C in key of C)
+    await expect(chordBadge).toHaveText('C');
   });
 
   test('should show delete zone while dragging chord', async ({ page }) => {
@@ -56,20 +53,17 @@ test.describe('Song Editor', () => {
     const chordBadge = page.locator('[class*="chordBadge"]').first();
     await expect(chordBadge).toBeVisible();
 
-    // Start dragging
-    await chordBadge.hover();
-    await page.mouse.down();
+    // Start dragging using HTML5 drag event
+    await chordBadge.dispatchEvent('dragstart');
 
-    // Delete zone should appear with animation
-    await page.waitForTimeout(100);
-    await expect(deleteZone).toBeVisible();
+    // Delete zone should appear (has 'visible' class when active)
+    await expect(deleteZone).toBeVisible({ timeout: 2000 });
     await expect(deleteZone).toContainText('Drop here to delete');
 
     // Stop dragging
-    await page.mouse.up();
+    await chordBadge.dispatchEvent('dragend');
 
     // Delete zone should disappear
-    await page.waitForTimeout(200);
     await expect(deleteZone).not.toBeVisible();
   });
 
@@ -95,16 +89,19 @@ test.describe('Song Editor', () => {
     const caret = page.locator('[class*="dropCaret"]');
     await expect(caret).not.toBeVisible();
 
-    // Start dragging a chord from toolbar
+    // Verify the toolbar chords are draggable
     const toolbarChord = page.locator('[class*="chordButton"]').first();
-    await toolbarChord.hover();
+    await expect(toolbarChord).toBeVisible();
+    await expect(toolbarChord).toHaveAttribute('draggable', 'true');
 
-    // Drag over a text line
-    const textRow = page.locator('[class*="textRow"]').first();
-    await toolbarChord.dragTo(textRow);
+    // Verify the segment text is present for dropping
+    const segmentText = page.locator('[class*="segmentText"]').first();
+    await expect(segmentText).toBeVisible();
 
-    // Note: In real browser interaction, caret should appear during drag
-    // This is hard to test in Playwright, but the visual should work
+    // Note: Full drag-and-drop with caret positioning is difficult to test
+    // in Playwright because DragEvent construction with dataTransfer
+    // is not supported. The visual behavior works in real browsers.
+    // We verify the elements are set up correctly for drag operations.
   });
 
   test('should allow dragging chords', async ({ page }) => {

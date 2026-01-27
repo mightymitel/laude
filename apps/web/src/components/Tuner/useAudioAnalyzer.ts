@@ -70,27 +70,39 @@ export function useAudioAnalyzer(active: boolean) {
         setState(prev => ({ ...prev, isListening: false }));
     };
 
+    const frequencyBufferRef = useRef<number[]>([]);
+
     const updatePitch = () => {
         if (!analyserRef.current || !bufferRef.current || !audioContextRef.current) return;
 
         analyserRef.current.getFloatTimeDomainData(bufferRef.current as any);
-        const Frequency = autoCorrelate(bufferRef.current as Float32Array, audioContextRef.current.sampleRate);
+        const rawFrequency = autoCorrelate(bufferRef.current as Float32Array, audioContextRef.current.sampleRate);
 
-        if (Frequency === -1) {
-            // No clear pitch found (noise or silence)
-            // Keep previous state or reset if silence persists? 
-            // For tuner, usually we hold last note or show nothing.
-            // Let's fade out or show nothing if RMS is low.
-            // For now, doing nothing to state if confident pitch not found
-            // OR set note to '-' if absolutely silent.
-            // Let's check RMS:
-            const rms = Math.sqrt(bufferRef.current.reduce((acc, val) => acc + val * val, 0) / bufferRef.current.length);
-            if (rms < 0.01) {
-                setState(prev => ({ ...prev, note: '-', cents: 0, frequency: 0 }));
-            }
+        const rms = Math.sqrt(bufferRef.current.reduce((acc, val) => acc + val * val, 0) / bufferRef.current.length);
+
+        // Noise gate (increased threshold)
+        if (rms < 0.03) {
+            // Decay buffer or clear it? Clearing might cause "drop to 0" quickly.
+            // Better to just not update the note but perhaps indicate "listening..." or silence
+            setState(prev => ({ ...prev, note: '-', cents: 0, frequency: 0 }));
+            frequencyBufferRef.current = []; // Reset history on silence
         } else {
-            const { note, cents } = getNote(Frequency);
-            setState(prev => ({ ...prev, note, cents, frequency: Frequency }));
+            if (rawFrequency !== -1) {
+                const buffer = frequencyBufferRef.current;
+                buffer.push(rawFrequency);
+                if (buffer.length > 5) buffer.shift(); // Keep last 5 samples
+
+                // Median filter to remove outliers
+                const sorted = [...buffer].sort((a, b) => a - b);
+                const median = sorted[Math.floor(sorted.length / 2)];
+
+                // Optional: Smoothing (Average) slightly
+                // For guitar, median is usually better to stick to a note, but average helps with cents jitter.
+                // Let's use the median as the primary pitch source.
+
+                const { note, cents } = getNote(median);
+                setState(prev => ({ ...prev, note, cents, frequency: median }));
+            }
         }
 
         rafIdRef.current = requestAnimationFrame(updatePitch);

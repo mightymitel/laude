@@ -6,18 +6,24 @@
     white-space: pre-wrap;
 }
 
-/* Compact Mode */
+/* Compact Mode - chords at start of same line */
 .lineCompact {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
     font-family: 'Fira Code', 'SF Mono', monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
 }
 
 .chordsStart {
     color: var(--color-primary, #6366f1);
     font-weight: bold;
     font-size: 0.9em;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* Inline Mode */
