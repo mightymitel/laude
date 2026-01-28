@@ -1,44 +1,48 @@
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import styles from './SongEditor.module.css';
 
 interface SongRawEditorProps {
     content: string;
-    onChange: (content: string) => void;
+    onContentChange: (content: string) => void;
 }
 
-export function SongRawEditor({ content, onChange }: SongRawEditorProps) {
-    // Use local state to avoid cursor jumping on every keystroke
-    const [localContent, setLocalContent] = useState(content);
+export function SongRawEditor({ content, onContentChange }: SongRawEditorProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const isInternalChange = useRef(false);
 
-    // Sync from parent only when content changes externally (e.g., mode switch)
+    // Initialize with content when component mounts or content changes externally
     useEffect(() => {
-        if (!isInternalChange.current) {
-            setLocalContent(content);
+        if (textareaRef.current && textareaRef.current.value !== content) {
+            textareaRef.current.value = content;
         }
-        isInternalChange.current = false;
     }, [content]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setLocalContent(e.target.value);
-    };
+    // Expose current value via ref for parent to read on mode switch
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
 
-    const handleBlur = () => {
-        // Only sync to parent on blur to avoid re-parsing on every keystroke
-        if (localContent !== content) {
-            isInternalChange.current = true;
-            onChange(localContent);
-        }
-    };
+        // Update parent when leaving (blur or unmount)
+        const handleBlur = () => {
+            if (textarea.value !== content) {
+                onContentChange(textarea.value);
+            }
+        };
+
+        textarea.addEventListener('blur', handleBlur);
+        return () => {
+            // On unmount, sync final value
+            if (textarea.value !== content) {
+                onContentChange(textarea.value);
+            }
+            textarea.removeEventListener('blur', handleBlur);
+        };
+    }, [content, onContentChange]);
 
     return (
         <textarea
             ref={textareaRef}
             className={styles.rawEditor}
-            value={localContent}
-            onChange={handleChange}
-            onBlur={handleBlur}
+            defaultValue={content}
             placeholder={`#Verse 1
 [C]Amazing [F]grace how [G]sweet the sound
 That [Am]saved a [F]wretch like [C]me

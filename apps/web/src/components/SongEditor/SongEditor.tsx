@@ -554,7 +554,7 @@ export function SongEditor({
                 ) : (
                     <SongRawEditor
                         content={rawContent}
-                        onChange={handleRawChange}
+                        onContentChange={handleRawChange}
                     />
                 )}
             </div>

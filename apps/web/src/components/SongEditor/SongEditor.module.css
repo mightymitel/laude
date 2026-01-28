@@ -19,6 +19,13 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .titleRow {
+        gap: 0.5rem;
+    }
 }
 
 .titleInput {
@@ -80,6 +87,7 @@
     background: var(--bg-secondary);
     border-radius: 6px;
     padding: 2px;
+    flex-shrink: 0;
 }
 
 .modeButton {
@@ -91,11 +99,30 @@
     border-radius: 4px;
     font-size: 0.875rem;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .modeButton.active {
     background: var(--primary);
     color: white;
+}
+
+@media (max-width: 480px) {
+    .modeToggle {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modeButton {
+        flex: 1;
+        padding: 0.625rem 0.75rem;
+    }
+
+    .titleInput {
+        font-size: 1.25rem;
+        width: 100%;
+    }
 }
 
 /* Toolbar */
