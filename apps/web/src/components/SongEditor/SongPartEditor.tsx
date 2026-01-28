@@ -15,7 +15,9 @@ interface SongPartEditorProps {
     onUpdatePart: (updates: Partial<SongPart>) => void;
     onRemovePart: () => void;
     onUpdateLine: (lineIndex: number, text: string) => void;
-    onAddLine: () => void;
+    onAddLine: (afterLineIndex?: number) => void;
+    onDeleteLine: (lineIndex: number) => void;
+    onSplitPart: (atLineIndex: number) => void;
     onDropPositionChange: (position: DropPosition | null) => void;
     onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
@@ -44,6 +46,8 @@ export function SongPartEditor({
     onRemovePart,
     onUpdateLine,
     onAddLine,
+    onDeleteLine,
+    onSplitPart,
     onDropPositionChange,
     onChordDrop,
     onChordDragStart,
@@ -80,11 +84,20 @@ export function SongPartEditor({
         onUpdatePart({ id: e.target.value || part.id });
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent, lineIndex: number) => {
+    const handleKeyDown = (e: React.KeyboardEvent, lineIndex: number, lineText: string) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            onAddLine();
+            // If line is empty and not the first line, split the part here
+            if (lineText.trim() === '' && lineIndex > 0 && lineIndex < part.lines.length - 1) {
+                onSplitPart(lineIndex);
+            } else {
+                onAddLine(lineIndex);
+            }
         }
+    };
+
+    const handleDeleteLine = (lineIndex: number) => {
+        onDeleteLine(lineIndex);
     };
 
     return (
@@ -137,7 +150,8 @@ export function SongPartEditor({
                                 : null
                         }
                         onTextChange={(text) => onUpdateLine(lineIndex, text)}
-                        onKeyDown={(e) => handleKeyDown(e, lineIndex)}
+                        onKeyDown={(e) => handleKeyDown(e, lineIndex, line.text)}
+                        onDeleteLine={() => handleDeleteLine(lineIndex)}
                         onDropPositionChange={(charIndex) => handleDropPositionChange(lineIndex, charIndex)}
                         onChordDrop={(dataTransfer) => handleChordDrop(lineIndex, dataTransfer)}
                         onChordDragStart={onChordDragStart}

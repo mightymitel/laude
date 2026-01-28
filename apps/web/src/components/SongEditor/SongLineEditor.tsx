@@ -17,6 +17,7 @@ interface SongLineEditorProps {
     dropCharIndex: number | null;
     onTextChange: (text: string) => void;
     onKeyDown: (e: React.KeyboardEvent) => void;
+    onDeleteLine: () => void;
     onDropPositionChange: (charIndex: number | null) => void;
     onChordDrop: (dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
@@ -35,6 +36,7 @@ export function SongLineEditor({
     dropCharIndex,
     onTextChange,
     onKeyDown,
+    onDeleteLine,
     onDropPositionChange,
     onChordDrop,
     onChordDragStart,
@@ -135,8 +137,11 @@ export function SongLineEditor({
                         dropCharIndex={dropCharIndex}
                         isDragging={!!draggedChord}
                         lyricsLocked={lyricsLocked}
+                        lineIsEmpty={pureText.trim() === '' && segments.length === 1 && seg.chords.length === 0}
                         onTextChange={handleSegmentTextChange}
                         onNavigate={handleNavigate}
+                        onKeyDown={onKeyDown}
+                        onDeleteLine={onDeleteLine}
                         onChordDragStart={(e, chordIndex, display, originalChord, originalCharIndex) =>
                             handleChordDragStartWrapper(e, chordIndex, display, originalChord, originalCharIndex)
                         }

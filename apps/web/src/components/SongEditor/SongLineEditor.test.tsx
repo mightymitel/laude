@@ -26,6 +26,7 @@ describe('SongLineEditor', () => {
         dropCharIndex: null,
         onTextChange: vi.fn(),
         onKeyDown: vi.fn(),
+        onDeleteLine: vi.fn(),
         onDropPositionChange: vi.fn(),
         onChordDrop: vi.fn(),
         onChordDragStart: vi.fn(),

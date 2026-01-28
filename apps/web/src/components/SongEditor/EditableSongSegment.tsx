@@ -12,11 +12,13 @@ interface EditableSongSegmentProps {
     dropCharIndex: number | null;
     isDragging: boolean;
     lyricsLocked: boolean;
+    lineIsEmpty: boolean;
     onTextChange: (segmentIndex: number, newText: string) => void;
     onNavigate: (segmentIndex: number, direction: 'prev' | 'next') => void;
+    onKeyDown: (e: React.KeyboardEvent) => void;
+    onDeleteLine: () => void;
     onChordDragStart: (e: React.DragEvent, chordIndex: number, display: string, originalChord: string, originalCharIndex: number) => void;
     onChordDragEnd: () => void;
-    // New prop for signaling hover position
     onHover: (segmentIndex: number, charIndex: number | null) => void;
 }
 
@@ -30,8 +32,11 @@ export function EditableSongSegment({
     dropCharIndex,
     isDragging,
     lyricsLocked,
+    lineIsEmpty,
     onTextChange,
     onNavigate,
+    onKeyDown,
+    onDeleteLine,
     onChordDragStart,
     onChordDragEnd,
     onHover
@@ -87,9 +92,27 @@ export function EditableSongSegment({
     }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLSpanElement>) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            e.currentTarget.blur();
+            // Commit any pending changes first
+            if (e.currentTarget.innerText !== segment.text) {
+                onTextChange(segmentIndex, e.currentTarget.innerText);
+            }
+            // Pass to parent for line/part handling
+            onKeyDown(e);
+        }
+
+        if (e.key === 'Backspace') {
+            const selection = window.getSelection();
+            // If at position 0 and line is empty (or segment is empty), delete the line
+            if (selection && selection.anchorOffset === 0) {
+                const currentText = e.currentTarget.innerText;
+                if (lineIsEmpty || (currentText === '' && segmentIndex === 0)) {
+                    e.preventDefault();
+                    onDeleteLine();
+                    return;
+                }
+            }
         }
 
         if (e.key === 'ArrowLeft') {
@@ -115,7 +138,7 @@ export function EditableSongSegment({
                 onNavigate(segmentIndex, 'next');
             }
         }
-    }, [onNavigate, segmentIndex, segment.text, onTextChange]);
+    }, [onNavigate, segmentIndex, segment.text, onTextChange, onKeyDown, onDeleteLine, lineIsEmpty]);
 
     // Draw the caret manually if valid drop target
     const showCaret = isDropTarget &&

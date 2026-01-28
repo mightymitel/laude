@@ -141,11 +141,74 @@ export function SongEditor({
         });
     }, []);
 
-    const handleAddLine = useCallback((partIndex: number) => {
+    const handleAddLine = useCallback((partIndex: number, afterLineIndex?: number) => {
         setEditingSong(prev => {
             const parts = [...(prev.parts || [])];
-            const lines = [...parts[partIndex].lines, { text: '' }];
+            const lines = [...parts[partIndex].lines];
+            const insertIndex = afterLineIndex !== undefined ? afterLineIndex + 1 : lines.length;
+            lines.splice(insertIndex, 0, { text: '' });
             parts[partIndex] = { ...parts[partIndex], lines };
+            return { ...prev, parts };
+        });
+    }, []);
+
+    const handleDeleteLine = useCallback((partIndex: number, lineIndex: number) => {
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            const part = parts[partIndex];
+
+            // If this is the last line in the part, delete the entire part
+            if (part.lines.length === 1) {
+                parts.splice(partIndex, 1);
+                return { ...prev, parts };
+            }
+
+            // Otherwise just delete the line
+            const lines = [...part.lines];
+            lines.splice(lineIndex, 1);
+            parts[partIndex] = { ...part, lines };
+            return { ...prev, parts };
+        });
+    }, []);
+
+    const handleSplitPart = useCallback((partIndex: number, atLineIndex: number) => {
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            const part = parts[partIndex];
+
+            // Can't split if we're at the first line or last line
+            if (atLineIndex === 0 || atLineIndex >= part.lines.length - 1) {
+                return prev;
+            }
+
+            // Split lines into two groups
+            const firstPartLines = part.lines.slice(0, atLineIndex);
+            const secondPartLines = part.lines.slice(atLineIndex + 1); // Skip the empty line
+
+            // If either part would be empty, don't split
+            if (firstPartLines.length === 0 || secondPartLines.length === 0) {
+                return prev;
+            }
+
+            // Create the second part with same type
+            const partCounts: Record<string, number> = {};
+            parts.forEach(p => {
+                partCounts[p.type] = (partCounts[p.type] || 0) + 1;
+            });
+
+            const newPart: SongPart = {
+                id: generatePartId(part.type, parts),
+                type: part.type,
+                index: (partCounts[part.type] || 0) + 1,
+                lines: secondPartLines,
+            };
+
+            // Update the original part with first half of lines
+            parts[partIndex] = { ...part, lines: firstPartLines };
+
+            // Insert new part after current
+            parts.splice(partIndex + 1, 0, newPart);
+
             return { ...prev, parts };
         });
     }, []);
@@ -466,7 +529,9 @@ export function SongEditor({
                                 onUpdatePart={(updates) => handleUpdatePart(partIndex, updates)}
                                 onRemovePart={() => handleRemovePart(partIndex)}
                                 onUpdateLine={(lineIndex, text) => handleUpdateLine(partIndex, lineIndex, text)}
-                                onAddLine={() => handleAddLine(partIndex)}
+                                onAddLine={(afterLineIndex) => handleAddLine(partIndex, afterLineIndex)}
+                                onDeleteLine={(lineIndex) => handleDeleteLine(partIndex, lineIndex)}
+                                onSplitPart={(atLineIndex) => handleSplitPart(partIndex, atLineIndex)}
                                 onDropPositionChange={handleDropPositionChange}
                                 onChordDrop={handleChordDrop}
                                 onChordDragStart={handleChordDragStart}
