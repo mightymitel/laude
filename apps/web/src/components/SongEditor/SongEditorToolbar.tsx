@@ -10,6 +10,8 @@ interface SongEditorToolbarProps {
     lyricsLocked: boolean;
     onLockToggle: () => void;
     onChordDragStart: (chord: DraggedChord) => void;
+    onChordClick?: (chord: string) => void;  // Click/tap to insert at cursor
+    onTouchDragStart?: (chord: DraggedChord, e: React.TouchEvent) => void;
     customChords?: string[];
     songChords?: string[];  // Chords extracted from current song
     onAddCustomChord?: (chord: string) => void;
@@ -25,12 +27,16 @@ export function SongEditorToolbar({
     lyricsLocked,
     onLockToggle,
     onChordDragStart,
+    onChordClick,
+    onTouchDragStart,
     customChords = [],
     songChords = [],
     onAddCustomChord,
 }: SongEditorToolbarProps) {
     const [menuOpen, setMenuOpen] = useState<{ chord: string; x: number; y: number } | null>(null);
     const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+    const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+    const isDragging = useRef(false);
 
     const handleDragStart = (e: React.DragEvent, chordDegree: string) => {
         if (menuOpen) return; // Don't drag if menu is trying to open
@@ -49,21 +55,55 @@ export function SongEditorToolbar({
         });
     };
 
-    // Long press handlers
+    // Touch handlers: tap = insert, long press = menu, drag = move
     const handleTouchStart = (e: React.TouchEvent, chord: string) => {
         const touch = e.touches[0];
-        const x = touch.clientX;
-        const y = touch.clientY;
+        touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+        isDragging.current = false;
 
+        // Start long press timer for menu
         longPressTimer.current = setTimeout(() => {
-            setMenuOpen({ chord, x, y });
-        }, 500); // 500ms long press
+            if (!isDragging.current) {
+                setMenuOpen({ chord, x: touch.clientX, y: touch.clientY });
+            }
+        }, 500);
     };
 
-    const handleTouchEnd = () => {
+    const handleTouchMove = (e: React.TouchEvent, chord: string) => {
+        if (!touchStartPos.current) return;
+
+        const touch = e.touches[0];
+        const dx = touch.clientX - touchStartPos.current.x;
+        const dy = touch.clientY - touchStartPos.current.y;
+
+        // If moved more than 10px, it's a drag
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            isDragging.current = true;
+            if (longPressTimer.current) {
+                clearTimeout(longPressTimer.current);
+                longPressTimer.current = null;
+            }
+
+            // Start touch drag if handler provided
+            if (onTouchDragStart && !menuOpen) {
+                onTouchDragStart({ chord, source: 'toolbar' }, e);
+            }
+        }
+    };
+
+    const handleTouchEnd = (chord: string) => {
         if (longPressTimer.current) {
             clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
         }
+
+        // If no drag and no menu opened, it's a tap - insert chord
+        if (!isDragging.current && !menuOpen && onChordClick) {
+            onChordClick(chord);
+        }
+
+        touchStartPos.current = null;
+        isDragging.current = false;
     };
 
     const handleContextMenu = (e: React.MouseEvent, chord: string) => {
@@ -100,9 +140,11 @@ export function SongEditorToolbar({
                         key={chord}
                         className={styles.chordButton}
                         draggable
+                        onClick={() => onChordClick?.(chord)}
                         onDragStart={(e) => handleDragStart(e, chord)}
                         onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={(e) => handleTouchMove(e, chord)}
+                        onTouchEnd={() => handleTouchEnd(chord)}
                         onContextMenu={(e) => handleContextMenu(e, chord)}
                         data-chord={chord}
                     >
@@ -116,9 +158,11 @@ export function SongEditorToolbar({
                         key={chord}
                         className={`${styles.chordButton} ${styles.minor}`}
                         draggable
+                        onClick={() => onChordClick?.(chord)}
                         onDragStart={(e) => handleDragStart(e, chord)}
                         onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={(e) => handleTouchMove(e, chord)}
+                        onTouchEnd={() => handleTouchEnd(chord)}
                         onContextMenu={(e) => handleContextMenu(e, chord)}
                     >
                         {formatChordForDisplay(chord)}
@@ -131,9 +175,11 @@ export function SongEditorToolbar({
                         key={`song-${chord}-${i}`}
                         className={`${styles.chordButton} ${styles.songChord}`}
                         draggable
+                        onClick={() => onChordClick?.(chord)}
                         onDragStart={(e) => handleDragStart(e, chord)}
                         onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchEnd={handleTouchEnd}
+                        onTouchMove={(e) => handleTouchMove(e, chord)}
+                        onTouchEnd={() => handleTouchEnd(chord)}
                         onContextMenu={(e) => handleContextMenu(e, chord)}
                         title="From this song"
                     >

@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import {
     Song, SongPart, Key, ChordStyle, PartType,
-    formatChord, parseNashville, extractChordsFromLine, NashvilleChord
+    formatChord, parseNashville, extractChordsFromLine
 } from '@laudasist/shared';
 import { SongEditorProps, DraggedChord, DropPosition } from './types';
 import { SongEditorToolbar } from './SongEditorToolbar';
@@ -9,6 +9,8 @@ import { SongPartEditor } from './SongPartEditor';
 import { SongRawEditor } from './SongRawEditor';
 import { PartManager } from './PartManager';
 import { ArrangementPanel } from './ArrangementPanel';
+import { DragIndicator } from './DragIndicator';
+import { useTouchDrag } from '@/hooks/useTouchDrag';
 import styles from './SongEditor.module.css';
 
 const KEYS: Key[] = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
@@ -61,6 +63,76 @@ export function SongEditor({
     const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
     const [customChords, setCustomChords] = useState<string[]>([]);
 
+    // Touch drag state
+    const [touchDragPosition, setTouchDragPosition] = useState<{ x: number; y: number } | null>(null);
+    const [touchDragChordDisplay, setTouchDragChordDisplay] = useState<string | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Active editing position (for click-to-insert)
+    const [activeEditPosition, setActiveEditPosition] = useState<{
+        partIndex: number;
+        lineIndex: number;
+        charIndex: number;
+    } | null>(null);
+
+    // Touch drag hook
+    const touchDrag = useTouchDrag<DraggedChord>({
+        onDragStart: (chord) => {
+            setDraggedChord(chord);
+            // Format chord for display
+            const display = formatChord(parseNashville(chord.chord) || { degree: 1, quality: '' }, currentKey, chordStyle);
+            setTouchDragChordDisplay(display);
+        },
+        onDragEnd: () => {
+            setDraggedChord(null);
+            setDropPosition(null);
+            setTouchDragPosition(null);
+            setTouchDragChordDisplay(null);
+        },
+        onDrop: (chord, targetElement) => {
+            if (!targetElement) return;
+
+            // Find the line element and calculate drop position
+            const lineElement = targetElement.closest('[data-part-index][data-line-index]') as HTMLElement;
+            if (lineElement) {
+                const partIndex = parseInt(lineElement.dataset.partIndex || '0', 10);
+                const lineIndex = parseInt(lineElement.dataset.lineIndex || '0', 10);
+
+                // Calculate character position based on touch position
+                const segmentText = lineElement.querySelector('[class*="segmentText"]') as HTMLElement;
+                if (segmentText) {
+                    const rect = segmentText.getBoundingClientRect();
+                    const touchX = touchDrag.position?.x || 0;
+                    const relX = touchX - rect.left;
+                    const text = segmentText.textContent || '';
+                    const charWidth = text.length > 0 ? rect.width / text.length : 10;
+                    const charIndex = Math.max(0, Math.min(Math.round(relX / charWidth), text.length));
+
+                    handleChordDrop({ partIndex, lineIndex, charIndex });
+                    return;
+                }
+            }
+
+            // Check if dropped on delete zone
+            if (targetElement.closest('[class*="deleteZone"]')) {
+                // Delete chord logic is handled by the delete zone itself
+            }
+        },
+    });
+
+    // Update touch drag position for indicator
+    if (touchDrag.position && touchDrag.position !== touchDragPosition) {
+        setTouchDragPosition(touchDrag.position);
+    }
+
+    // Handler for starting touch drag on a chord
+    const handleTouchDragStart = useCallback((chord: DraggedChord, e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        if (touch) {
+            touchDrag.startDrag(chord, touch);
+        }
+    }, [touchDrag]);
+
     // ...
 
     const handleAddCustomChord = useCallback((chord: string) => {
@@ -68,6 +140,54 @@ export function SongEditor({
     }, []);
 
     const currentKey = displayKey || editingSong.originalKey || 'C';
+
+    // Handler for clicking/tapping a chord to insert at cursor position
+    const handleChordClick = useCallback((chordStr: string) => {
+        if (!activeEditPosition) return;
+
+        const { partIndex, lineIndex, charIndex } = activeEditPosition;
+
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            const part = parts[partIndex];
+            if (!part) return prev;
+
+            const lines = [...part.lines];
+            const line = lines[lineIndex];
+            if (!line) return prev;
+
+            const { text: pureText, chords: existingChords } = extractChordsFromLine(line.text);
+
+            // Add new chord at cursor position
+            const parsedChord = parseNashville(chordStr);
+            const newChord = {
+                index: charIndex,
+                chord: parsedChord || { degree: 1, quality: '' }
+            };
+
+            const allChords = [...existingChords, newChord].sort((a, b) => a.index - b.index);
+
+            // Rebuild line text
+            let newText = '';
+            let lastIndex = 0;
+            for (const c of allChords) {
+                newText += pureText.substring(lastIndex, c.index);
+                newText += `[${formatChord(c.chord, currentKey, 'nashville')}]`;
+                lastIndex = c.index;
+            }
+            newText += pureText.substring(lastIndex);
+
+            lines[lineIndex] = { text: newText };
+            parts[partIndex] = { ...part, lines };
+
+            return { ...prev, parts };
+        });
+    }, [activeEditPosition, currentKey]);
+
+    // Handler for updating active edit position (called from segments)
+    const handleActivePositionChange = useCallback((position: { partIndex: number; lineIndex: number; charIndex: number } | null) => {
+        setActiveEditPosition(position);
+    }, []);
 
     // Extract all unique chords from the current song for the palette
     const songChords = useMemo(() => {
@@ -431,10 +551,10 @@ export function SongEditor({
             .join('\n\n');
     }, [editingSong.parts]);
 
-    const containerClass = `${styles.container} ${styles[variant] || ''}`;
+    const containerClass = `${styles.container} ${styles[variant] || ''} ${touchDrag.isDragging ? styles.isDragging : ''}`;
 
     return (
-        <div className={containerClass}>
+        <div ref={containerRef} className={containerClass}>
             {/* Header */}
             <div className={styles.header}>
                 <div className={styles.titleRow}>
@@ -506,6 +626,8 @@ export function SongEditor({
                     lyricsLocked={lyricsLocked}
                     onLockToggle={() => setLyricsLocked(!lyricsLocked)}
                     onChordDragStart={handleChordDragStart}
+                    onChordClick={handleChordClick}
+                    onTouchDragStart={handleTouchDragStart}
                     customChords={customChords}
                     songChords={songChords}
                     onAddCustomChord={handleAddCustomChord}
@@ -657,6 +779,14 @@ export function SongEditor({
                 >
                     🗑️ Drop here to delete
                 </div>
+            )}
+
+            {/* Touch drag indicator */}
+            {touchDrag.isDragging && touchDragPosition && touchDragChordDisplay && (
+                <DragIndicator
+                    chord={touchDragChordDisplay}
+                    position={touchDragPosition}
+                />
             )}
         </div>
     );

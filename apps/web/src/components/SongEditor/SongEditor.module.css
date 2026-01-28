@@ -604,3 +604,43 @@
 .container.drawer {
     height: 100%;
 }
+
+/* Touch Drag Indicator */
+.dragIndicator {
+    position: fixed;
+    transform: translate(-50%, -120%);
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Prevent text selection and focus while dragging */
+.container.isDragging {
+    user-select: none;
+}
+
+.container.isDragging .segmentText {
+    pointer-events: none;
+}
+
+/* Touch-friendly chord badges */
+@media (pointer: coarse) {
+    .chordBadge {
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .chordButton {
+        min-width: 3rem;
+        min-height: 3rem;
+    }
+}
