@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { Scraper, ScrapedSong } from './index.js';
 import type { SongPart, Key, PartType } from '../shared/index.js';
+import { letterToNashville, formatChord } from '../shared/index.js';
 
 const RC_DOMAIN = 'resursecrestine.ro';
 
@@ -40,7 +41,7 @@ export const resursecrestineScraper: Scraper = {
 
         // Parse the content - chords are in <a class="nice-acord"> tags or standalone
         // and lyrics are mixed with &nbsp; for spacing
-        const parts = parseResurseCrestineContent(stilAcorduriHtml);
+        const parts = parseResurseCrestineContent(stilAcorduriHtml, originalKey);
 
         // Try to extract key from first line or capo info
         let originalKey: Key = 'G';
@@ -65,7 +66,7 @@ export const resursecrestineScraper: Scraper = {
     }
 };
 
-function parseResurseCrestineContent(html: string): SongPart[] {
+function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
     // First, extract chord positions before converting
     // Chords are in <a class="nice-acord" rel="CHORD">
     // and spaces are represented by &nbsp;
@@ -185,7 +186,15 @@ function parseResurseCrestineContent(html: string): SongPart[] {
 
             for (const c of sorted) {
                 const pos = Math.min(c.charIndex, finalLine.length);
-                finalLine = finalLine.slice(0, pos) + `[${c.chord}]` + finalLine.slice(pos);
+                // Convert letter chord to Nashville notation
+                const nashvilleChord = letterToNashville(c.chord, key);
+                if (nashvilleChord) {
+                    const nashvilleStr = formatChord(nashvilleChord, key, 'nashville');
+                    finalLine = finalLine.slice(0, pos) + `[${nashvilleStr}]` + finalLine.slice(pos);
+                } else {
+                    // Fallback to original if conversion fails
+                    finalLine = finalLine.slice(0, pos) + `[${c.chord}]` + finalLine.slice(pos);
+                }
             }
         }
 
