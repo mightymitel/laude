@@ -70,10 +70,10 @@ describe('resursecrestineScraper', () => {
             expect(firstPart).toBeDefined();
             expect(firstPart?.type).toBe('verse');
 
-            // Check that lines have chords embedded
+            // Check that lines have chords embedded (Nashville notation: E=1, A=4 in key of E)
             const firstLine = firstPart?.lines[0];
-            expect(firstLine?.text).toContain('[E]');
-            expect(firstLine?.text).toContain('[A]');
+            expect(firstLine?.text).toContain('[1]');
+            expect(firstLine?.text).toContain('[4]');
         });
 
         it('should scrape "Leul din Iuda" correctly', async () => {

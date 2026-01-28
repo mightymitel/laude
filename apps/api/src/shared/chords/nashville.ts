@@ -95,7 +95,7 @@ export function letterToNashville(chord: string, key: Key): NashvilleChord | nul
 
     const [, rootLetter, rootAccidental, quality, bassLetter, bassAccidental] = match;
 
-    const rootNote = `${rootLetter}${rootAccidental || ''}`;
+    const rootNote = `${rootLetter?.toUpperCase()}${rootAccidental || ''}`;
 
     // Find the degree of the root note
     const rootNoteIndex = getNoteIndex(rootNote);
@@ -129,7 +129,7 @@ export function letterToNashville(chord: string, key: Key): NashvilleChord | nul
     let bassAcc: 'b' | '#' | undefined;
 
     if (bassLetter) {
-        const bassNote = `${bassLetter}${bassAccidental || ''}`;
+        const bassNote = `${bassLetter.toUpperCase()}${bassAccidental || ''}`;
         const bassNoteIndex = getNoteIndex(bassNote);
         const bassSemitones = ((bassNoteIndex - keyIndex + 12) % 12);
         const bassInfo = degreeMap[bassSemitones];

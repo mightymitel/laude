@@ -70,6 +70,16 @@ TanStack Query manages client cache. Socket.io events trigger cache invalidation
 - **TypeScript**: Strict mode enabled
 - **Shared Logic**: Reusable code goes in `packages/shared`
 
+## Pre-Push Checklist
+
+**IMPORTANT**: Never consider a task complete or push changes until:
+
+1. `npm run build` succeeds with no errors
+2. `npm run test` passes all unit tests
+3. `npm run lint` passes with no errors
+
+Run these commands before every commit/push.
+
 ## Key Domain Concepts
 
 ### Song Libraries

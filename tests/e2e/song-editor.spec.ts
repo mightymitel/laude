@@ -271,7 +271,7 @@ test.describe('Song Editor', () => {
     await expect(keySelect).toBeVisible();
 
     // Initial key is C, so [1] displays as C
-    let badgeC = page.locator('[class*="chordBadge"]').filter({ hasText: /^C$/ }).first();
+    const badgeC = page.locator('[class*="chordBadge"]').filter({ hasText: /^C$/ }).first();
     await expect(badgeC).toBeVisible();
 
     // Change key to G

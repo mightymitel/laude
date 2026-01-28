@@ -61,7 +61,7 @@ export function romanToNashville(chord: string): NashvilleChord | null {
     if (!roman || !ROMAN_TO_DEGREE[roman]) return null;
     const degree = ROMAN_TO_DEGREE[roman]!;
 
-    let rest = rawRest || '';
+    const rest = rawRest || '';
 
     // Detect minor from lowercase roman if no quality specified
     const isLowerCase = roman === roman.toLowerCase();

@@ -163,9 +163,9 @@ function autoCorrelate(buf: Float32Array, sampleRate: number): number {
     }
     let T0 = maxpos;
 
-    let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
-    let a = (x1 + x3 - 2 * x2) / 2;
-    let b = (x3 - x1) / 2;
+    const x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
+    const a = (x1 + x3 - 2 * x2) / 2;
+    const b = (x3 - x1) / 2;
     if (a) T0 = T0 - b / (2 * a);
 
     return sampleRate / T0;

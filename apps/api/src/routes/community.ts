@@ -11,7 +11,7 @@ router.get('/songs', async (req, res) => {
     try {
         const { search, limit = 50 } = req.query;
 
-        let query = getSongsCollection()
+        const query = getSongsCollection()
             .where('isPublic', '==', true)
             .orderBy('title')
             .limit(Number(limit));

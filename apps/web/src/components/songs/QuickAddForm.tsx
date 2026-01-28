@@ -185,7 +185,7 @@ function reconstructLine(text: string, chords: any[]) {
     // We need to insert chords back into text
     // Sort chords by index desc
     const sorted = [...chords].sort((a, b) => b.index - a.index);
-    let result = text;
+    const result = text;
 
     // We're working with the parsed Nashville chords here.
     // Ideally we'd show the original input or the nashville numbers.

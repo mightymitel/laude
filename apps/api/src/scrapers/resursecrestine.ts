@@ -39,10 +39,6 @@ export const resursecrestineScraper: Scraper = {
         // Get the span.stil-acorduri content
         const stilAcorduriHtml = $('span.stil-acorduri').html() || '';
 
-        // Parse the content - chords are in <a class="nice-acord"> tags or standalone
-        // and lyrics are mixed with &nbsp; for spacing
-        const parts = parseResurseCrestineContent(stilAcorduriHtml, originalKey);
-
         // Try to extract key from first line or capo info
         let originalKey: Key = 'G';
         const capoMatch = stilAcorduriHtml.match(/Capo[^(]*\(([A-G][b#]?)/i);
@@ -55,6 +51,10 @@ export const resursecrestineScraper: Scraper = {
                 originalKey = firstChordMatch[1] as Key;
             }
         }
+
+        // Parse the content - chords are in <a class="nice-acord"> tags or standalone
+        // and lyrics are mixed with &nbsp; for spacing
+        const parts = parseResurseCrestineContent(stilAcorduriHtml, originalKey);
 
         return {
             title,
@@ -113,7 +113,7 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
         }
 
         // Clean the line: remove HTML, convert &nbsp; to space
-        let cleanLine = rawLine
+        const cleanLine = rawLine
             .replace(/<a[^>]*class="nice-acord"[^>]*>[^<]*<\/a>/g, '') // Remove chord tags
             .replace(/&nbsp;/g, ' ')
             .replace(/<[^>]+>/g, '') // Remove other HTML tags
