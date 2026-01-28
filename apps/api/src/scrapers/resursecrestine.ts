@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { Scraper, ScrapedSong } from './index.js';
 import type { SongPart, Key, PartType } from '../shared/index.js';
-import { letterToNashville, formatChord } from '../shared/index.js';
+import { letterToNashville, formatChord, detectKeyFromChords } from '../shared/index.js';
 
 const RC_DOMAIN = 'resursecrestine.ro';
 
@@ -39,17 +39,21 @@ export const resursecrestineScraper: Scraper = {
         // Get the span.stil-acorduri content
         const stilAcorduriHtml = $('span.stil-acorduri').html() || '';
 
-        // Try to extract key from first line or capo info
-        let originalKey: Key = 'G';
+        // Extract all chords from the page
+        const chordRegex = /class="nice-acord"[^>]*rel="([A-G][b#]?[a-z0-9]*)"/g;
+        const allChords: string[] = [];
+        let match;
+        while ((match = chordRegex.exec(stilAcorduriHtml)) !== null) {
+            if (match[1]) allChords.push(match[1]);
+        }
+
+        // Detect key from all chords using music theory
+        let originalKey: Key = detectKeyFromChords(allChords);
+
+        // Override with capo info if present
         const capoMatch = stilAcorduriHtml.match(/Capo[^(]*\(([A-G][b#]?)/i);
         if (capoMatch) {
             originalKey = capoMatch[1] as Key;
-        } else {
-            // First chord is often the key
-            const firstChordMatch = stilAcorduriHtml.match(/class="nice-acord"[^>]*rel="([A-G][b#]?)"/);
-            if (firstChordMatch) {
-                originalKey = firstChordMatch[1] as Key;
-            }
         }
 
         // Parse the content - chords are in <a class="nice-acord"> tags or standalone

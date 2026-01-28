@@ -38,6 +38,72 @@ function generatePartId(type: PartType, existingParts: SongPart[]): string {
     return `${prefix}${count + 1}`;
 }
 
+/**
+ * Auto-split parts that have 3+ consecutive empty lines
+ * Returns the updated parts array
+ */
+function autoSplitParts(parts: SongPart[]): SongPart[] {
+    const result: SongPart[] = [];
+
+    for (const part of parts) {
+        const lines = part.lines;
+        const segments: { start: number; end: number }[] = [];
+        let segmentStart = 0;
+        let emptyCount = 0;
+
+        for (let i = 0; i < lines.length; i++) {
+            const isEmpty = !lines[i]?.text.trim();
+
+            if (isEmpty) {
+                emptyCount++;
+            } else {
+                // If we had 3+ empty lines, split here
+                if (emptyCount >= 3) {
+                    // End previous segment before the empty lines
+                    const segmentEnd = i - emptyCount;
+                    if (segmentEnd > segmentStart) {
+                        segments.push({ start: segmentStart, end: segmentEnd });
+                    }
+                    // Start new segment after empty lines
+                    segmentStart = i;
+                }
+                emptyCount = 0;
+            }
+        }
+
+        // Add final segment if not empty
+        const finalEnd = lines.length - emptyCount;
+        if (finalEnd > segmentStart) {
+            segments.push({ start: segmentStart, end: finalEnd });
+        }
+
+        // Create parts from segments
+        if (segments.length === 0) {
+            // Keep part even if entirely empty
+            result.push(part);
+        } else if (segments.length === 1) {
+            // No split needed, but remove trailing empty lines
+            result.push({
+                ...part,
+                lines: lines.slice(segments[0].start, segments[0].end)
+            });
+        } else {
+            // Split into multiple parts
+            for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                result.push({
+                    ...part,
+                    id: i === 0 ? part.id : `${part.id}-${i + 1}`,
+                    index: i === 0 ? part.index : part.index + i,
+                    lines: lines.slice(segment.start, segment.end)
+                });
+            }
+        }
+    }
+
+    return result;
+}
+
 export function SongEditor({
     song,
     chordStyle: initialChordStyle = 'letters',
@@ -237,7 +303,9 @@ export function SongEditor({
         setEditingSong(prev => {
             const parts = [...(prev.parts || [])];
             parts[partIndex] = { ...parts[partIndex], ...updates };
-            return { ...prev, parts };
+            // Auto-split parts with 3+ consecutive empty lines
+            const splitParts = autoSplitParts(parts);
+            return { ...prev, parts: splitParts };
         });
     }, []);
 
@@ -328,6 +396,27 @@ export function SongEditor({
 
             // Insert new part after current
             parts.splice(partIndex + 1, 0, newPart);
+
+            return { ...prev, parts };
+        });
+    }, []);
+
+    const handleJoinParts = useCallback((partIndex: number) => {
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            if (partIndex >= parts.length - 1) return prev; // No next part to join with
+
+            const currentPart = parts[partIndex];
+            const nextPart = parts[partIndex + 1];
+
+            // Merge lines from both parts
+            const mergedLines = [...currentPart.lines, ...nextPart.lines];
+
+            // Update current part with merged lines
+            parts[partIndex] = { ...currentPart, lines: mergedLines };
+
+            // Remove next part
+            parts.splice(partIndex + 1, 1);
 
             return { ...prev, parts };
         });
@@ -654,6 +743,8 @@ export function SongEditor({
                                 onAddLine={(afterLineIndex) => handleAddLine(partIndex, afterLineIndex)}
                                 onDeleteLine={(lineIndex) => handleDeleteLine(partIndex, lineIndex)}
                                 onSplitPart={(atLineIndex) => handleSplitPart(partIndex, atLineIndex)}
+                                onJoinWithNext={() => handleJoinParts(partIndex)}
+                                hasNextPart={partIndex < (editingSong.parts?.length || 0) - 1}
                                 onDropPositionChange={handleDropPositionChange}
                                 onChordDrop={handleChordDrop}
                                 onChordDragStart={handleChordDragStart}

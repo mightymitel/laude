@@ -18,6 +18,8 @@ interface SongPartEditorProps {
     onAddLine: (afterLineIndex?: number) => void;
     onDeleteLine: (lineIndex: number) => void;
     onSplitPart: (atLineIndex: number) => void;
+    onJoinWithNext: () => void;
+    hasNextPart: boolean;
     onDropPositionChange: (position: DropPosition | null) => void;
     onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
@@ -48,6 +50,8 @@ export function SongPartEditor({
     onAddLine,
     onDeleteLine,
     onSplitPart,
+    onJoinWithNext,
+    hasNextPart,
     onDropPositionChange,
     onChordDrop,
     onChordDragStart,
@@ -117,6 +121,15 @@ export function SongPartEditor({
                 />
 
                 <div className={styles.partActions}>
+                    {hasNextPart && (
+                        <button
+                            className={styles.partActionButton}
+                            onClick={onJoinWithNext}
+                            title="Join with next part"
+                        >
+                            ⬇
+                        </button>
+                    )}
                     <button
                         className={`${styles.partActionButton} ${styles.delete}`}
                         onClick={onRemovePart}

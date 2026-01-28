@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { Scraper, ScrapedSong } from './index.js';
 import type { SongPart, Key, PartType } from '../shared/index.js';
-import { letterToNashville, formatChord } from '../shared/index.js';
+import { letterToNashville, formatChord, detectKeyFromChords } from '../shared/index.js';
 
 const MELODIA_DOMAIN = 'melodia.ro';
 
@@ -39,12 +39,24 @@ export const melodiaScraper: Scraper = {
                 .trim();
         }
 
-        // Extract key from the selected option in key selector
-        const selectedKey = $('select option[selected]').attr('value') || 'D';
-        const originalKey = selectedKey as Key;
-
-        // Parse parts from lyrics container
+        // Parse parts from lyrics container first to extract all chords
         const lyricsContainer = $('.lyrics-container.column-view');
+
+        // Extract all chords from the lyrics to detect key
+        const allChords: string[] = [];
+        lyricsContainer.find('div.chord').each((_, el) => {
+            const chordText = $(el).text().trim();
+            if (chordText) allChords.push(chordText);
+        });
+
+        // Detect key from chords using music theory
+        let originalKey: Key = detectKeyFromChords(allChords);
+
+        // Override with selected key from dropdown if it looks reliable
+        const selectedKey = $('select option[selected]').attr('value');
+        if (selectedKey && /^[A-G][b#]?$/.test(selectedKey)) {
+            originalKey = selectedKey as Key;
+        }
         const parts: SongPart[] = [];
         const partCounts: Record<PartType, number> = {
             verse: 0, chorus: 0, bridge: 0, 'pre-chorus': 0,

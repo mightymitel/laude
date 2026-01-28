@@ -94,3 +94,87 @@ export function transposeKey(key: Key, semitones: number): Key {
     const newIndex = ((currentIndex + semitones % 12) + 12) % 12;
     return getNoteAtIndex(newIndex) as Key;
 }
+
+/**
+ * All possible keys to test
+ */
+export const ALL_KEYS: Key[] = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
+];
+
+/**
+ * Analyze a chord and return its root note and whether it's major or minor
+ */
+function analyzeLetterChord(chord: string): { root: string; isMajor: boolean } | null {
+    const match = chord.match(/^([A-G])([b#]?)([a-z0-9]*)(?:\/.*)?$/i);
+    if (!match) return null;
+
+    const [, rootLetter, accidental, quality] = match;
+    const root = `${rootLetter?.toUpperCase()}${accidental || ''}`;
+
+    // Normalize flats to sharps for comparison
+    const normalizedRoot = ENHARMONIC_MAP[root] ?? root;
+
+    // Determine if major or minor based on quality
+    const qualityLower = (quality || '').toLowerCase();
+    const isMajor = !qualityLower.includes('m') && !qualityLower.includes('dim');
+
+    return { root: normalizedRoot, isMajor };
+}
+
+/**
+ * Detect the most likely key from a list of letter chords using music theory
+ *
+ * Algorithm:
+ * - For each possible key, calculate a score based on how well the chords fit
+ * - In a major key: I, IV, V are major; ii, iii, vi are minor
+ * - Chords that match the expected quality get +1 score
+ * - The root chord (I) gets +2 bonus if it appears
+ * - Return the key with the highest score
+ */
+export function detectKeyFromChords(chords: string[]): Key {
+    if (chords.length === 0) return 'C';
+
+    // Parse all chords
+    const analyzedChords = chords
+        .map(c => analyzeLetterChord(c))
+        .filter((c): c is NonNullable<typeof c> => c !== null);
+
+    if (analyzedChords.length === 0) return 'C';
+
+    let bestKey: Key = 'C';
+    let bestScore = -1;
+
+    // Test each possible key
+    for (const testKey of ALL_KEYS) {
+        let score = 0;
+        const scaleNotes = getMajorScaleNotes(testKey);
+
+        for (const { root, isMajor } of analyzedChords) {
+            // Find which scale degree this chord is
+            const degreeIndex = scaleNotes.indexOf(root);
+            if (degreeIndex === -1) continue; // Not in this scale
+
+            const degree = degreeIndex + 1; // 1-indexed
+
+            // Check if the chord quality matches expected quality for this degree
+            const expectedMajor = degree === 1 || degree === 4 || degree === 5;
+
+            if (isMajor === expectedMajor) {
+                score += 1;
+
+                // Bonus points for the tonic (I) chord
+                if (degree === 1) {
+                    score += 2;
+                }
+            }
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestKey = testKey;
+        }
+    }
+
+    return bestKey;
+}
