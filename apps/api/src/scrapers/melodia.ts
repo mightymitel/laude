@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import type { Scraper, ScrapedSong } from './index.js';
 import type { SongPart, Key, PartType } from '../shared/index.js';
+import { letterToNashville, formatChord } from '../shared/index.js';
 
 const MELODIA_DOMAIN = 'melodia.ro';
 
@@ -80,12 +81,18 @@ export const melodiaScraper: Scraper = {
 
             partCounts[partType]++;
 
-            // Parse the content: replace <div class="chord">X</div> with [X] and <br> with newlines
+            // Parse the content: replace <div class="chord">X</div> with [Nashville] and <br> with newlines
             const htmlContent = $el.html() || '';
 
-            // Convert chord divs to bracket notation
+            // Convert chord divs to Nashville bracket notation
             let processed = htmlContent
-                .replace(/<div class="chord[^"]*">([^<]+)<\/div>/g, '[$1]')
+                .replace(/<div class="chord[^"]*">([^<]+)<\/div>/g, (_, letterChord) => {
+                    const nashvilleChord = letterToNashville(letterChord, originalKey);
+                    if (nashvilleChord) {
+                        return `[${formatChord(nashvilleChord, originalKey, 'nashville')}]`;
+                    }
+                    return `[${letterChord}]`; // Fallback to original
+                })
                 .replace(/<div class="modulation"[^>]*>.*?<\/div>/g, '') // Remove modulation markers
                 .replace(/<br\s*\/?>/g, '\n');
 
