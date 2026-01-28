@@ -124,6 +124,42 @@ describe('resursecrestineScraper', () => {
             expect(verse?.lines.some((l: { text: string }) => l.text.includes('['))).toBe(true);
         });
 
+        it('should parse plain text chords on chord-dense lines', async () => {
+            // Test case for plain text chords (not wrapped in nice-acord tags)
+            const mockHtml = `
+                <html>
+                <head>
+                    <title>Test Song - Resurse Creștine</title>
+                </head>
+                <body>
+                    <span class="stil-acorduri">
+                        &nbsp;b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+                        Hai spune-mi cine a biruit moartea,<br />
+                        &nbsp;&nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;<br />
+                        cine a calcat peste ea?<br />
+                        &nbsp;b<br />
+                        Cine e Leul din Iuda,<br />
+                        &nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a>&nbsp;&nbsp;&nbsp;b<br />
+                        scutul taria mea?<br />
+                    </span>
+                </body>
+                </html>
+            `;
+
+            (global.fetch as jest.Mock).mockResolvedValue({
+                ok: true,
+                text: () => Promise.resolve(mockHtml),
+            });
+
+            const result = await resursecrestineScraper.scrape('https://www.resursecrestine.ro/acorduri/96109/test');
+
+            // Should detect "b" as a chord even though it's plain text
+            const allLines = result.parts.flatMap(p => p.lines).map(l => l.text);
+            const hasPlainTextBChord = allLines.some(line => line.includes('[') && line.toLowerCase().includes('b'));
+
+            expect(hasPlainTextBChord).toBe(true);
+        });
+
         it('should handle fetch errors', async () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: false,

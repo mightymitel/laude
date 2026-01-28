@@ -88,23 +88,32 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
     let pendingChordLine: { chord: string; charIndex: number }[] = [];
 
     for (const rawLine of rawLines) {
-        // Check if this line has chords
-        const chordRegex = /<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>[^<]*<\/a>/g;
         const chords: { chord: string; charIndex: number }[] = [];
 
-        // Count character positions (each &nbsp; or chord = 1 visual char)
+        // Count &nbsp; to detect chord lines
+        // Lines with multiple spaces and very little text are likely chord lines
+        const nbspCount = (rawLine.match(/(&nbsp;)/g) || []).length;
+        const hasNiceAccord = /<a[^>]*class="nice-acord"/.test(rawLine);
+
+        // A line is likely a chord line if:
+        // - It has 3+ &nbsp; OR
+        // - It has nice-acord tags and some &nbsp; OR
+        // - It's very short (< 20 chars after cleaning) and has &nbsp;
+        const isLikelyChordLine = nbspCount >= 3 ||
+                                   (hasNiceAccord && nbspCount >= 1) ||
+                                   (nbspCount >= 1 && rawLine.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').length < 10);
+
+        // Extract chords from <a class="nice-acord"> tags
+        const chordRegex = /<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>[^<]*<\/a>/g;
         let visualPos = 0;
         let lastIdx = 0;
         let match;
 
-        // Clone regex for matching
         const lineHtml = rawLine;
 
-        // Process the line to extract chord positions
+        // First pass: extract tagged chords
         while ((match = chordRegex.exec(lineHtml)) !== null) {
-            // Count visual characters before this chord
             const beforeChord = lineHtml.substring(lastIdx, match.index);
-            // Convert &nbsp; to space and strip HTML tags to get pure text length
             const textBeforeChord = beforeChord.replace(/&nbsp;/g, ' ').replace(/<[^>]+>/g, '');
             visualPos += textBeforeChord.length;
 
@@ -117,11 +126,52 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
         }
 
         // Clean the line: remove HTML, convert &nbsp; to space
-        const cleanLine = rawLine
+        let cleanLine = rawLine
             .replace(/<a[^>]*class="nice-acord"[^>]*>[^<]*<\/a>/g, '') // Remove chord tags
             .replace(/&nbsp;/g, ' ')
             .replace(/<[^>]+>/g, '') // Remove other HTML tags
             .trim();
+
+        // If this looks like a chord line, extract plain text chords too
+        if (isLikelyChordLine && cleanLine.length > 0 && cleanLine.length < 50) {
+            // Parse plain text for chord patterns: A, Am, B, Bm, C#, F#m, etc.
+            // Case-insensitive to catch lowercase chords like "b"
+            const plainChordRegex = /\b([A-Ga-g][b#]?(?:m|maj|dim|sus|aug|add|\d)*)\b/gi;
+            let plainMatch;
+
+            while ((plainMatch = plainChordRegex.exec(cleanLine)) !== null) {
+                const chordText = plainMatch[1];
+                if (!chordText) continue;
+
+                const position = plainMatch.index;
+
+                // Check if this looks like a real chord (not a word like "Am" in "America")
+                // Valid chords are typically standalone or surrounded by spaces
+                const before = cleanLine[position - 1];
+                const after = cleanLine[position + chordText.length];
+                const isStandalone = (!before || before === ' ') && (!after || after === ' ');
+
+                if (isStandalone) {
+                    // Normalize to uppercase (chords like "b" should become "B")
+                    const normalizedChord = chordText.charAt(0).toUpperCase() + chordText.slice(1);
+
+                    // Check if we already have this chord from nice-acord tags
+                    const alreadyExists = chords.some(c =>
+                        Math.abs(c.charIndex - position) < 2 && c.chord.toUpperCase() === normalizedChord.toUpperCase()
+                    );
+
+                    if (!alreadyExists) {
+                        chords.push({
+                            chord: normalizedChord,
+                            charIndex: position
+                        });
+                    }
+                }
+            }
+
+            // Sort chords by position
+            chords.sort((a, b) => a.charIndex - b.charIndex);
+        }
 
         // Skip empty lines and header info (Capo line, etc.)
         if (!cleanLine && chords.length === 0) {
