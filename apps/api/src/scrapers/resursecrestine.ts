@@ -103,43 +103,65 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
                                    (hasNiceAccord && nbspCount >= 1) ||
                                    (nbspCount >= 1 && rawLine.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').length < 10);
 
-        // Extract chords from <a class="nice-acord"> tags
-        const chordRegex = /<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>[^<]*<\/a>/g;
+        // Parse line in one pass to extract chords and build clean text simultaneously
+        // This ensures tagged and plain chords use the same position system
         let visualPos = 0;
-        let lastIdx = 0;
-        let match;
-
+        let cleanText = '';
+        let i = 0;
         const lineHtml = rawLine;
 
-        // First pass: extract tagged chords
-        while ((match = chordRegex.exec(lineHtml)) !== null) {
-            const beforeChord = lineHtml.substring(lastIdx, match.index);
-            const textBeforeChord = beforeChord.replace(/&nbsp;/g, ' ').replace(/<[^>]+>/g, '');
-            visualPos += textBeforeChord.length;
+        while (i < lineHtml.length) {
+            // Check for <a class="nice-acord"> tag
+            const tagMatch = lineHtml.slice(i).match(/^<a[^>]*class="nice-acord"[^>]*rel="([^"]+)"[^>]*>([^<]*)<\/a>/);
+            if (tagMatch) {
+                chords.push({
+                    chord: tagMatch[1] ?? '',
+                    charIndex: visualPos
+                });
+                i += tagMatch[0].length;
+                continue;
+            }
 
-            chords.push({
-                chord: match[1] ?? '',
-                charIndex: visualPos
-            });
+            // Check for &nbsp;
+            if (lineHtml.slice(i).startsWith('&nbsp;')) {
+                cleanText += ' ';
+                visualPos++;
+                i += 6; // length of '&nbsp;'
+                continue;
+            }
 
-            lastIdx = match.index + match[0].length;
+            // Check for other HTML tags
+            const otherTagMatch = lineHtml.slice(i).match(/^<[^>]+>/);
+            if (otherTagMatch) {
+                i += otherTagMatch[0].length;
+                continue;
+            }
+
+            // Regular character
+            cleanText += lineHtml[i];
+            visualPos++;
+            i++;
         }
 
-        // Clean the line: remove HTML, convert &nbsp; to space
-        let cleanLine = rawLine
-            .replace(/<a[^>]*class="nice-acord"[^>]*>[^<]*<\/a>/g, '') // Remove chord tags
-            .replace(/&nbsp;/g, ' ')
-            .replace(/<[^>]+>/g, '') // Remove other HTML tags
-            .trim();
+        // Calculate trim offset to adjust chord positions
+        const leadingSpaces = cleanText.length - cleanText.trimStart().length;
+        let cleanLine = cleanText.trim();
+
+        // Adjust all chord positions to account for trimming
+        for (const chord of chords) {
+            chord.charIndex -= leadingSpaces;
+        }
 
         // If this looks like a chord line, extract plain text chords too
-        if (isLikelyChordLine && cleanLine.length > 0 && cleanLine.length < 50) {
+        // Use cleanLine (after adjusting positions) for consistency
+        const textForChordExtraction = cleanLine;
+        if (isLikelyChordLine && textForChordExtraction.length > 0 && textForChordExtraction.length < 50) {
             // Parse plain text for chord patterns: A, Am, B, Bm, C#, F#m, etc.
             // Case-insensitive to catch lowercase chords like "b"
             const plainChordRegex = /\b([A-Ga-g][b#]?(?:m|maj|dim|sus|aug|add|\d)*)\b/gi;
             let plainMatch;
 
-            while ((plainMatch = plainChordRegex.exec(cleanLine)) !== null) {
+            while ((plainMatch = plainChordRegex.exec(textForChordExtraction)) !== null) {
                 const chordText = plainMatch[1];
                 if (!chordText) continue;
 
@@ -147,8 +169,8 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
 
                 // Check if this looks like a real chord (not a word like "Am" in "America")
                 // Valid chords are typically standalone or surrounded by spaces
-                const before = cleanLine[position - 1];
-                const after = cleanLine[position + chordText.length];
+                const before = textForChordExtraction[position - 1];
+                const after = textForChordExtraction[position + chordText.length];
                 const isStandalone = (!before || before === ' ') && (!after || after === ' ');
 
                 if (isStandalone) {

@@ -160,6 +160,62 @@ describe('resursecrestineScraper', () => {
             expect(hasPlainTextBChord).toBe(true);
         });
 
+        it('should correctly order mixed tagged and plain chords', async () => {
+            // Test that chords from <a> tags and plain text are ordered correctly by position
+            const mockHtml = `
+                <html>
+                <head>
+                    <title>Test Mixed Chords - Resurse Creștine</title>
+                </head>
+                <body>
+                    <span class="stil-acorduri">
+                        &nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a>&nbsp;&nbsp;&nbsp;b<br />
+                        scutul taria mea<br />
+                    </span>
+                </body>
+                </html>
+            `;
+
+            (global.fetch as jest.Mock).mockResolvedValue({
+                ok: true,
+                text: () => Promise.resolve(mockHtml),
+            });
+
+            const result = await resursecrestineScraper.scrape('https://www.resursecrestine.ro/acorduri/96109/mixed-test');
+
+            // Get the line with chords (should be the lyric line)
+            const lineWithChords = result.parts.flatMap(p => p.lines).find(l => l.text.includes('scutul'));
+            expect(lineWithChords).toBeDefined();
+
+            const text = lineWithChords?.text || '';
+
+            // Extract chord positions
+            const chordMatches = [...text.matchAll(/\[([^\]]+)\]/g)];
+            expect(chordMatches.length).toBe(3); // Should have 3 chords: G, A, b
+
+            // Find positions of each chord in the text
+            const positions = chordMatches.map(m => m.index ?? 0);
+
+            // Chords should appear in order: first near "s", second near "tar", third near "me"
+            // The first chord should be before "cutul" (position < 7)
+            expect(positions[0]).toBeLessThan(7);
+
+            // The second chord should be after "scutul" and before "ia" (position ~7-13)
+            const pos1 = positions[1];
+            const pos2 = positions[2];
+            if (pos1 !== undefined && pos2 !== undefined) {
+                expect(pos1).toBeGreaterThan(5);
+                expect(pos1).toBeLessThan(20);
+
+                // The third chord should be after "taria" (position > 13)
+                expect(pos2).toBeGreaterThan(10);
+
+                // Verify they're in ascending order
+                expect(positions[0]).toBeLessThan(pos1);
+                expect(pos1).toBeLessThan(pos2);
+            }
+        });
+
         it('should handle fetch errors', async () => {
             (global.fetch as jest.Mock).mockResolvedValue({
                 ok: false,
