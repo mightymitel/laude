@@ -15,14 +15,13 @@ import {
 } from '@/hooks/useCommunitySongs'
 import { useLiveSession } from '@/hooks/useLiveSession'
 import { PlaylistPanel, type SessionPlaylistItem } from '@/components/PlaylistPanel'
-import { formatChord, extractChordsFromLine } from '@laudasist/shared'
 import type { Key, ChordStyle, Song } from '@laudasist/shared'
 import styles from './session.module.css'
 import { usePlaylist } from '@/hooks/usePlaylists'
-import { api } from '@/lib/api'
 import { SongLine } from '@/components/songs/SongLine'
 import { Modal } from '@/components/Modal/Modal'
 import { Tuner } from '@/components/Tuner/Tuner'
+import { WorshipPad } from '@/components/WorshipPad'
 
 const POSSIBLE_KEYS: Key[] = [
     'C',
@@ -286,6 +285,7 @@ function SessionPageContent() {
                     <h1>Worship Session</h1>
                 </div>
                 <div className={styles.headerRight}>
+                    <WorshipPad displayKey={displayKey} />
                     <button
                         onClick={() => setShowTuner(true)}
                         className={styles.shareBtn} // reusing shareBtn style for now, or add new style

@@ -39,6 +39,8 @@ export type ChordQuality =
 
 export type ChordStyle = 'nashville' | 'letters' | 'roman' | 'caseSensitive';
 
+export type PadStyle = 'foundations';
+
 // ==========================================
 // SONG TYPES
 // ==========================================

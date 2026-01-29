@@ -1,0 +1,93 @@
+.container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toggleBtn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.toggleBtn:hover {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.toggleBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.toggleBtn.playing {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.toggleBtn.playing:hover {
+    background: #c8e6c9;
+}
+
+.volumeControl {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: #f5f5f5;
+    border-radius: 6px;
+}
+
+.volumeIcon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.volumeSlider {
+    width: 80px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #ddd;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #4caf50;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+    background: #45a049;
+    transform: scale(1.1);
+}
+
+.volumeSlider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #4caf50;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.volumeSlider::-moz-range-thumb:hover {
+    background: #45a049;
+    transform: scale(1.1);
+}

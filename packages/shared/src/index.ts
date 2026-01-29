@@ -5,6 +5,7 @@ export * from './types/index.js';
 export * from './chords/keys.js';
 export * from './chords/nashville.js';
 export * from './chords/converters.js';
+export * from './chords/padKeys.js';
 
 // Parsers
 export * from './parsers/song-parser.js';

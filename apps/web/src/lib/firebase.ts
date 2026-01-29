@@ -1,6 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,6 +16,7 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
+let storage: FirebaseStorage;
 
 if (typeof window !== 'undefined') { // Vite is always client-side, but this check is fine
     if (!getApps().length) {
@@ -24,6 +26,7 @@ if (typeof window !== 'undefined') { // Vite is always client-side, but this che
     }
     auth = getAuth(app);
     db = getFirestore(app);
+    storage = getStorage(app);
 }
 
 // Auth providers
@@ -31,5 +34,5 @@ export const googleProvider = new GoogleAuthProvider();
 export const facebookProvider = new FacebookAuthProvider();
 export const appleProvider = new OAuthProvider('apple.com');
 
-export { auth, db };
+export { auth, db, storage };
 export default app!;
