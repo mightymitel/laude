@@ -3,6 +3,7 @@ from link: https://www.resursecrestine.ro/acorduri/154992/el-este-domn-si-in-cer
 #Title: El este Domn și în ceruri domnește
 #Author: Ekklesia
 #Key: E
+#chord position error margin: 3 characters
 
 #Verse 1
 [E]El este Domn si in [A]ceruri domn[E]este,

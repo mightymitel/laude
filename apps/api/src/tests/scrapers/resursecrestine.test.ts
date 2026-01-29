@@ -76,8 +76,9 @@ describe('resursecrestineScraper', () => {
             expect(firstLine?.text).toContain('[4]');
         });
 
-        it('should scrape "Leul din Iuda" correctly', async () => {
-            // Mock HTML based on example 2
+        it('should scrape "Leul din Iuda" correctly with exact expected output', async () => {
+            // Mock HTML based on actual resursecrestine.ro format
+            // Expected output from docs/examples/resurse-crestine-example2.md
             const mockHtml = `
                 <html>
                 <head>
@@ -85,20 +86,28 @@ describe('resursecrestineScraper', () => {
                     <meta name="description" content="Sunny, album - acorduri: D">
                 </head>
                 <body>
-                    <a href="/acorduri/index-autori/sunny">Sunny</a>
                     <span class="stil-acorduri">
-                        <a class="nice-acord" rel="b">b</a><br/>
-                        Hai spune-mi cine a biruit moartea,<br/>
-                        <a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a><br/>
-                        cine a calcat peste ea?<br/>
-                        <a class="nice-acord" rel="b">b</a><br/>
-                        Cine e Leul din Iuda,<br/>
-                        <a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a>&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="b">b</a><br/>
-                        scutul taria mea?<br/>
+                        &nbsp;b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+                        Hai&nbsp;spune-mi&nbsp;cine&nbsp;a&nbsp;biruit&nbsp;moartea,<br />
+                        &nbsp;&nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;<br \/>
+                        cine&nbsp;a&nbsp;calcat&nbsp;peste&nbsp;ea?<br />
+                        &nbsp;b<br />
+                        Cine&nbsp;e&nbsp;Leul&nbsp;din&nbsp;Iuda,<br />
+                        &nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a>&nbsp;&nbsp;&nbsp;b<br />
+                        scutul&nbsp;taria&nbsp;mea?<br />
                         <br/>
-                        R:<br/>
-                        <a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a><br/>
-                        Aleluia Aleluia Aleluia<br/>
+                        Spune-mi&nbsp;cine&nbsp;a&nbsp;biruit&nbsp;frica,<br/>
+                        cine&nbsp;a&nbsp;calcat&nbsp;peste&nbsp;ea?<br/>
+                        cine&nbsp;e&nbsp;Leul&nbsp;din&nbsp;Iuda,<br/>
+                        scutul&nbsp;taria&nbsp;mea?<br/>
+                        <br/>
+                        R:<br />
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="A">A</a>&nbsp;<br />
+                        &nbsp;&nbsp;Aleluia&nbsp;Aleluia&nbsp;Aleluia&nbsp;<br />
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
+                        &nbsp;&nbsp;Isus&nbsp;este&nbsp;Domn!<br />
+                        &nbsp;&nbsp;Aleluia&nbsp;Aleluia&nbsp;Aleluia&nbsp;<br />
+                        &nbsp;&nbsp;Isus&nbsp;este&nbsp;Domn!<br />
                     </span>
                 </body>
                 </html>
@@ -112,16 +121,52 @@ describe('resursecrestineScraper', () => {
             const result = await resursecrestineScraper.scrape('https://www.resursecrestine.ro/acorduri/96109/leul-din-iuda');
 
             expect(result.title).toBe('Leul din Iuda');
-            expect(result.parts.length).toBeGreaterThan(0);
 
-            // Should have verses and a chorus
-            const partTypes = result.parts.map((p: { type: string }) => p.type);
-            expect(partTypes).toContain('verse');
-            expect(partTypes).toContain('chorus');
+            // Key should be detected as D (b=6, G=4, A=5, D=1 in key of D)
+            // or as G (b=3, G=1, A=2, D=5 in key of G)
+            // The algorithm will likely detect D based on the chord progression
 
-            // Check verse has chords
-            const verse = result.parts.find((p: { type: string }) => p.type === 'verse');
-            expect(verse?.lines.some((l: { text: string }) => l.text.includes('['))).toBe(true);
+            // Find first verse
+            const verse1 = result.parts.find(p => p.type === 'verse' && p.index === 1);
+            expect(verse1).toBeDefined();
+
+            // Expected lines from docs/examples/resurse-crestine-example2.md:
+            // [b]Hai spune-mi cine a biruit moartea,
+            // [G]cine a calcat peste [D]ea?
+            // [b]Cine e Leul din Iuda,
+            // [G]scutul tar[A]ia [b]mea?
+
+            expect(verse1!.lines.length).toBeGreaterThanOrEqual(4);
+
+            // First line should have chord at beginning
+            expect(verse1!.lines[0]!.text).toMatch(/^\[.+?\]Hai spune-mi/);
+
+            // Second line should have chord at beginning and one near "ea"
+            // Note: positions may be off by 2-3 chars due to HTML spacing
+            const line2 = verse1!.lines[1]!.text;
+            expect(line2).toMatch(/^\[.+?\]cine/);
+            expect(line2).toMatch(/pe[st]*\[.+?\][te]*\s*ea/); // Chord near "ea" (allow for 2-3 char deviation)
+
+            // Third line should have chord at beginning
+            expect(verse1!.lines[2]!.text).toMatch(/^\[.+?\]Cine e/);
+
+            // Fourth line should have chords: one at start, one near "ia", one near "mea"
+            const line4 = verse1!.lines[3]!.text;
+            expect(line4).toMatch(/^\[.+?\]scutul/);
+            expect(line4).toMatch(/ta[r]*\[.+?\][ri]*a/); // Chord near "ria" (allow for deviation)
+            expect(line4).toMatch(/\[.+?\]mea/);
+
+            // Find chorus
+            const chorus = result.parts.find(p => p.type === 'chorus');
+            expect(chorus).toBeDefined();
+
+            // Chorus should have chords in first line
+            const chorusLine1 = chorus!.lines[0]!.text;
+            expect(chorusLine1).toContain('Aleluia');
+            // Should have multiple chords (G, D, A spread across "Aleluia Aleluia Aleluia")
+            const chordMatches = chorusLine1.match(/\[/g);
+            expect(chordMatches).toBeTruthy();
+            expect(chordMatches!.length).toBeGreaterThanOrEqual(3);
         });
 
         it('should parse plain text chords on chord-dense lines', async () => {

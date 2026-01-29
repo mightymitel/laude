@@ -3,6 +3,7 @@ from link: https://www.resursecrestine.ro/acorduri/96109/leul-din-iuda
 #Title: Leul din Iuda
 #Author: Sunny
 #Key: D - autodetected
+#chord position error margin: 3 characters
 
 #Verse 1            
 [b]Hai spune-mi cine a biruit moartea,

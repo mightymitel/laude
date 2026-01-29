@@ -75,8 +75,8 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
     // Chords are in <a class="nice-acord" rel="CHORD">
     // and spaces are represented by &nbsp;
 
-    // Split by <br> to get lines
-    const rawLines = html.split(/<br\s*\/?>/i);
+    // Split by <br> to get lines (handle all variants: <br>, <br/>, <br />, <br \/>)
+    const rawLines = html.split(/<br[^>]*>/i);
 
     const parts: SongPart[] = [];
     let currentPart: SongPart | null = null;
@@ -90,18 +90,9 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
     for (const rawLine of rawLines) {
         const chords: { chord: string; charIndex: number }[] = [];
 
-        // Count &nbsp; to detect chord lines
-        // Lines with multiple spaces and very little text are likely chord lines
+        // Count &nbsp; and detect chord elements for later chord line detection
         const nbspCount = (rawLine.match(/(&nbsp;)/g) || []).length;
         const hasNiceAccord = /<a[^>]*class="nice-acord"/.test(rawLine);
-
-        // A line is likely a chord line if:
-        // - It has 3+ &nbsp; OR
-        // - It has nice-acord tags and some &nbsp; OR
-        // - It's very short (< 20 chars after cleaning) and has &nbsp;
-        const isLikelyChordLine = nbspCount >= 3 ||
-                                   (hasNiceAccord && nbspCount >= 1) ||
-                                   (nbspCount >= 1 && rawLine.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').length < 10);
 
         // Parse line in one pass to extract chords and build clean text simultaneously
         // This ensures tagged and plain chords use the same position system
@@ -141,11 +132,24 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
                 continue;
             }
 
-            // Regular character
-            cleanText += lineHtml[i];
-            visualPos++;
+            // Regular character (skip newlines and carriage returns)
+            const char = lineHtml[i];
+            if (char !== '\n' && char !== '\r') {
+                cleanText += char;
+                visualPos++;
+            }
             i++;
         }
+
+        // Determine if this is a chord line AFTER building cleanText
+        // so we can use the actual trimmed content length
+        // A line is likely a chord line if:
+        // - It has 3+ &nbsp; OR
+        // - It has nice-acord tags and some &nbsp; OR
+        // - It's very short (< 10 chars after trimming) and has &nbsp;
+        const isLikelyChordLine = nbspCount >= 3 ||
+                                   (hasNiceAccord && nbspCount >= 1) ||
+                                   (nbspCount >= 1 && cleanText.trim().length < 10);
 
         // If this looks like a chord line, extract plain text chords too
         // Extract from cleanText BEFORE trimming to maintain position consistency
