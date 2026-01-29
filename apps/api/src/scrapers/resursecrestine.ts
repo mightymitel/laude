@@ -86,8 +86,13 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
     };
 
     let pendingChordLine: { chord: string; charIndex: number }[] = [];
+    let consecutiveEmptyLines = 0;
 
-    for (const rawLine of rawLines) {
+    for (let rawLine of rawLines) {
+        // Trim HTML source whitespace (from pretty-printing), but preserve &nbsp; entities
+        // This prevents HTML indentation from affecting part detection
+        rawLine = rawLine.trim();
+
         const chords: { chord: string; charIndex: number }[] = [];
 
         // Count &nbsp; and detect chord elements for later chord line detection
@@ -142,14 +147,13 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
         }
 
         // Determine if this is a chord line AFTER building cleanText
-        // so we can use the actual trimmed content length
-        // A line is likely a chord line if:
-        // - It has 3+ &nbsp; OR
-        // - It has nice-acord tags and some &nbsp; OR
-        // - It's very short (< 10 chars after trimming) and has &nbsp;
-        const isLikelyChordLine = nbspCount >= 3 ||
-                                   (hasNiceAccord && nbspCount >= 1) ||
-                                   (nbspCount >= 1 && cleanText.trim().length < 10);
+        // IMPORTANT: On resursecrestine.ro, lines are EITHER chords OR lyrics, never mixed
+        // A line is a chord line ONLY if:
+        // - It has <a class="nice-acord"> tags (tagged chords), OR
+        // - It's very short (< 5 chars after trimming) with spaces (like standalone "b")
+        // We do NOT extract chords from regular lyric lines even if they have spaces
+        const isLikelyChordLine = hasNiceAccord ||
+                                   (nbspCount >= 1 && cleanText.trim().length < 5);
 
         // If this looks like a chord line, extract plain text chords too
         // Extract from cleanText BEFORE trimming to maintain position consistency
@@ -190,9 +194,12 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
             }
         }
 
-        // Calculate trim offset to adjust chord positions
+        // Calculate trim offset and track indentation for part detection
         const leadingSpaces = cleanText.length - cleanText.trimStart().length;
         let cleanLine = cleanText.trim();
+
+        // Track indentation level (2+ spaces at start typically indicates chorus)
+        const indentationLevel = leadingSpaces;
 
         // Adjust all chord positions to account for trimming
         for (const chord of chords) {
@@ -204,9 +211,25 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
 
         // Skip empty lines and header info (Capo line, etc.)
         if (!cleanLine && chords.length === 0) {
+            consecutiveEmptyLines++;
             pendingChordLine = [];
+
+            // Part boundary detection based on empty lines:
+            // - 2+ consecutive empty lines: always split
+            // - 1+ empty line after a verse with 4+ lines: split (verses are typically 4 lines)
+            const shouldSplitOnEmptyLine = currentPart && currentPart.lines.length > 0 && (
+                consecutiveEmptyLines >= 2 ||
+                (consecutiveEmptyLines >= 1 && currentPart.type === 'verse' && currentPart.lines.length >= 4)
+            );
+
+            if (shouldSplitOnEmptyLine) {
+                currentPart = null; // Reset so next line starts a new part
+            }
             continue;
         }
+
+        // Reset empty line counter when we hit content
+        consecutiveEmptyLines = 0;
 
         if (cleanLine.match(/^Capo\s*#?\d+/i)) {
             pendingChordLine = [];
@@ -255,13 +278,34 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
             continue;
         }
 
-        // Create part if needed
+        // Detect part changes using multiple heuristics (patterns vary on resursecrestine.ro)
+        // IMPORTANT: Only use indentation for LYRIC lines (lines with actual text, not chord-only)
+        // Chord-only lines often have spacing but shouldn't influence part detection
+        const hasLyricText = cleanLine.length > 5; // Actual lyrics are longer than just chord letters
+        const isIndented = hasLyricText && indentationLevel >= 2;
+
+        // Only consider indentation changes if current part has substantial content
+        const hasSubstantialContent = currentPart && currentPart.lines.length >= 4;
+        const indentationChanged = currentPart && hasLyricText && (
+            (isIndented && currentPart.type === 'verse') ||
+            (!isIndented && currentPart.type === 'chorus')
+        );
+
+        // Start new part if indentation changed AND we have substantial content
+        // This prevents splitting too early but catches real part boundaries
+        if (indentationChanged && hasSubstantialContent) {
+            currentPart = null;
+        }
+
+        // Create part if needed, using indentation to determine type (only for lyric lines)
         if (!currentPart) {
-            partCounts.verse++;
+            // Indented lyric lines (2+ spaces) are typically chorus
+            const partType: PartType = isIndented ? 'chorus' : 'verse';
+            partCounts[partType]++;
             currentPart = {
-                id: `V${partCounts.verse}`,
-                type: 'verse',
-                index: partCounts.verse,
+                id: `${partType.charAt(0).toUpperCase()}${partCounts[partType]}`,
+                type: partType,
+                index: partCounts[partType],
                 lines: []
             };
             parts.push(currentPart);

@@ -6,40 +6,15 @@ ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module k
 ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set "isolatedModules: true" in your tsconfig.json. To disable this message, you can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
 ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set "isolatedModules: true" in your tsconfig.json. To disable this message, you can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
 ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set "isolatedModules: true" in your tsconfig.json. To disable this message, you can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+PASS src/tests/scrapers/resursecrestine.test.ts
 ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set "isolatedModules: true" in your tsconfig.json. To disable this message, you can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
-FAIL src/tests/scrapers/resursecrestine.test.ts
-  ● resursecrestineScraper › scrape › should scrape "Leul din Iuda" correctly with exact expected output
-
-    expect(received).toMatch(expected)
-
-    Expected pattern: /^\[.+?\]Hai spune-mi/
-    Received string:  "b"
-
-      140 |
-      141 |             // First line should have chord at beginning
-    > 142 |             expect(verse1!.lines[0]!.text).toMatch(/^\[.+?\]Hai spune-mi/);
-          |                                            ^
-      143 |
-      144 |             // Second line should have chord at beginning and one before "ea"
-      145 |             const line2 = verse1!.lines[1]!.text;
-
-      at Object.<anonymous> (src/tests/scrapers/resursecrestine.test.ts:142:44)
-
 PASS src/tests/routes/songs.test.ts
 
-Test Suites: 1 failed, 1 passed, 2 total
-Tests:       1 failed, 9 passed, 10 total
+Test Suites: 2 passed, 2 total
+Tests:       11 passed, 11 total
 Snapshots:   0 total
-Time:        4.241 s
+Time:        3.432 s
 Ran all test suites.
-npm error Lifecycle script `test` failed with error:
-npm error code 1
-npm error path /home/mitel/laudasist/apps/api
-npm error workspace @laudasist/api@0.1.0
-npm error location /home/mitel/laudasist/apps/api
-npm error command failed
-npm error command sh -c jest
-
 
 > web@0.0.0 test
 > vitest run
@@ -47,13 +22,13 @@ npm error command sh -c jest
 
 [1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/mitel/laudasist/apps/web[39m
 
- [32m✓[39m src/tests/basic.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m src/components/SongEditor/SongLineEditor.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[32m 118[2mms[22m[39m
+ [32m✓[39m src/tests/basic.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m src/components/SongEditor/SongLineEditor.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[32m 97[2mms[22m[39m
 
 [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
 [2m      Tests [22m [1m[32m28 passed[39m[22m[90m (28)[39m
-[2m   Start at [22m 09:56:05
-[2m   Duration [22m 1.20s[2m (transform 150ms, setup 223ms, import 204ms, tests 121ms, environment 1.31s)[22m
+[2m   Start at [22m 10:19:35
+[2m   Duration [22m 954ms[2m (transform 133ms, setup 172ms, import 171ms, tests 99ms, environment 1.00s)[22m
 
 
 > @laudasist/shared@0.1.0 test
@@ -65,5 +40,5 @@ PASS src/tests/parser.test.ts
 Test Suites: 2 passed, 2 total
 Tests:       38 passed, 38 total
 Snapshots:   0 total
-Time:        1.119 s
+Time:        1.078 s
 Ran all test suites.
