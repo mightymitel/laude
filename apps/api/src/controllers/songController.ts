@@ -1,7 +1,8 @@
 import { Response } from 'express';
+import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getSongsCollection, SongDocument } from '../models/Song.js';
-import type { LibraryType, Visibility } from '../shared/index.js';
+import type { LibraryType, Visibility, SongPart, SongLine } from '../shared/index.js';
 
 // Helper to handle async errors would be nice, but standard try/catch for now
 
@@ -63,7 +64,7 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
                 libraryType: data.libraryType,
                 visibility: data.visibility,
                 parts: data.parts,
-                createdAt: data.createdAt instanceof Date ? data.createdAt : (data.createdAt as any)?.toDate(),
+                createdAt: data.createdAt instanceof Date ? data.createdAt : (data.createdAt as Timestamp)?.toDate(),
             };
         });
 
@@ -73,8 +74,8 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
                 if (s.title?.toLowerCase().includes(searchLower)) return true;
                 if (s.author?.toLowerCase().includes(searchLower)) return true;
                 if (s.parts) {
-                    return s.parts.some((p: any) =>
-                        p.lines.some((l: any) =>
+                    return s.parts.some((p: SongPart) =>
+                        p.lines.some((l: SongLine) =>
                             l.text.toLowerCase().includes(searchLower)
                         )
                     );
@@ -129,8 +130,8 @@ export const getSong = async (req: AuthenticatedRequest, res: Response) => {
         res.json({
             id: doc.id,
             ...song,
-            createdAt: song.createdAt instanceof Date ? song.createdAt : (song.createdAt as any)?.toDate(),
-            updatedAt: song.updatedAt instanceof Date ? song.updatedAt : (song.updatedAt as any)?.toDate(),
+            createdAt: song.createdAt instanceof Date ? song.createdAt : (song.createdAt as Timestamp)?.toDate(),
+            updatedAt: song.updatedAt instanceof Date ? song.updatedAt : (song.updatedAt as Timestamp)?.toDate(),
         });
     } catch (error) {
         console.error('Error fetching song:', error);
@@ -239,7 +240,7 @@ export const updateSong = async (req: AuthenticatedRequest, res: Response) => {
         res.json({
             id: updatedDoc.id,
             title: updatedSong.title,
-            updatedAt: updatedSong.updatedAt instanceof Date ? updatedSong.updatedAt : (updatedSong.updatedAt as any)?.toDate(),
+            updatedAt: updatedSong.updatedAt instanceof Date ? updatedSong.updatedAt : (updatedSong.updatedAt as Timestamp)?.toDate(),
         });
     } catch (error) {
         console.error('Error updating song:', error);

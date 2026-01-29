@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import styles from './NashvilleInput.module.css';
 
 interface NashvilleInputProps {
@@ -19,7 +19,7 @@ export default function NashvilleInput({ value, onChange, placeholder }: Nashvil
     }
   }, [value]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (_e: React.KeyboardEvent) => {
     // Basic helper: If user types '[' it starts a chord
     // We could add sophisticated helpers here later
   };

@@ -104,7 +104,7 @@ export function SongLineEditor({
         onChordDragStart(chordData);
     };
 
-    const handleNavigate = useCallback((index: number, dir: 'prev' | 'next') => {
+    const handleNavigate = useCallback((_index: number, _dir: 'prev' | 'next') => {
         // Focus management placeholder
     }, []);
 

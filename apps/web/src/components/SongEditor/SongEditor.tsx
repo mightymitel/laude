@@ -135,11 +135,12 @@ export function SongEditor({
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Active editing position (for click-to-insert)
-    const [activeEditPosition, setActiveEditPosition] = useState<{
-        partIndex: number;
-        lineIndex: number;
-        charIndex: number;
-    } | null>(null);
+    // TODO: Connect this to inline editing when implementing click-to-insert
+    // const [activeEditPosition, setActiveEditPosition] = useState<{
+    //     partIndex: number;
+    //     lineIndex: number;
+    //     charIndex: number;
+    // } | null>(null);
 
     // Touch drag hook
     const touchDrag = useTouchDrag<DraggedChord>({
@@ -208,52 +209,54 @@ export function SongEditor({
     const currentKey = displayKey || editingSong.originalKey || 'C';
 
     // Handler for clicking/tapping a chord to insert at cursor position
-    const handleChordClick = useCallback((chordStr: string) => {
-        if (!activeEditPosition) return;
+    // TODO: Re-enable when implementing click-to-insert chord feature
+    // const handleChordClick = useCallback((chordStr: string) => {
+    //     if (!activeEditPosition) return;
 
-        const { partIndex, lineIndex, charIndex } = activeEditPosition;
+    //     const { partIndex, lineIndex, charIndex } = activeEditPosition;
 
-        setEditingSong(prev => {
-            const parts = [...(prev.parts || [])];
-            const part = parts[partIndex];
-            if (!part) return prev;
+    //     setEditingSong(prev => {
+    //         const parts = [...(prev.parts || [])];
+    //         const part = parts[partIndex];
+    //         if (!part) return prev;
 
-            const lines = [...part.lines];
-            const line = lines[lineIndex];
-            if (!line) return prev;
+    //         const lines = [...part.lines];
+    //         const line = lines[lineIndex];
+    //         if (!line) return prev;
 
-            const { text: pureText, chords: existingChords } = extractChordsFromLine(line.text);
+    //         const { text: pureText, chords: existingChords } = extractChordsFromLine(line.text);
 
-            // Add new chord at cursor position
-            const parsedChord = parseNashville(chordStr);
-            const newChord = {
-                index: charIndex,
-                chord: parsedChord || { degree: 1, quality: '' }
-            };
+    //         // Add new chord at cursor position
+    //         const parsedChord = parseNashville(chordStr);
+    //         const newChord = {
+    //             index: charIndex,
+    //             chord: parsedChord || { degree: 1, quality: '' }
+    //         };
 
-            const allChords = [...existingChords, newChord].sort((a, b) => a.index - b.index);
+    //         const allChords = [...existingChords, newChord].sort((a, b) => a.index - b.index);
 
-            // Rebuild line text
-            let newText = '';
-            let lastIndex = 0;
-            for (const c of allChords) {
-                newText += pureText.substring(lastIndex, c.index);
-                newText += `[${formatChord(c.chord, currentKey, 'nashville')}]`;
-                lastIndex = c.index;
-            }
-            newText += pureText.substring(lastIndex);
+    //         // Rebuild line text
+    //         let newText = '';
+    //         let lastIndex = 0;
+    //         for (const c of allChords) {
+    //             newText += pureText.substring(lastIndex, c.index);
+    //             newText += `[${formatChord(c.chord, currentKey, 'nashville')}]`;
+    //             lastIndex = c.index;
+    //         }
+    //         newText += pureText.substring(lastIndex);
 
-            lines[lineIndex] = { text: newText };
-            parts[partIndex] = { ...part, lines };
+    //         lines[lineIndex] = { text: newText };
+    //         parts[partIndex] = { ...part, lines };
 
-            return { ...prev, parts };
-        });
-    }, [activeEditPosition, currentKey]);
+    //         return { ...prev, parts };
+    //     });
+    // }, [currentKey]);
 
     // Handler for updating active edit position (called from segments)
-    const handleActivePositionChange = useCallback((position: { partIndex: number; lineIndex: number; charIndex: number } | null) => {
-        setActiveEditPosition(position);
-    }, []);
+    // TODO: Connect this to segment editors when implementing inline editing
+    // const handleActivePositionChange = useCallback((position: { partIndex: number; lineIndex: number; charIndex: number } | null) => {
+    //     setActiveEditPosition(position);
+    // }, []);
 
     // Extract all unique chords from the current song for the palette
     const songChords = useMemo(() => {
@@ -309,14 +312,15 @@ export function SongEditor({
         });
     }, []);
 
-    const handleReorderParts = useCallback((fromIndex: number, toIndex: number) => {
-        setEditingSong(prev => {
-            const parts = [...(prev.parts || [])];
-            const [moved] = parts.splice(fromIndex, 1);
-            parts.splice(toIndex, 0, moved);
-            return { ...prev, parts };
-        });
-    }, []);
+    // TODO: Implement drag-and-drop reordering UI
+    // const handleReorderParts = useCallback((fromIndex: number, toIndex: number) => {
+    //     setEditingSong(prev => {
+    //         const parts = [...(prev.parts || [])];
+    //         const [moved] = parts.splice(fromIndex, 1);
+    //         parts.splice(toIndex, 0, moved);
+    //         return { ...prev, parts };
+    //     });
+    // }, []);
 
     // Line handlers
     const handleUpdateLine = useCallback((partIndex: number, lineIndex: number, text: string) => {
@@ -715,7 +719,6 @@ export function SongEditor({
                     lyricsLocked={lyricsLocked}
                     onLockToggle={() => setLyricsLocked(!lyricsLocked)}
                     onChordDragStart={handleChordDragStart}
-                    onChordClick={handleChordClick}
                     onTouchDragStart={handleTouchDragStart}
                     customChords={customChords}
                     songChords={songChords}

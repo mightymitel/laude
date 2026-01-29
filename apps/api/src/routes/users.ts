@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getUsersCollection, UserDocument } from '../models/User.js';
 import { getSongsCollection } from '../models/Song.js';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 const router = Router();
 
@@ -24,8 +24,8 @@ router.get('/me', async (req: AuthenticatedRequest, res: Response) => {
             id: userDoc.id,
             ...userData,
             // Convert timestamps if necessary, Firestore returns Timestamp objects
-            createdAt: userData.createdAt instanceof Date ? userData.createdAt : (userData.createdAt as any)?.toDate(),
-            lastLoginAt: userData.lastLoginAt instanceof Date ? userData.lastLoginAt : (userData.lastLoginAt as any)?.toDate(),
+            createdAt: userData.createdAt instanceof Date ? userData.createdAt : (userData.createdAt as Timestamp)?.toDate(),
+            lastLoginAt: userData.lastLoginAt instanceof Date ? userData.lastLoginAt : (userData.lastLoginAt as Timestamp)?.toDate(),
         });
     } catch (error) {
         console.error('Error fetching user:', error);

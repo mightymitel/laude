@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { Arrangement, SongPart } from '@laudasist/shared';
-import styles from './SongEditor.module.css';
 
 interface ArrangementPanelProps {
     arrangements: Arrangement[];
@@ -13,16 +11,14 @@ interface ArrangementPanelProps {
 }
 
 export function ArrangementPanel({
-    arrangements,
-    parts,
-    defaultArrangement,
-    onAddArrangement,
-    onUpdateArrangement,
-    onRemoveArrangement,
-    onReferencePart,
+    arrangements: _arrangements,
+    parts: _parts,
+    defaultArrangement: _defaultArrangement,
+    onAddArrangement: _onAddArrangement,
+    onUpdateArrangement: _onUpdateArrangement,
+    onRemoveArrangement: _onRemoveArrangement,
+    onReferencePart: _onReferencePart,
 }: ArrangementPanelProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [newArrangementName, setNewArrangementName] = useState('');
 
     // Simplified view for now - just list them
     // TODO: Full drag-drop arrangement editing

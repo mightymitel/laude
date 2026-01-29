@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { Timestamp } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getServicesCollection, ServiceDocument } from '../models/Service.js';
 import type { ServiceStatus, Key } from '../shared/index.js';
@@ -23,8 +24,8 @@ export const listServices = async (req: AuthenticatedRequest, res: Response) => 
         const services = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
-            date: (doc.data().date as any)?.toDate?.() || doc.data().date,
-            createdAt: (doc.data().createdAt as any)?.toDate?.() || doc.data().createdAt,
+            date: (doc.data().date as Timestamp)?.toDate?.() || doc.data().date,
+            createdAt: (doc.data().createdAt as Timestamp)?.toDate?.() || doc.data().createdAt,
         }));
 
         res.json({ data: services });
@@ -57,9 +58,9 @@ export const getService = async (req: AuthenticatedRequest, res: Response) => {
         res.json({
             id: doc.id,
             ...service,
-            date: (service.date as any)?.toDate?.() || service.date,
-            createdAt: (service.createdAt as any)?.toDate?.() || service.createdAt,
-            updatedAt: (service.updatedAt as any)?.toDate?.() || service.updatedAt,
+            date: service.date instanceof Date ? service.date : (service.date as Timestamp)?.toDate?.(),
+            createdAt: service.createdAt instanceof Date ? service.createdAt : (service.createdAt as Timestamp)?.toDate?.(),
+            updatedAt: service.updatedAt instanceof Date ? service.updatedAt : (service.updatedAt as Timestamp)?.toDate?.(),
         });
     } catch (error) {
         console.error('Error fetching service:', error);

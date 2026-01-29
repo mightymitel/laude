@@ -7,7 +7,8 @@ import {
     getLiveSessionById,
     endLiveSession,
     updateLiveSession,
-    getActiveSessionByOwner
+    getActiveSessionByOwner,
+    LiveSession
 } from '../models/LiveSession.js';
 
 const router = Router();
@@ -107,7 +108,7 @@ router.put('/live/:id', authMiddleware, async (req, res) => {
 import { getSongsCollection } from '../models/Song.js';
 
 // Helper to fetch song data if not embedded
-async function populateSessionSong(session: any) {
+async function populateSessionSong(session: LiveSession) {
     if (!session.currentSong && session.currentSongId) {
         const songDoc = await getSongsCollection().doc(session.currentSongId).get();
         if (songDoc.exists) {

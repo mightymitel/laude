@@ -21,7 +21,7 @@ export function useAudioAnalyzer(active: boolean) {
     const analyserRef = useRef<AnalyserNode | null>(null);
     const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
     const rafIdRef = useRef<number | null>(null);
-    const bufferRef = useRef<Float32Array | null>(null);
+    const bufferRef = useRef<Float32Array<ArrayBuffer> | null>(null);
 
     useEffect(() => {
         if (active && !state.isListening && !state.error) {
@@ -33,6 +33,7 @@ export function useAudioAnalyzer(active: boolean) {
         return () => {
             stopListening();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active]);
 
     const startListening = async () => {
@@ -75,7 +76,7 @@ export function useAudioAnalyzer(active: boolean) {
     const updatePitch = () => {
         if (!analyserRef.current || !bufferRef.current || !audioContextRef.current) return;
 
-        analyserRef.current.getFloatTimeDomainData(bufferRef.current as any);
+        analyserRef.current.getFloatTimeDomainData(bufferRef.current);
         const rawFrequency = autoCorrelate(bufferRef.current as Float32Array, audioContextRef.current.sampleRate);
 
         const rms = Math.sqrt(bufferRef.current.reduce((acc, val) => acc + val * val, 0) / bufferRef.current.length);
@@ -139,7 +140,8 @@ function autoCorrelate(buf: Float32Array, sampleRate: number): number {
     if (rms < 0.01) // not enough signal
         return -1;
 
-    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+    let r1 = 0, r2 = SIZE - 1;
+    const thres = 0.2;
     for (let i = 0; i < SIZE / 2; i++)
         if (Math.abs(buf[i]) < thres) { r1 = i; break; }
     for (let i = 1; i < SIZE / 2; i++)

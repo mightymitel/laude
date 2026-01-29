@@ -1,4 +1,5 @@
 import request from 'supertest';
+import type { Request, Response, NextFunction } from 'express';
 import { app } from '../../index';
 
 // Mock Song Model (Firestore Collection)
@@ -14,7 +15,7 @@ const mockCollection = {
 
 // Mock auth middleware
 jest.mock('../../middleware/auth.js', () => ({
-    authMiddleware: (req: any, _res: any, next: any) => {
+    authMiddleware: (req: Request, _res: Response, next: NextFunction) => {
         req.userId = 'test-user-id';
         next();
     },

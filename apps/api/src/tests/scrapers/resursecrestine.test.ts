@@ -148,7 +148,7 @@ describe('resursecrestineScraper', () => {
                     <span class="stil-acorduri">
                         &nbsp;b&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />
                         Hai&nbsp;spune-mi&nbsp;cine&nbsp;a&nbsp;biruit&nbsp;moartea,<br />
-                        &nbsp;&nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;<br \/>
+                        &nbsp;&nbsp;<a class="nice-acord" rel="G">G</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="nice-acord" rel="D">D</a>&nbsp;<br />
                         cine&nbsp;a&nbsp;calcat&nbsp;peste&nbsp;ea?<br />
                         &nbsp;b<br />
                         Cine&nbsp;e&nbsp;Leul&nbsp;din&nbsp;Iuda,<br />

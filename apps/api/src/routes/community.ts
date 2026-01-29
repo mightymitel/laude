@@ -17,16 +17,21 @@ router.get('/songs', async (req, res) => {
             .limit(Number(limit));
 
         const snapshot = await query.get();
-        const songs = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const songs = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                title: data.title,
+                author: data.author
+            };
+        });
 
         // Client-side search filter if search param provided
         let filteredSongs = songs;
         if (search && typeof search === 'string') {
             const searchLower = search.toLowerCase();
-            filteredSongs = songs.filter((song: any) =>
+            filteredSongs = songs.filter((song) =>
                 song.title?.toLowerCase().includes(searchLower) ||
                 song.author?.toLowerCase().includes(searchLower)
             );

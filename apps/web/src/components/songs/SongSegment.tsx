@@ -8,7 +8,7 @@ interface SongSegmentProps {
     renderText?: (text: string) => ReactNode;
     className?: string;
     // Optional extra props
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export function SongSegment({

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { SongPart, Key, ChordStyle } from '@laudasist/shared';
 import { DraggedChord, DropPosition } from './types';
 import { SongLineEditor } from './SongLineEditor';

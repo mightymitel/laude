@@ -14,16 +14,9 @@ export function Tuner({ mode = 'full' }: TunerProps) {
 
     useEffect(() => {
         // Determine if we should visualize
-        if (isListening && analyser && canvasRef.current) {
-            // Start visualization loop
-            drawVisualization();
-        }
-    }, [isListening, analyser]);
+        if (!isListening || !analyser || !canvasRef.current) return;
 
-    const drawVisualization = () => {
         const canvas = canvasRef.current;
-        if (!canvas || !analyser) return;
-
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -67,7 +60,6 @@ export function Tuner({ mode = 'full' }: TunerProps) {
             // Determine offset from center based on cents
             // Range: -50 to +50 cents usually shown
             const centerX = canvas.width / 2;
-            const centerY = canvas.height - 10;
             // Map cents (-50 to 50) to angle (-45deg to 45deg)
             // Cents can be outside -50/50, clamp it
             const clampedCents = Math.max(-50, Math.min(50, cents));
@@ -95,11 +87,9 @@ export function Tuner({ mode = 'full' }: TunerProps) {
             ctx.restore();
         };
 
-        // Store rafId to cancel if needed, though the effect cleanup handles active state? 
-        // Actually loop depends on recursion. We need a way to stop it.
-        // simpler: check `active` inside loop. And use a ref for the ID if we want to cancel explicitly.
+        // Start visualization loop
         draw();
-    };
+    }, [isListening, analyser, active, cents]);
 
     const toggleTuner = () => {
         setActive(!active);

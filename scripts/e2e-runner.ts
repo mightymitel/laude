@@ -7,7 +7,8 @@ const getFreePort = (): Promise<number> => {
     return new Promise((resolve, reject) => {
         const server = createServer();
         server.listen(0, () => {
-            const port = (server.address() as any).port;
+            const address = server.address();
+            const port = address && typeof address === 'object' ? address.port : 0;
             server.close(() => resolve(port));
         });
         server.on('error', reject);

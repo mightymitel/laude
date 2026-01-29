@@ -196,7 +196,7 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
 
         // Calculate trim offset and track indentation for part detection
         const leadingSpaces = cleanText.length - cleanText.trimStart().length;
-        let cleanLine = cleanText.trim();
+        const cleanLine = cleanText.trim();
 
         // Track indentation level (2+ spaces at start typically indicates chorus)
         const indentationLevel = leadingSpaces;

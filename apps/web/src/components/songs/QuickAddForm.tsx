@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCreateSong } from '@/hooks/useSongs';
-import { parseSongFromMarkdown, Key, ParsedSong, embedChordsInLine } from '@laudasist/shared';
+import { parseSongFromMarkdown, Key, ParsedSong, embedChordsInLine, ChordPosition } from '@laudasist/shared';
 import styles from './QuickAddForm.module.css';
 
 const POSSIBLE_KEYS: Key[] = ['C', 'G', 'D', 'A', 'E', 'B', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F'];
@@ -181,19 +181,16 @@ export function QuickAddForm({ initialData }: QuickAddFormProps) {
 
 // Helper to reconstruct line for preview (showing that we detected chords)
 // We'll highlight chords in the preview
-function reconstructLine(text: string, chords: any[]) {
-    // We need to insert chords back into text
-    // Sort chords by index desc
-    const sorted = [...chords].sort((a, b) => b.index - a.index);
-    const result = text;
+function reconstructLine(text: string, chords: ChordPosition[]) {
+    // TODO: Implement chord reconstruction for preview
+    // This will show chords embedded back into the lyrics text
 
+    // We need to insert chords back into text
     // We're working with the parsed Nashville chords here.
     // Ideally we'd show the original input or the nashville numbers.
     // Let's show Nashville numbers to confirm conversion worked.
 
-    const elements = [];
     let lastIndex = 0;
-
     // Actually, reconstructing string is hard with React elements.
     // Let's try to build an array of segments.
 

@@ -45,7 +45,7 @@ export const Route = createFileRoute('/debug/song-editor')({
 });
 
 function SongEditorDebugPage() {
-    const [song, setSong] = useState<Song>(MOCK_SONG);
+    const [song] = useState<Song>(MOCK_SONG);
     const [savedSong, setSavedSong] = useState<Song | null>(null);
 
     return (

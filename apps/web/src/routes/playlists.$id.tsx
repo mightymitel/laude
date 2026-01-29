@@ -5,5 +5,5 @@ export const Route = createFileRoute('/playlists/$id')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/playlists/$id"!</div>
+  return <div>Hello &quot;/playlists/$id&quot;!</div>
 }
