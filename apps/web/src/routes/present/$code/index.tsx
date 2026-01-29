@@ -71,7 +71,7 @@ function PresenterPage() {
 
   // 2. Real-time sync hook using accessCode
   // This handles socket invalidation and polling automatically
-  const { data: sessionState, updateSession, emitPartChange } = useSessionState(initialSession?.accessCode || null)
+  const { data: sessionState, updateSession, emitPartChange, socketConnected } = useSessionState(initialSession?.accessCode || null)
 
   // Use the live state if available, otherwise initial state
   const session = sessionState || initialSession
@@ -160,6 +160,13 @@ function PresenterPage() {
 
   return (
     <div className={styles.container}>
+      {/* Socket Connection Warning */}
+      {!socketConnected && (
+        <div className={styles.connectionWarning}>
+          ⚠️ Real-time sync unavailable. Using fallback mode (5s delay).
+        </div>
+      )}
+
       <header className={styles.header}>
         <h1>Presenter View</h1>
         <div className={styles.sessionInfo}>

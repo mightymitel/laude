@@ -34,6 +34,7 @@ function GuestViewPage() {
     const [sessionState, setSessionState] = useState<LiveSessionState | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
+    const [socketConnected, setSocketConnected] = useState(false)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
     const [showToolbar, setShowToolbar] = useState(true)
@@ -144,6 +145,25 @@ function GuestViewPage() {
             try {
                 socket = io(API_URL)
 
+                socket.on('connect', () => {
+                    if (!mounted) return
+                    console.log('[Socket] Connected', socket.id)
+                    setSocketConnected(true)
+                    socket.emit('session:join', code)
+                })
+
+                socket.on('disconnect', () => {
+                    if (!mounted) return
+                    console.log('[Socket] Disconnected')
+                    setSocketConnected(false)
+                })
+
+                socket.on('connect_error', (err) => {
+                    if (!mounted) return
+                    console.error('[Socket] Connection error:', err)
+                    setSocketConnected(false)
+                })
+
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 socket.on('session:update', (data: any) => {
                     if (!mounted) return
@@ -170,12 +190,9 @@ function GuestViewPage() {
                 socket.on('session:end', () => {
                     if (mounted) setSessionState((prev) => (prev ? { ...prev, status: 'ended' } : null))
                 })
-
-                socket.on('connect', () => {
-                    socket.emit('session:join', code)
-                })
             } catch {
                 // WebSocket failed, rely on polling
+                setSocketConnected(false)
             }
 
             // Poll every 2 seconds as fallback (or primary if WebSocket fails)
@@ -247,6 +264,13 @@ function GuestViewPage() {
                     {song.author} • Key: {sessionState.key}
                 </div>
             </header>
+
+            {/* Socket Connection Warning */}
+            {!socketConnected && (
+                <div className={styles.connectionWarning}>
+                    ⚠️ Real-time updates unavailable. Using fallback mode (2s delay).
+                </div>
+            )}
 
             {/* Floating Toolbar - auto-hides in fullscreen */}
             <div className={`${styles.toolbar} ${showToolbar ? styles.toolbarVisible : styles.toolbarHidden}`}>

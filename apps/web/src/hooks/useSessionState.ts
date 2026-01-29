@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { api } from '@/lib/api';
 import type { Key, SongPart } from '@laudasist/shared';
@@ -56,6 +56,7 @@ export interface SessionUpdate {
 export function useSessionState(accessCode: string | null) {
     const queryClient = useQueryClient();
     const socketRef = useRef<Socket | null>(null);
+    const [socketConnected, setSocketConnected] = useState(false);
 
     // Fetch session state from API
     const query = useQuery({
@@ -78,13 +79,20 @@ export function useSessionState(accessCode: string | null) {
 
         socket.on('connect', () => {
             console.log('[Socket] Connected', socket.id);
+            setSocketConnected(true);
             // Join session room
             console.log('[Socket] Joining room', accessCode);
             socket.emit('session:join', accessCode);
         });
 
+        socket.on('disconnect', () => {
+            console.log('[Socket] Disconnected');
+            setSocketConnected(false);
+        });
+
         socket.on('connect_error', (err) => {
             console.error('[Socket] Connection error:', err);
+            setSocketConnected(false);
         });
 
         // When state changes, invalidate query to refetch
@@ -167,5 +175,6 @@ export function useSessionState(accessCode: string | null) {
         isUpdating: mutation.isPending,
         notifyStateChanged,
         emitPartChange,
+        socketConnected,
     };
 }

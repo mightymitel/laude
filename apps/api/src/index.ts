@@ -22,7 +22,8 @@ const io = new SocketServer(httpServer, {
             const allowed = [
                 process.env.FRONTEND_URL || 'http://localhost:3000',
                 'http://localhost:5173',
-                'http://localhost:5174'
+                'http://localhost:5174',
+                'https://laudasist.ro'
             ];
             // Allow requests with no origin (like mobile apps or curl requests)
             if (!origin) return callback(null, true);
@@ -35,9 +36,15 @@ const io = new SocketServer(httpServer, {
                 return callback(null, true);
             }
 
+            // Allow any Firebase hosting domain (*.web.app, *.firebaseapp.com, *.hosted.app)
+            if (/^https:\/\/.*\.(web\.app|firebaseapp\.com|hosted\.app)$/.test(origin)) {
+                return callback(null, true);
+            }
+
             return callback(new Error('Not allowed by CORS'));
         },
         methods: ['GET', 'POST'],
+        credentials: true,
     },
 });
 
@@ -45,7 +52,34 @@ const io = new SocketServer(httpServer, {
 app.set('io', io);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: (origin, callback) => {
+        const allowed = [
+            process.env.FRONTEND_URL || 'http://localhost:3000',
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'https://laudasist.ro'
+        ];
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Check against static whitelist
+        if (allowed.indexOf(origin) !== -1) return callback(null, true);
+
+        // Allow any localhost/127.0.0.1
+        if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        // Allow any Firebase hosting domain (*.web.app, *.firebaseapp.com, *.hosted.app)
+        if (/^https:\/\/.*\.(web\.app|firebaseapp\.com|hosted\.app)$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+}));
 app.use(express.json());
 
 // Health check

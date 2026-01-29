@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
-import { useSessionState, type SessionState, type SessionUpdate, type SessionPlaylistItem, type EmbeddedSong } from './useSessionState';
+import { useSessionState, type SessionState, type SessionPlaylistItem, type EmbeddedSong } from './useSessionState';
 import type { Key, ChordStyle } from '@laudasist/shared';
 
 // Full session context including secret presenter code
@@ -25,7 +25,7 @@ export function useLiveSession() {
     const [error, setError] = useState<string | null>(null);
 
     // TanStack Query sync - handles socket + polling
-    const { data: sessionState, updateSession, isUpdating } = useSessionState(sessionContext?.accessCode || null);
+    const { data: sessionState, updateSession, isUpdating, socketConnected } = useSessionState(sessionContext?.accessCode || null);
 
     // Start a live session
     const startLive = useCallback(async () => {
@@ -141,6 +141,7 @@ export function useLiveSession() {
         isLoading,
         isUpdating,
         error,
+        socketConnected,
         startLive,
         endLive,
         // New API
