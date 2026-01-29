@@ -118,6 +118,10 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
                     chord: tagMatch[1] ?? '',
                     charIndex: visualPos
                 });
+                // Include the chord text in cleanText to maintain proper spacing
+                const chordText = tagMatch[2] ?? '';
+                cleanText += chordText;
+                visualPos += chordText.length;
                 i += tagMatch[0].length;
                 continue;
             }
@@ -143,25 +147,15 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
             i++;
         }
 
-        // Calculate trim offset to adjust chord positions
-        const leadingSpaces = cleanText.length - cleanText.trimStart().length;
-        let cleanLine = cleanText.trim();
-
-        // Adjust all chord positions to account for trimming
-        for (const chord of chords) {
-            chord.charIndex -= leadingSpaces;
-        }
-
         // If this looks like a chord line, extract plain text chords too
-        // Use cleanLine (after adjusting positions) for consistency
-        const textForChordExtraction = cleanLine;
-        if (isLikelyChordLine && textForChordExtraction.length > 0 && textForChordExtraction.length < 50) {
+        // Extract from cleanText BEFORE trimming to maintain position consistency
+        if (isLikelyChordLine && cleanText.trim().length > 0 && cleanText.trim().length < 50) {
             // Parse plain text for chord patterns: A, Am, B, Bm, C#, F#m, etc.
             // Case-insensitive to catch lowercase chords like "b"
             const plainChordRegex = /\b([A-Ga-g][b#]?(?:m|maj|dim|sus|aug|add|\d)*)\b/gi;
             let plainMatch;
 
-            while ((plainMatch = plainChordRegex.exec(textForChordExtraction)) !== null) {
+            while ((plainMatch = plainChordRegex.exec(cleanText)) !== null) {
                 const chordText = plainMatch[1];
                 if (!chordText) continue;
 
@@ -169,8 +163,8 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
 
                 // Check if this looks like a real chord (not a word like "Am" in "America")
                 // Valid chords are typically standalone or surrounded by spaces
-                const before = textForChordExtraction[position - 1];
-                const after = textForChordExtraction[position + chordText.length];
+                const before = cleanText[position - 1];
+                const after = cleanText[position + chordText.length];
                 const isStandalone = (!before || before === ' ') && (!after || after === ' ');
 
                 if (isStandalone) {
@@ -190,10 +184,19 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
                     }
                 }
             }
-
-            // Sort chords by position
-            chords.sort((a, b) => a.charIndex - b.charIndex);
         }
+
+        // Calculate trim offset to adjust chord positions
+        const leadingSpaces = cleanText.length - cleanText.trimStart().length;
+        let cleanLine = cleanText.trim();
+
+        // Adjust all chord positions to account for trimming
+        for (const chord of chords) {
+            chord.charIndex -= leadingSpaces;
+        }
+
+        // Sort chords by position after adjustment
+        chords.sort((a, b) => a.charIndex - b.charIndex);
 
         // Skip empty lines and header info (Capo line, etc.)
         if (!cleanLine && chords.length === 0) {
@@ -234,8 +237,16 @@ function parseResurseCrestineContent(html: string, key: Key): SongPart[] {
             continue;
         }
 
-        // If this line has chords but no real text, save as pending
-        if (chords.length > 0 && cleanLine.length < 3) {
+        // If this line has chords but no real text (only chord letters and spaces), save as pending
+        // Remove all chord letters to check if there's actual lyric text
+        let textWithoutChords = cleanLine;
+        for (const chord of chords) {
+            // Remove the chord letter/text from the line
+            textWithoutChords = textWithoutChords.replace(new RegExp(`\\b${chord.chord}\\b`, 'gi'), '');
+        }
+        textWithoutChords = textWithoutChords.replace(/\s+/g, '').trim();
+
+        if (chords.length > 0 && textWithoutChords.length < 3) {
             pendingChordLine = chords;
             continue;
         }

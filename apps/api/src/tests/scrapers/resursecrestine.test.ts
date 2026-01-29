@@ -189,31 +189,27 @@ describe('resursecrestineScraper', () => {
 
             const text = lineWithChords?.text || '';
 
-            // Extract chord positions
+            // Extract chords in order
             const chordMatches = [...text.matchAll(/\[([^\]]+)\]/g)];
-            expect(chordMatches.length).toBe(3); // Should have 3 chords: G, A, b
+            expect(chordMatches.length).toBe(3); // Should have 3 chords: G, A, B
 
-            // Find positions of each chord in the text
+            const chordValues = chordMatches.map(m => m[1] || '');
             const positions = chordMatches.map(m => m.index ?? 0);
 
-            // Chords should appear in order: first near "s", second near "tar", third near "me"
-            // The first chord should be before "cutul" (position < 7)
-            expect(positions[0]).toBeLessThan(7);
+            // The detected key is G, so: G=1, A=2, B=3
+            // Verify chords are in the correct order (not B, G, A as it was before)
+            expect(chordValues).toEqual(['1', '2', '3']); // G, A, B in Nashville notation
 
-            // The second chord should be after "scutul" and before "ia" (position ~7-13)
-            const pos1 = positions[1];
-            const pos2 = positions[2];
-            if (pos1 !== undefined && pos2 !== undefined) {
-                expect(pos1).toBeGreaterThan(5);
-                expect(pos1).toBeLessThan(20);
+            // Verify positions are in ascending order
+            expect(positions[0]).toBeLessThan(positions[1]!);
+            expect(positions[1]!).toBeLessThan(positions[2]!);
 
-                // The third chord should be after "taria" (position > 13)
-                expect(pos2).toBeGreaterThan(10);
-
-                // Verify they're in ascending order
-                expect(positions[0]).toBeLessThan(pos1);
-                expect(pos1).toBeLessThan(pos2);
-            }
+            // Verify chords appear at reasonable positions in "scutul taria mea"
+            // First chord near "s", second near "tar", third near "me"
+            expect(text.indexOf('[1]')).toBeLessThan(text.indexOf('cutul'));
+            expect(text.indexOf('[2]')).toBeGreaterThan(text.indexOf('scutul'));
+            expect(text.indexOf('[2]')).toBeLessThan(text.indexOf('mea'));
+            expect(text.indexOf('[3]')).toBeGreaterThan(text.indexOf('taria'));
         });
 
         it('should handle fetch errors', async () => {
