@@ -25,7 +25,7 @@ export function useLiveSession() {
     const [error, setError] = useState<string | null>(null);
 
     // TanStack Query sync - handles socket + polling
-    const { data: sessionState, updateSession, isUpdating, socketConnected } = useSessionState(sessionContext?.accessCode || null);
+    const { data: sessionState, updateSession, isUpdating, socketConnected, emitPartChange } = useSessionState(sessionContext?.accessCode || null);
 
     // Start a live session
     const startLive = useCallback(async () => {
@@ -150,6 +150,7 @@ export function useLiveSession() {
         setDisplayKey,
         setPlaylist,
         updateSession,
+        emitPartChange,
         // Legacy API
         broadcastUpdate,
         syncPlaylist,

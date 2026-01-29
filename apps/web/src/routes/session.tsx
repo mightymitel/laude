@@ -119,6 +119,7 @@ function SessionPageContent() {
         setPlaylist,
         getShareUrl,
         getPresenterUrl,
+        emitPartChange,
     } = useLiveSession()
 
     // QR Code modal state
@@ -151,11 +152,11 @@ function SessionPageContent() {
 
     const setCurrentPartIndex = useCallback((partIndex: number) => {
         if (isLive) {
-            updateSession({ currentPartIndex: partIndex })
+            emitPartChange(partIndex)  // Fast socket path
         } else {
             setLocalPartIndex(partIndex)
         }
-    }, [isLive, updateSession])
+    }, [isLive, emitPartChange])
 
     const setDisplayKey = useCallback((key: Key) => {
         if (isLive) {
@@ -179,7 +180,7 @@ function SessionPageContent() {
     useEffect(() => {
         if (currentPartIndex >= 0 && partRefs.current[currentPartIndex]) {
             partRefs.current[currentPartIndex]?.scrollIntoView({
-                behavior: 'smooth',
+                behavior: 'instant',
                 block: 'center',
             })
         }
