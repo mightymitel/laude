@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { SongPart, Key, ChordStyle } from '@laudasist/shared';
 import { DraggedChord, DropPosition } from './types';
 import { SongLineEditor } from './SongLineEditor';
@@ -12,6 +12,7 @@ interface SongPartEditorProps {
     lyricsLocked: boolean;
     draggedChord: DraggedChord | null;
     dropPosition: DropPosition | null;
+    allParts: SongPart[];
     onUpdatePart: (updates: Partial<SongPart>) => void;
     onRemovePart: () => void;
     onUpdateLine: (lineIndex: number, text: string) => void;
@@ -24,6 +25,8 @@ interface SongPartEditorProps {
     onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
     onChordDragEnd: () => void;
+    onCursorPositionChange?: (lineIndex: number, charIndex: number) => void;
+    onApproximateChords?: (sourcePartIndex: number) => void;
 }
 
 const PART_TYPE_LABELS: Record<string, string> = {
@@ -44,6 +47,7 @@ export function SongPartEditor({
     lyricsLocked,
     draggedChord,
     dropPosition,
+    allParts,
     onUpdatePart,
     onRemovePart,
     onUpdateLine,
@@ -56,9 +60,12 @@ export function SongPartEditor({
     onChordDrop,
     onChordDragStart,
     onChordDragEnd,
+    onCursorPositionChange,
+    onApproximateChords,
 }: SongPartEditorProps) {
     // Track last known drop position locally to handle race conditions
     const lastDropPositionRef = useRef<DropPosition | null>(null);
+    const [showChordSourceMenu, setShowChordSourceMenu] = useState(false);
 
     const handleDropPositionChange = useCallback((lineIndex: number, charIndex: number | null) => {
         if (charIndex !== null) {
@@ -104,6 +111,17 @@ export function SongPartEditor({
         onDeleteLine(lineIndex);
     };
 
+    const handleApproximateChords = (sourcePartIndex: number) => {
+        if (onApproximateChords) {
+            onApproximateChords(sourcePartIndex);
+        }
+        setShowChordSourceMenu(false);
+    };
+
+    const getPartLabel = (p: SongPart, idx: number) => {
+        return `${PART_TYPE_LABELS[p.type] || p.type} ${p.index || idx + 1}`;
+    };
+
     return (
         <div className={styles.part}>
             {/* Part Header */}
@@ -121,6 +139,36 @@ export function SongPartEditor({
                 />
 
                 <div className={styles.partActions}>
+                    {onApproximateChords && allParts.length > 1 && (
+                        <div style={{ position: 'relative' }}>
+                            <button
+                                className={styles.partActionButton}
+                                onClick={() => setShowChordSourceMenu(!showChordSourceMenu)}
+                                title="Approximate chords from another part"
+                            >
+                                ♪
+                            </button>
+                            {showChordSourceMenu && (
+                                <div className={styles.chordSourceMenu}>
+                                    <div className={styles.chordSourceMenuHeader}>
+                                        Copy chords from:
+                                    </div>
+                                    {allParts.map((p, idx) => {
+                                        if (idx === partIndex) return null;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                className={styles.chordSourceMenuItem}
+                                                onClick={() => handleApproximateChords(idx)}
+                                            >
+                                                {getPartLabel(p, idx)}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {hasNextPart && (
                         <button
                             className={styles.partActionButton}
@@ -169,6 +217,7 @@ export function SongPartEditor({
                         onChordDrop={(dataTransfer) => handleChordDrop(lineIndex, dataTransfer)}
                         onChordDragStart={onChordDragStart}
                         onChordDragEnd={onChordDragEnd}
+                        onCursorPositionChange={onCursorPositionChange ? (charIndex) => onCursorPositionChange(lineIndex, charIndex) : undefined}
                     />
                 ))}
             </div>

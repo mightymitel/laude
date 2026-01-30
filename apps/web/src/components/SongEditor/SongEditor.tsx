@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import {
     Song, SongPart, Key, ChordStyle, PartType,
-    formatChord, parseNashville, extractChordsFromLine
+    formatChord, parseNashville, extractChordsFromLine,
+    approximateChordsFromPart
 } from '@laudasist/shared';
 import { SongEditorProps, DraggedChord, DropPosition } from './types';
 import { SongEditorToolbar } from './SongEditorToolbar';
@@ -135,12 +136,11 @@ export function SongEditor({
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Active editing position (for click-to-insert)
-    // TODO: Connect this to inline editing when implementing click-to-insert
-    // const [activeEditPosition, setActiveEditPosition] = useState<{
-    //     partIndex: number;
-    //     lineIndex: number;
-    //     charIndex: number;
-    // } | null>(null);
+    const [activeEditPosition, setActiveEditPosition] = useState<{
+        partIndex: number;
+        lineIndex: number;
+        charIndex: number;
+    } | null>(null);
 
     // Touch drag hook
     const touchDrag = useTouchDrag<DraggedChord>({
@@ -187,9 +187,72 @@ export function SongEditor({
         },
     });
 
-    // Update touch drag position for indicator
+    // Update touch drag position for indicator and calculate drop position
     if (touchDrag.position && touchDrag.position !== touchDragPosition) {
         setTouchDragPosition(touchDrag.position);
+
+        // Calculate drop position from touch coordinates
+        if (touchDrag.isDragging) {
+            const { x, y } = touchDrag.position;
+            const elementUnderTouch = document.elementFromPoint(x, y);
+
+            if (elementUnderTouch) {
+                // Find the line element
+                const lineElement = elementUnderTouch.closest('[data-part-index][data-line-index]') as HTMLElement;
+
+                if (lineElement) {
+                    const partIndex = parseInt(lineElement.dataset.partIndex || '0', 10);
+                    const lineIndex = parseInt(lineElement.dataset.lineIndex || '0', 10);
+
+                    // Find the segment text element to calculate character position
+                    const segments = lineElement.querySelectorAll('[class*="segmentText"]');
+                    let bestCharIndex = 0;
+                    let foundSegment = false;
+
+                    // Check each segment to find which one the touch is over
+                    for (let i = 0; i < segments.length; i++) {
+                        const segmentText = segments[i] as HTMLElement;
+                        const rect = segmentText.getBoundingClientRect();
+
+                        // Check if touch is within this segment's bounds
+                        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                            const relX = x - rect.left;
+                            const text = segmentText.textContent || '';
+                            const charWidth = text.length > 0 ? rect.width / text.length : 10;
+                            const localCharIndex = Math.max(0, Math.min(Math.round(relX / charWidth), text.length));
+
+                            // Get the segment's start index from parent
+                            const segmentEl = segmentText.closest('[data-start-index]') as HTMLElement;
+                            const startIndex = segmentEl ? parseInt(segmentEl.dataset.startIndex || '0', 10) : 0;
+
+                            bestCharIndex = startIndex + localCharIndex;
+                            foundSegment = true;
+                            break;
+                        }
+                    }
+
+                    // If touch is over the line but not directly over a segment, use the first or last position
+                    if (!foundSegment && segments.length > 0) {
+                        const firstSegment = segments[0] as HTMLElement;
+                        const lastSegment = segments[segments.length - 1] as HTMLElement;
+                        const firstRect = firstSegment.getBoundingClientRect();
+                        const lastRect = lastSegment.getBoundingClientRect();
+
+                        if (x < firstRect.left) {
+                            bestCharIndex = 0;
+                        } else if (x > lastRect.right) {
+                            // Get the end position of the last segment
+                            const lastSegmentEl = lastSegment.closest('[data-start-index]') as HTMLElement;
+                            const startIndex = lastSegmentEl ? parseInt(lastSegmentEl.dataset.startIndex || '0', 10) : 0;
+                            const text = lastSegment.textContent || '';
+                            bestCharIndex = startIndex + text.length;
+                        }
+                    }
+
+                    setDropPosition({ partIndex, lineIndex, charIndex: bestCharIndex });
+                }
+            }
+        }
     }
 
     // Handler for starting touch drag on a chord
@@ -209,54 +272,52 @@ export function SongEditor({
     const currentKey = displayKey || editingSong.originalKey || 'C';
 
     // Handler for clicking/tapping a chord to insert at cursor position
-    // TODO: Re-enable when implementing click-to-insert chord feature
-    // const handleChordClick = useCallback((chordStr: string) => {
-    //     if (!activeEditPosition) return;
+    const handleChordClick = useCallback((chordStr: string) => {
+        if (!activeEditPosition) return;
 
-    //     const { partIndex, lineIndex, charIndex } = activeEditPosition;
+        const { partIndex, lineIndex, charIndex } = activeEditPosition;
 
-    //     setEditingSong(prev => {
-    //         const parts = [...(prev.parts || [])];
-    //         const part = parts[partIndex];
-    //         if (!part) return prev;
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            const part = parts[partIndex];
+            if (!part) return prev;
 
-    //         const lines = [...part.lines];
-    //         const line = lines[lineIndex];
-    //         if (!line) return prev;
+            const lines = [...part.lines];
+            const line = lines[lineIndex];
+            if (!line) return prev;
 
-    //         const { text: pureText, chords: existingChords } = extractChordsFromLine(line.text);
+            const { text: pureText, chords: existingChords } = extractChordsFromLine(line.text);
 
-    //         // Add new chord at cursor position
-    //         const parsedChord = parseNashville(chordStr);
-    //         const newChord = {
-    //             index: charIndex,
-    //             chord: parsedChord || { degree: 1, quality: '' }
-    //         };
+            // Add new chord at cursor position
+            const parsedChord = parseNashville(chordStr);
+            const newChord = {
+                index: charIndex,
+                chord: parsedChord || { degree: 1, root: currentKey, quality: '', alterations: [] }
+            };
 
-    //         const allChords = [...existingChords, newChord].sort((a, b) => a.index - b.index);
+            const allChords = [...existingChords, newChord].sort((a, b) => a.index - b.index);
 
-    //         // Rebuild line text
-    //         let newText = '';
-    //         let lastIndex = 0;
-    //         for (const c of allChords) {
-    //             newText += pureText.substring(lastIndex, c.index);
-    //             newText += `[${formatChord(c.chord, currentKey, 'nashville')}]`;
-    //             lastIndex = c.index;
-    //         }
-    //         newText += pureText.substring(lastIndex);
+            // Rebuild line text
+            let newText = '';
+            let lastIndex = 0;
+            for (const c of allChords) {
+                newText += pureText.substring(lastIndex, c.index);
+                newText += `[${formatChord(c.chord, currentKey, 'nashville')}]`;
+                lastIndex = c.index;
+            }
+            newText += pureText.substring(lastIndex);
 
-    //         lines[lineIndex] = { text: newText };
-    //         parts[partIndex] = { ...part, lines };
+            lines[lineIndex] = { text: newText };
+            parts[partIndex] = { ...part, lines };
 
-    //         return { ...prev, parts };
-    //     });
-    // }, [currentKey]);
+            return { ...prev, parts };
+        });
+    }, [activeEditPosition, currentKey]);
 
     // Handler for updating active edit position (called from segments)
-    // TODO: Connect this to segment editors when implementing inline editing
-    // const handleActivePositionChange = useCallback((position: { partIndex: number; lineIndex: number; charIndex: number } | null) => {
-    //     setActiveEditPosition(position);
-    // }, []);
+    const handleActivePositionChange = useCallback((position: { partIndex: number; lineIndex: number; charIndex: number } | null) => {
+        setActiveEditPosition(position);
+    }, []);
 
     // Extract all unique chords from the current song for the palette
     const songChords = useMemo(() => {
@@ -421,6 +482,26 @@ export function SongEditor({
 
             // Remove next part
             parts.splice(partIndex + 1, 1);
+
+            return { ...prev, parts };
+        });
+    }, []);
+
+    const handleApproximateChords = useCallback((targetPartIndex: number, sourcePartIndex: number) => {
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            const sourcePart = parts[sourcePartIndex];
+            const targetPart = parts[targetPartIndex];
+
+            if (!sourcePart || !targetPart) return prev;
+
+            // Approximate chords from source to target
+            const updatedPart = approximateChordsFromPart(sourcePart, targetPart, {
+                useSyllables: false, // Use character-based for now
+                language: 'ro',
+            });
+
+            parts[targetPartIndex] = updatedPart;
 
             return { ...prev, parts };
         });
@@ -719,6 +800,7 @@ export function SongEditor({
                     lyricsLocked={lyricsLocked}
                     onLockToggle={() => setLyricsLocked(!lyricsLocked)}
                     onChordDragStart={handleChordDragStart}
+                    onChordClick={handleChordClick}
                     onTouchDragStart={handleTouchDragStart}
                     customChords={customChords}
                     songChords={songChords}
@@ -740,6 +822,7 @@ export function SongEditor({
                                 lyricsLocked={lyricsLocked}
                                 draggedChord={draggedChord}
                                 dropPosition={dropPosition}
+                                allParts={editingSong.parts || []}
                                 onUpdatePart={(updates) => handleUpdatePart(partIndex, updates)}
                                 onRemovePart={() => handleRemovePart(partIndex)}
                                 onUpdateLine={(lineIndex, text) => handleUpdateLine(partIndex, lineIndex, text)}
@@ -752,6 +835,12 @@ export function SongEditor({
                                 onChordDrop={handleChordDrop}
                                 onChordDragStart={handleChordDragStart}
                                 onChordDragEnd={handleChordDragEnd}
+                                onCursorPositionChange={(lineIndex, charIndex) =>
+                                    handleActivePositionChange({ partIndex, lineIndex, charIndex })
+                                }
+                                onApproximateChords={(sourcePartIndex) =>
+                                    handleApproximateChords(partIndex, sourcePartIndex)
+                                }
                             />
                         ))}
 
