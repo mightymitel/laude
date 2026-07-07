@@ -1,10 +1,11 @@
 /**
- * The one MockEngine + PadEngine pair the whole console talks to, plus the
- * song loader: Firestore (emulator) songs → MockSong registrations, with a
+ * The one LaudjEngine + PadEngine pair the whole console talks to, plus the
+ * song loader: Firestore (emulator) songs → EngineSong registrations, with a
  * hardcoded fallback when the emulator is empty/unreachable after 3s.
  *
- * The real native engine (Tauri/Rust) will replace MockEngine behind the same
- * EngineConnection contract — nothing in the components changes.
+ * LaudjEngine plays real stems via Web Audio when a performance has them
+ * (falling back per-song to simulated playback); the pads ride the same
+ * AudioContext, attached to the shared PadEngine on the first audible gesture.
  */
 import {
   collection,
@@ -15,25 +16,27 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { MockEngine, type MockSong } from '@laude/laudj-control-protocol/mock';
 import { PadEngine } from '@laude/pad-engine';
-import { COLLECTIONS } from '@laude/song-model';
+import { ALL_STEMS, COLLECTIONS, type StemName } from '@laude/song-model';
+import { LaudjEngine, type EngineSong } from './audio-engine';
 import { db } from './firebase';
 
-export const engine = new MockEngine();
-/** Local pad stub so the chord display animates; commands are mirrored to it. */
+/** Shared pad instrument: the UI drives its state; audio attaches on first gesture. */
 export const padEngine = new PadEngine();
+export const engine = new LaudjEngine({
+  onAudioContext: (ctx) => padEngine.attachAudio(ctx),
+});
 
 // ---------------------------------------------------------------------------
-// Registered-song registry (MockEngine keeps its song map private, and the
+// Registered-song registry (the engine keeps its song map private, and the
 // song picker needs the list). Tiny external store for React.
 // ---------------------------------------------------------------------------
 
-let registeredSongs: MockSong[] = [];
+let registeredSongs: EngineSong[] = [];
 let fallbackUsed = false;
 const songListeners = new Set<() => void>();
 
-export function getRegisteredSongs(): MockSong[] {
+export function getRegisteredSongs(): EngineSong[] {
   return registeredSongs;
 }
 
@@ -48,7 +51,7 @@ export function subscribeSongs(listener: () => void): () => void {
 
 let firstSongAutoLoaded = false;
 
-function register(songs: MockSong[]): void {
+function register(songs: EngineSong[]): void {
   const fresh = songs.filter((s) => !registeredSongs.some((r) => r.song_id === s.song_id));
   if (fresh.length === 0) return;
   fresh.forEach((s) => engine.registerSong(s));
@@ -65,7 +68,7 @@ function register(songs: MockSong[]): void {
 // Fallback mock songs (TODO/mock: placeholder titles, not real library data)
 // ---------------------------------------------------------------------------
 
-const FALLBACK_SONGS: MockSong[] = [
+const FALLBACK_SONGS: EngineSong[] = [
   {
     song_id: 'mock-song-1',
     title: 'Cât de mare ești Tu (mock)',
@@ -100,7 +103,7 @@ const FALLBACK_SONGS: MockSong[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Firestore → MockSong mapping (narrowing helpers, no casts)
+// Firestore → EngineSong mapping (narrowing helpers, no casts)
 // ---------------------------------------------------------------------------
 
 function asString(v: unknown): string | undefined {
@@ -111,11 +114,34 @@ function asNumber(v: unknown): number | undefined {
   return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
 }
 
+function asStemNames(v: unknown): StemName[] {
+  if (!Array.isArray(v)) return [];
+  return ALL_STEMS.filter((stem) => v.includes(stem));
+}
+
+function asNumberArray(v: unknown): number[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((n): n is number => typeof n === 'number' && Number.isFinite(n));
+}
+
 interface LoadedPerformance {
   id: string;
   start_s: number;
   end_s: number;
   key: string | undefined;
+  stems: StemName[];
+  key_variants: number[];
+}
+
+function toLoadedPerformance(id: string, data: Record<string, unknown>): LoadedPerformance {
+  return {
+    id,
+    start_s: asNumber(data.start_s) ?? 0,
+    end_s: asNumber(data.end_s) ?? 0,
+    key: asString(data.key),
+    stems: asStemNames(data.stems),
+    key_variants: asNumberArray(data.key_variants),
+  };
 }
 
 async function loadPerformance(
@@ -124,28 +150,14 @@ async function loadPerformance(
 ): Promise<LoadedPerformance | null> {
   if (preferredId) {
     const snap = await getDoc(doc(db, COLLECTIONS.performances, preferredId));
-    if (snap.exists()) {
-      const data: Record<string, unknown> = snap.data();
-      return {
-        id: snap.id,
-        start_s: asNumber(data.start_s) ?? 0,
-        end_s: asNumber(data.end_s) ?? 0,
-        key: asString(data.key),
-      };
-    }
+    if (snap.exists()) return toLoadedPerformance(snap.id, snap.data());
   }
   const res = await getDocs(
     query(collection(db, COLLECTIONS.performances), where('song_id', '==', songId), limit(1)),
   );
   const first = res.docs[0];
   if (!first) return null;
-  const data: Record<string, unknown> = first.data();
-  return {
-    id: first.id,
-    start_s: asNumber(data.start_s) ?? 0,
-    end_s: asNumber(data.end_s) ?? 0,
-    key: asString(data.key),
-  };
+  return toLoadedPerformance(first.id, first.data());
 }
 
 async function loadSections(
@@ -168,7 +180,7 @@ async function loadSections(
   return rows.map((r) => ({ label: r.label, start_s: r.start_s - offset }));
 }
 
-async function loadSongsFromFirestore(): Promise<MockSong[]> {
+async function loadSongsFromFirestore(): Promise<EngineSong[]> {
   // The Laudasist `songs` rules only allow unauthenticated reads on public
   // docs, and an unconstrained collection query is denied outright — the
   // where() clause is what makes the query pass.
@@ -176,7 +188,7 @@ async function loadSongsFromFirestore(): Promise<MockSong[]> {
     query(collection(db, COLLECTIONS.songs), where('visibility', '==', 'public')),
   );
   const songs = await Promise.all(
-    songsSnap.docs.map(async (d): Promise<MockSong> => {
+    songsSnap.docs.map(async (d): Promise<EngineSong> => {
       const data: Record<string, unknown> = d.data();
       const perf = await loadPerformance(d.id, asString(data.preferred_performance_id));
       const duration = perf && perf.end_s - perf.start_s > 0 ? perf.end_s - perf.start_s : 240;
@@ -187,6 +199,10 @@ async function loadSongsFromFirestore(): Promise<MockSong[]> {
         key: perf?.key ?? asString(data.original_key) ?? 'C',
         duration_s: duration,
         sections,
+        performance:
+          perf && perf.stems.length > 0
+            ? { id: perf.id, stems: perf.stems, key_variants: perf.key_variants }
+            : undefined,
       };
     }),
   );

@@ -8,6 +8,13 @@ import { db } from '../firebase';
 import { engine, padEngine } from '../engine';
 import { useSongs } from '../hooks';
 
+/** Re-joins with fresh joined_at accumulate duplicate presenter entries in the
+ * session doc (no heartbeat/TTL in the PoC) — render each id once. */
+function dedupeById(presenters: Presenter[]): Presenter[] {
+  const seen = new Set<string>();
+  return presenters.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+}
+
 const LAUDJ_PRESENTER: Presenter = {
   id: 'laudj-engine',
   name: 'LauDJ',
@@ -111,7 +118,7 @@ export function SessionStrip({ state }: { state: EngineState }) {
           <span>{current.tempo_pct}%</span>
           <span className="ld-spacer" />
           <span className="ld-label">{t('session.presenters')}</span>
-          {session.presenters.map((p) => (
+          {dedupeById(session.presenters).map((p) => (
             <Chip key={p.id} state={p.kind === 'laudj' ? 'current' : 'default'}>
               {p.name}
             </Chip>

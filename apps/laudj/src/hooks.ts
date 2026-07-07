@@ -1,8 +1,8 @@
 /** React bindings for the engine/pads/song-registry stores. */
 import { useEffect, useState } from 'react';
 import type { EngineState } from '@laude/laudj-control-protocol';
-import type { MockSong } from '@laude/laudj-control-protocol/mock';
 import type { PadEngineState } from '@laude/pad-engine';
+import type { EngineSong } from './audio-engine';
 import { engine, getRegisteredSongs, padEngine, subscribeSongs } from './engine';
 
 /** Live engine state; null only before the first (synchronous) snapshot. */
@@ -18,8 +18,8 @@ export function usePadState(): PadEngineState {
   return state;
 }
 
-export function useSongs(): MockSong[] {
-  const [songs, setSongs] = useState<MockSong[]>(() => getRegisteredSongs());
+export function useSongs(): EngineSong[] {
+  const [songs, setSongs] = useState<EngineSong[]>(() => getRegisteredSongs());
   useEffect(() => subscribeSongs(() => setSongs(getRegisteredSongs())), []);
   return songs;
 }
