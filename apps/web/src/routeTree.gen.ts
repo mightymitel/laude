@@ -14,14 +14,22 @@ import { Route as SessionRouteImport } from './routes/session'
 import { Route as PlaylistsRouteImport } from './routes/playlists'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as PlatformRouteRouteImport } from './routes/platform/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlatformIndexRouteImport } from './routes/platform/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
+import { Route as PlatformStageRouteImport } from './routes/platform/stage'
+import { Route as PlatformSessionRouteImport } from './routes/platform/session'
+import { Route as PlatformLibraryRouteImport } from './routes/platform/library'
+import { Route as PlatformCurationRouteImport } from './routes/platform/curation'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as DebugSongEditorRouteImport } from './routes/debug/song-editor'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
 import { Route as PresentCodeIndexRouteImport } from './routes/present/$code/index'
 import { Route as LibraryIdIndexRouteImport } from './routes/library/$id/index'
+import { Route as PlatformSongsSongIdRouteImport } from './routes/platform/songs.$songId'
+import { Route as PlatformKaraokeSongIdRouteImport } from './routes/platform/karaoke.$songId'
 import { Route as LibraryIdEditRouteImport } from './routes/library/$id/edit'
 
 const TunerRoute = TunerRouteImport.update({
@@ -49,10 +57,20 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlatformRouteRoute = PlatformRouteRouteImport.update({
+  id: '/platform',
+  path: '/platform',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformIndexRoute = PlatformIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlatformRouteRoute,
 } as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
   id: '/library/',
@@ -63,6 +81,26 @@ const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => PlaylistsRoute,
+} as any)
+const PlatformStageRoute = PlatformStageRouteImport.update({
+  id: '/stage',
+  path: '/stage',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
+const PlatformSessionRoute = PlatformSessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
+const PlatformLibraryRoute = PlatformLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
+const PlatformCurationRoute = PlatformCurationRouteImport.update({
+  id: '/curation',
+  path: '/curation',
+  getParentRoute: () => PlatformRouteRoute,
 } as any)
 const LibraryNewRoute = LibraryNewRouteImport.update({
   id: '/library/new',
@@ -89,6 +127,16 @@ const LibraryIdIndexRoute = LibraryIdIndexRouteImport.update({
   path: '/library/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlatformSongsSongIdRoute = PlatformSongsSongIdRouteImport.update({
+  id: '/songs/$songId',
+  path: '/songs/$songId',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
+const PlatformKaraokeSongIdRoute = PlatformKaraokeSongIdRouteImport.update({
+  id: '/karaoke/$songId',
+  path: '/karaoke/$songId',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
 const LibraryIdEditRoute = LibraryIdEditRouteImport.update({
   id: '/library/$id/edit',
   path: '/library/$id/edit',
@@ -97,6 +145,7 @@ const LibraryIdEditRoute = LibraryIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/platform': typeof PlatformRouteRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
@@ -104,9 +153,16 @@ export interface FileRoutesByFullPath {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
+  '/platform/curation': typeof PlatformCurationRoute
+  '/platform/library': typeof PlatformLibraryRoute
+  '/platform/session': typeof PlatformSessionRoute
+  '/platform/stage': typeof PlatformStageRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
+  '/platform/': typeof PlatformIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
+  '/platform/karaoke/$songId': typeof PlatformKaraokeSongIdRoute
+  '/platform/songs/$songId': typeof PlatformSongsSongIdRoute
   '/library/$id': typeof LibraryIdIndexRoute
   '/present/$code': typeof PresentCodeIndexRoute
   '/view/$code': typeof ViewCodeIndexRoute
@@ -120,9 +176,16 @@ export interface FileRoutesByTo {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
+  '/platform/curation': typeof PlatformCurationRoute
+  '/platform/library': typeof PlatformLibraryRoute
+  '/platform/session': typeof PlatformSessionRoute
+  '/platform/stage': typeof PlatformStageRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
+  '/platform': typeof PlatformIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
+  '/platform/karaoke/$songId': typeof PlatformKaraokeSongIdRoute
+  '/platform/songs/$songId': typeof PlatformSongsSongIdRoute
   '/library/$id': typeof LibraryIdIndexRoute
   '/present/$code': typeof PresentCodeIndexRoute
   '/view/$code': typeof ViewCodeIndexRoute
@@ -130,6 +193,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/platform': typeof PlatformRouteRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRouteWithChildren
@@ -137,9 +201,16 @@ export interface FileRoutesById {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
+  '/platform/curation': typeof PlatformCurationRoute
+  '/platform/library': typeof PlatformLibraryRoute
+  '/platform/session': typeof PlatformSessionRoute
+  '/platform/stage': typeof PlatformStageRoute
   '/playlists/$id': typeof PlaylistsIdRoute
   '/library/': typeof LibraryIndexRoute
+  '/platform/': typeof PlatformIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
+  '/platform/karaoke/$songId': typeof PlatformKaraokeSongIdRoute
+  '/platform/songs/$songId': typeof PlatformSongsSongIdRoute
   '/library/$id/': typeof LibraryIdIndexRoute
   '/present/$code/': typeof PresentCodeIndexRoute
   '/view/$code/': typeof ViewCodeIndexRoute
@@ -148,6 +219,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/platform'
     | '/dashboard'
     | '/login'
     | '/playlists'
@@ -155,9 +227,16 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
+    | '/platform/curation'
+    | '/platform/library'
+    | '/platform/session'
+    | '/platform/stage'
     | '/playlists/$id'
     | '/library'
+    | '/platform/'
     | '/library/$id/edit'
+    | '/platform/karaoke/$songId'
+    | '/platform/songs/$songId'
     | '/library/$id'
     | '/present/$code'
     | '/view/$code'
@@ -171,15 +250,23 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
+    | '/platform/curation'
+    | '/platform/library'
+    | '/platform/session'
+    | '/platform/stage'
     | '/playlists/$id'
     | '/library'
+    | '/platform'
     | '/library/$id/edit'
+    | '/platform/karaoke/$songId'
+    | '/platform/songs/$songId'
     | '/library/$id'
     | '/present/$code'
     | '/view/$code'
   id:
     | '__root__'
     | '/'
+    | '/platform'
     | '/dashboard'
     | '/login'
     | '/playlists'
@@ -187,9 +274,16 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
+    | '/platform/curation'
+    | '/platform/library'
+    | '/platform/session'
+    | '/platform/stage'
     | '/playlists/$id'
     | '/library/'
+    | '/platform/'
     | '/library/$id/edit'
+    | '/platform/karaoke/$songId'
+    | '/platform/songs/$songId'
     | '/library/$id/'
     | '/present/$code/'
     | '/view/$code/'
@@ -197,6 +291,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PlatformRouteRoute: typeof PlatformRouteRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   PlaylistsRoute: typeof PlaylistsRouteWithChildren
@@ -248,12 +343,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/platform': {
+      id: '/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof PlatformRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/platform/': {
+      id: '/platform/'
+      path: '/'
+      fullPath: '/platform/'
+      preLoaderRoute: typeof PlatformIndexRouteImport
+      parentRoute: typeof PlatformRouteRoute
     }
     '/library/': {
       id: '/library/'
@@ -268,6 +377,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/playlists/$id'
       preLoaderRoute: typeof PlaylistsIdRouteImport
       parentRoute: typeof PlaylistsRoute
+    }
+    '/platform/stage': {
+      id: '/platform/stage'
+      path: '/stage'
+      fullPath: '/platform/stage'
+      preLoaderRoute: typeof PlatformStageRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
+    '/platform/session': {
+      id: '/platform/session'
+      path: '/session'
+      fullPath: '/platform/session'
+      preLoaderRoute: typeof PlatformSessionRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
+    '/platform/library': {
+      id: '/platform/library'
+      path: '/library'
+      fullPath: '/platform/library'
+      preLoaderRoute: typeof PlatformLibraryRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
+    '/platform/curation': {
+      id: '/platform/curation'
+      path: '/curation'
+      fullPath: '/platform/curation'
+      preLoaderRoute: typeof PlatformCurationRouteImport
+      parentRoute: typeof PlatformRouteRoute
     }
     '/library/new': {
       id: '/library/new'
@@ -304,6 +441,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/platform/songs/$songId': {
+      id: '/platform/songs/$songId'
+      path: '/songs/$songId'
+      fullPath: '/platform/songs/$songId'
+      preLoaderRoute: typeof PlatformSongsSongIdRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
+    '/platform/karaoke/$songId': {
+      id: '/platform/karaoke/$songId'
+      path: '/karaoke/$songId'
+      fullPath: '/platform/karaoke/$songId'
+      preLoaderRoute: typeof PlatformKaraokeSongIdRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
     '/library/$id/edit': {
       id: '/library/$id/edit'
       path: '/library/$id/edit'
@@ -313,6 +464,30 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface PlatformRouteRouteChildren {
+  PlatformCurationRoute: typeof PlatformCurationRoute
+  PlatformLibraryRoute: typeof PlatformLibraryRoute
+  PlatformSessionRoute: typeof PlatformSessionRoute
+  PlatformStageRoute: typeof PlatformStageRoute
+  PlatformIndexRoute: typeof PlatformIndexRoute
+  PlatformKaraokeSongIdRoute: typeof PlatformKaraokeSongIdRoute
+  PlatformSongsSongIdRoute: typeof PlatformSongsSongIdRoute
+}
+
+const PlatformRouteRouteChildren: PlatformRouteRouteChildren = {
+  PlatformCurationRoute: PlatformCurationRoute,
+  PlatformLibraryRoute: PlatformLibraryRoute,
+  PlatformSessionRoute: PlatformSessionRoute,
+  PlatformStageRoute: PlatformStageRoute,
+  PlatformIndexRoute: PlatformIndexRoute,
+  PlatformKaraokeSongIdRoute: PlatformKaraokeSongIdRoute,
+  PlatformSongsSongIdRoute: PlatformSongsSongIdRoute,
+}
+
+const PlatformRouteRouteWithChildren = PlatformRouteRoute._addFileChildren(
+  PlatformRouteRouteChildren,
+)
 
 interface PlaylistsRouteChildren {
   PlaylistsIdRoute: typeof PlaylistsIdRoute
@@ -328,6 +503,7 @@ const PlaylistsRouteWithChildren = PlaylistsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PlatformRouteRoute: PlatformRouteRouteWithChildren,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   PlaylistsRoute: PlaylistsRouteWithChildren,

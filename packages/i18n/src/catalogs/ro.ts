@@ -133,6 +133,39 @@ export const ro = {
   'laudj.followSession': 'Urmărește sesiunea',
   'laudj.session.none': 'Nicio sesiune activă',
   'laudj.keyTempo': 'Tonalitate & tempo',
+
+  // --- laudj extra keys ---
+  'laudj.pair': 'Asociază',
+  'laudj.pair.title': 'Asociere tabletă',
+  'laudj.crossfade': 'Crossfade (s)',
+  'laudj.mockSongs': 'Cântări simulate — emulatorul e gol',
+  'laudj.pad.start': 'Pornește padurile',
+  'laudj.pad.stop': 'Oprește padurile',
+  'laudj.pad.chord': 'Acord curent',
+  'laudj.padstyle.warm': 'Cald',
+  'laudj.padstyle.bright': 'Luminos',
+  'laudj.padstyle.shimmer': 'Sclipitor',
+  'laudj.padstyle.deep': 'Profund',
+
+  // --- platform views extra keys ---
+  'hub.laudj.external': 'Panoul LauDJ rulează separat la {url}',
+  'platform.error': 'Eroare la încărcarea datelor',
+  'song.notFound': 'Cântarea nu a fost găsită',
+  'notation.custom': '+ Personalizată',
+  'notation.customTitle': 'Notație personalizată',
+  'notation.name': 'Nume notație',
+  'notation.sharpNames': 'Cele 12 nume de note (varianta cu diez)',
+  'notation.register': 'Adaugă notația',
+  'notation.invalid': 'Notație invalidă',
+  'pad.style.warm': 'Cald',
+  'pad.style.bright': 'Luminos',
+  'pad.style.shimmer': 'Sclipitor',
+  'pad.style.deep': 'Profund',
+  'curation.noPerformances': 'Nicio interpretare de curat încă',
+  'presenter.kind.human': 'Uman',
+  'presenter.kind.laudj': 'LauDJ',
+  'presenter.kind.mic': 'Microfon',
+  'curation.writeError': 'Promovarea a eșuat',
 } as const;
 
 export type MessageKey = keyof typeof ro;
