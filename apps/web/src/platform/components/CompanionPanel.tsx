@@ -26,6 +26,14 @@ export function CompanionPanel(props: {
     <div className="ld-vstack">
       <span className="ld-label">{t('session.companion')}</span>
       <div className="ld-hstack">
+        <span className="ld-label">{t('session.pads_on')}</span>
+        <Toggle
+          on={props.companion.pads_on}
+          onChange={(on) => props.onPatch({ pads_on: on })}
+          label={props.companion.pads_on ? t('common.on') : t('common.off')}
+        />
+      </div>
+      <div className="ld-hstack">
         <span className="ld-label">{t('session.pad.style')}</span>
         <Segmented
           options={PAD_STYLES.map((s) => ({ id: s, label: labels[s] }))}

@@ -83,6 +83,7 @@ export const ro = {
   'session.pickSong': 'Alege o cântare',
   'session.lastUpdatedBy': 'Ultima modificare de',
   'session.companion': 'Directive companion (LauDJ)',
+  'session.pads_on': 'Paduri',
   'session.pad.style': 'Stil pad',
   'session.pad.volume': 'Volum pad',
   'session.pad.interlude': 'Interludiu',

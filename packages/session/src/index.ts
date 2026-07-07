@@ -55,7 +55,7 @@ export class SessionClient {
         title: 'Live',
         current: { song_id: null, section_index: 0, key: null, tempo_pct: 100, blank: false },
         presenters: [this.presenter],
-        companion: { pad_style: 'warm', pad_volume: 0.5, interlude: false },
+        companion: { pads_on: false, pad_style: 'warm', pad_volume: 0.5, interlude: false },
         updated_by: this.presenter.id,
         updated_at: new Date().toISOString(),
       };

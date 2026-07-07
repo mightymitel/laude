@@ -172,8 +172,11 @@ export interface Presenter {
 
 /** Companion directives (control tier 2) — session metadata any presenter sets; LauDJ reads via its session subscription. */
 export interface CompanionDirectives {
+  /** Leader's master switch: pads sound during song parts while true. */
+  pads_on: boolean;
   pad_style: string;
   pad_volume: number; // 0..1
+  /** True triggers an instrumental interlude (pads step the song's progression). */
   interlude: boolean;
 }
 

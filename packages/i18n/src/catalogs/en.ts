@@ -79,6 +79,7 @@ export const en: Record<MessageKey, string> = {
   'session.pickSong': 'Pick a song',
   'session.lastUpdatedBy': 'Last change by',
   'session.companion': 'Companion directives (LauDJ)',
+  'session.pads_on': 'Pads',
   'session.pad.style': 'Pad style',
   'session.pad.volume': 'Pad volume',
   'session.pad.interlude': 'Interlude',
