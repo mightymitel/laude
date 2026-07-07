@@ -1,0 +1,165 @@
+/* LauDJ console layout (on top of @laude/design-system primitives). */
+
+html,
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.laudj-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.laudj-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.laudj-columns {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.laudj-yield {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 12px 16px 0;
+  padding: 10px 16px;
+  border: 2px dashed var(--ld-text);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-raised);
+  font-weight: 600;
+}
+
+.laudj-control {
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.laudj-time {
+  font-family: var(--ld-font-chord);
+  color: var(--ld-text-2);
+}
+
+.laudj-progress {
+  position: relative;
+  height: 22px;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-sunken);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.laudj-progress__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--ld-g5);
+}
+
+.laudj-mixer {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.laudj-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.laudj-strip__io {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.laudj-strip--master {
+  padding-left: 12px;
+  border-left: 1px solid var(--ld-border);
+}
+
+.laudj-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.laudj-sections .ld-chip {
+  padding: 12px 18px;
+  font-size: var(--ld-fs-md);
+  min-height: var(--ld-hit);
+  cursor: pointer;
+  user-select: none;
+}
+
+.laudj-chord {
+  min-width: 140px;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 24px;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-sunken);
+  font-family: var(--ld-font-chord);
+  font-size: 56px;
+  font-weight: 700;
+}
+
+.laudj-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.laudj-overlay .ld-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 340px;
+  text-align: center;
+}
+
+.laudj-qr {
+  background: #fff;
+  padding: 12px;
+  border-radius: var(--ld-radius);
+  line-height: 0;
+}
+
+.laudj-lanurl {
+  font-family: var(--ld-font-chord);
+  font-size: var(--ld-fs-sm);
+}
+
+.laudj-session {
+  position: sticky;
+  bottom: 0;
+  top: auto;
+  border-top: 1px solid var(--ld-border);
+  border-bottom: none;
+}

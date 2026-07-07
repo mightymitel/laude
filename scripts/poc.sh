@@ -11,7 +11,9 @@ if [ -d .emulator-data ]; then
   IMPORT_ARGS="--import ../.emulator-data"
 fi
 
-exec npx concurrently -k \
+# No --kill-others: the seeder is a one-shot that exits when done; the rest
+# keep running. Ctrl+C stops the whole stack.
+exec npx concurrently \
   -n emu,seed,api,web,laudj \
   -c gray,cyan,green,blue,magenta \
   "cd laudasist && firebase emulators:start --project demo-laude ${IMPORT_ARGS} --export-on-exit ../.emulator-data" \
