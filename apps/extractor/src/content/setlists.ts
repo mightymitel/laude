@@ -54,7 +54,7 @@ export function buildLiveSession(nowIso: string): LiveSession {
       blank: false,
     },
     presenters: [],
-    companion: { pad_style: 'warm', pad_volume: 0.5, interlude: false },
+    companion: { pads_on: false, pad_style: 'warm', pad_volume: 0.5, interlude: false },
     updated_by: 'seed',
     updated_at: nowIso,
   };

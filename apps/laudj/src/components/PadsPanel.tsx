@@ -1,8 +1,8 @@
 import { Button, Card, Fader, Segmented, Toggle } from '@laude/design-system';
 import type { EngineState } from '@laude/laudj-control-protocol';
-import { PAD_STYLES, defaultInterlude, type PadStyle } from '@laude/pad-engine';
+import { PAD_STYLES, type PadStyle } from '@laude/pad-engine';
 import { useT } from '@laude/i18n/react';
-import { engine, padEngine } from '../engine';
+import { padsController } from '../pads-controller';
 import { usePadState } from '../hooks';
 import { PAD_STYLE_KEYS } from '../labels';
 
@@ -13,30 +13,14 @@ export function PadsPanel({ state }: { state: EngineState }) {
   const key = transport.key ?? 'C';
 
   const toggleRunning = () => {
-    if (pads.running) {
-      engine.send({ type: 'pad_stop' });
-      padEngine.stop();
-    } else {
-      padEngine.setKey(key);
-      engine.send({ type: 'pad_start' });
-      padEngine.start();
-    }
+    if (pads.running) padsController.stop();
+    else padsController.start(key);
   };
 
-  const setStyle = (style: PadStyle) => {
-    engine.send({ type: 'pad_set_style', style });
-    padEngine.setStyle(style);
-  };
-
-  const setVolume = (volume: number) => {
-    engine.send({ type: 'pad_set_volume', volume });
-    padEngine.setVolume(volume);
-  };
-
+  const setStyle = (style: PadStyle) => padsController.setStyle(style);
+  const setVolume = (volume: number) => padsController.setVolume(volume);
   const setInterlude = (on: boolean) => {
-    engine.send({ type: 'pad_interlude', on });
-    if (on) padEngine.startInterlude(defaultInterlude(key));
-    else padEngine.stopInterlude();
+    void padsController.setInterlude(on, transport.song_id, key);
   };
 
   return (

@@ -3,9 +3,10 @@ import { Chip, StatusDot } from '@laude/design-system';
 import type { EngineState } from '@laude/laudj-control-protocol';
 import { useT } from '@laude/i18n/react';
 import { DEFAULT_SESSION_ID, SessionClient, type SessionChange } from '@laude/session';
-import type { LiveSession, Presenter } from '@laude/song-model';
+import type { CompanionDirectives, LiveSession, Presenter } from '@laude/song-model';
 import { db } from '../firebase';
 import { engine, padEngine } from '../engine';
+import { padsController, padStyleOf } from '../pads-controller';
 import { useSongs } from '../hooks';
 
 /** Re-joins with fresh joined_at accumulate duplicate presenter entries in the
@@ -30,25 +31,51 @@ const LAUDJ_PRESENTER: Presenter = {
 function handleSessionChange(
   change: SessionChange,
   getEngineState: () => EngineState | null,
-  isFirstSnapshot: boolean,
+  prev: LiveSession | null,
 ): void {
   const { session, external } = change;
-  // The first snapshot after joining is the session's *existing* state, not a
-  // live change — following it is fine, yielding to it is not.
-  if (external && !isFirstSnapshot) {
+  // Yield only on external changes to MUSICAL INTENT (tier 1, `current.*`).
+  // Companion directives (tier 2) are meant to be obeyed, not yielded to, and
+  // the first snapshot after joining is existing state, not a change.
+  const currentChanged =
+    prev !== null && JSON.stringify(prev.current) !== JSON.stringify(session.current);
+  if (external && currentChanged) {
     const writer = session.presenters.find((p) => p.id === session.updated_by);
     // Unknown writers are treated as human — safer to yield than to fight.
     const humanWriter = writer ? writer.kind === 'human' : true;
     if (humanWriter) engine.externalPresenterActed();
   }
-  // The yield above lands synchronously, so re-read the engine state before
-  // deciding whether auto-follow is still armed.
+  // FOLLOW is unconditional ("react" behaviour): the engine always mirrors
+  // the session's song/key. Yield only pauses LauDJ's own auto-advance —
+  // it never stops LauDJ from obeying the human presenter.
   const now = getEngineState();
-  if (!now || !now.auto_advance || now.yielded) return;
-  if (session.current.song_id && session.current.song_id !== now.transport.song_id) {
-    engine.send({ type: 'load_song', song_id: session.current.song_id });
+  if (now) {
+    if (session.current.song_id && session.current.song_id !== now.transport.song_id) {
+      engine.send({ type: 'load_song', song_id: session.current.song_id });
+    }
+    padEngine.setKey(session.current.key);
   }
-  padEngine.setKey(session.current.key);
+  applyCompanion(prev?.companion ?? null, session);
+}
+
+/**
+ * Companion mode (tier 2): the worship leader drives the pads from the
+ * Laudasist session — pads on/off for song parts, style, volume, and the
+ * instrumental interlude. Only deltas are applied, so local operator tweaks
+ * survive until the leader changes something.
+ */
+function applyCompanion(prev: CompanionDirectives | null, session: LiveSession): void {
+  const next = session.companion;
+  const key = session.current.key;
+  if (next.pad_style !== prev?.pad_style) padsController.setStyle(padStyleOf(next.pad_style));
+  if (next.pad_volume !== prev?.pad_volume) padsController.setVolume(next.pad_volume);
+  if ((prev?.pads_on ?? false) !== (next.pads_on ?? false)) {
+    if (next.pads_on) padsController.start(key);
+    else padsController.stop();
+  }
+  if ((prev?.interlude ?? false) !== next.interlude) {
+    void padsController.setInterlude(next.interlude, session.current.song_id, key);
+  }
 }
 
 export function SessionStrip({ state }: { state: EngineState }) {
@@ -69,11 +96,11 @@ export function SessionStrip({ state }: { state: EngineState }) {
       .then(() => {
         if (cancelled) return;
         engine.setSessionConnected(true);
-        let first = true;
+        let prev: LiveSession | null = null;
         unsubSession = client.subscribe((change) => {
           setSession(change.session);
-          handleSessionChange(change, () => engineStateRef.current, first);
-          first = false;
+          handleSessionChange(change, () => engineStateRef.current, prev);
+          prev = change.session;
         });
       })
       .catch((err: unknown) => {
