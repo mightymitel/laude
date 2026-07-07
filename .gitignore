@@ -1,0 +1,12 @@
+node_modules/
+laudasist/
+.turbo/
+dist/
+*.log
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+storage-debug.log
+.emulator-data/
+target/

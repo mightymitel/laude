@@ -1,0 +1,31 @@
+{
+  "name": "@laude/laudj",
+  "version": "0.0.1",
+  "private": true,
+  "description": "LauDJ — live audio engine (Tauri + native Rust shell; audio STUBBED in the PoC) + web control panel (mixer, transport, section launcher, pads, session-follow).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5175 --strictPort",
+    "build": "tsc -b && vite build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@laude/design-system": "file:../../laudasist/packages/design-system",
+    "@laude/i18n": "file:../../laudasist/packages/i18n",
+    "@laude/laudj-control-protocol": "file:../../laudasist/packages/laudj-control-protocol",
+    "@laude/pad-engine": "file:../../laudasist/packages/pad-engine",
+    "@laude/session": "file:../../laudasist/packages/session",
+    "@laude/song-model": "file:../../laudasist/packages/song-model",
+    "firebase": "^11.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}

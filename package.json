@@ -1,0 +1,19 @@
+{
+  "name": "laude",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Worship Platform PoC wireframe — outer workspace: Extractor (mock seeder) + LauDJ. Laudasist lives in ./laudasist (its own repo) and hosts the shared @laude/* packages.",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "poc": "bash scripts/poc.sh",
+    "seed": "npm run seed -w apps/extractor",
+    "emulators": "cd laudasist && firebase emulators:start --project demo-laude --import ../.emulator-data --export-on-exit ../.emulator-data",
+    "dev:laudasist": "npm run dev -w apps/web --prefix laudasist",
+    "dev:laudj": "npm run dev -w apps/laudj"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
