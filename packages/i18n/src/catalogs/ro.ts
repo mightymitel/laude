@@ -101,7 +101,7 @@ export const ro = {
   // LauDJ panel
   'laudj.title': 'LauDJ — consolă',
   'laudj.connection': 'Conexiune',
-  'laudj.connected': 'Conectat (motor simulat)',
+  'laudj.connected': 'Conectat (motor audio local)',
   'laudj.disconnected': 'Deconectat',
   'laudj.pairHint': 'Scanează QR pe tabletă pentru a controla',
   'laudj.mode.padsOnly': 'Doar paduri',

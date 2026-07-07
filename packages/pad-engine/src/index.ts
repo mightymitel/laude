@@ -1,10 +1,16 @@
 /**
- * @laude/pad-engine — STUB for the wireframe PoC.
- * No Web Audio: a state machine + change events so UIs can wireframe pad
- * controls. The real engine is one polyphonic instrument fed a key/chord
- * stream (feed a key → drone; feed a progression → interlude), with style
- * presets and key-change crossfades.
+ * @laude/pad-engine — pad instrument fed a key/chord stream (feed a key →
+ * drone; feed a progression → interlude), with style presets and key-change
+ * crossfades.
+ *
+ * The state machine + change events work standalone (SSR-safe, framework
+ * agnostic) so UIs can render pad controls without sound; hand an
+ * AudioContext to `attachAudio()` (from a user gesture) and the same state
+ * machine also drives a drone synth (see ./audio).
  */
+import { PadAudio } from './audio';
+
+export { parseChordRoot, rootFrequencyHz } from './chords';
 
 export const PAD_STYLES = ['warm', 'bright', 'shimmer', 'deep'] as const;
 export type PadStyle = (typeof PAD_STYLES)[number];
@@ -36,6 +42,18 @@ export class PadEngine {
   private listeners = new Set<Listener>();
   private interludeTimer: ReturnType<typeof setInterval> | null = null;
   private crossfadeTimer: ReturnType<typeof setTimeout> | null = null;
+  private audio: PadAudio | null = null;
+
+  /**
+   * Optional audio backend: pass an AudioContext (created/resumed inside a
+   * user gesture) and the state machine becomes audible. Idempotent; without
+   * it the engine stays state-only (current wireframe behavior).
+   */
+  attachAudio(ctx: AudioContext): void {
+    if (this.audio) return;
+    this.audio = new PadAudio(ctx);
+    this.audio.apply(this.state);
+  }
 
   getState(): PadEngineState {
     return { ...this.state };
@@ -96,6 +114,7 @@ export class PadEngine {
 
   private patch(partial: Partial<PadEngineState>): void {
     this.state = { ...this.state, ...partial };
+    this.audio?.apply(this.state);
     const snapshot = this.getState();
     this.listeners.forEach((l) => l(snapshot));
   }

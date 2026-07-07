@@ -94,7 +94,7 @@ export const en: Record<MessageKey, string> = {
 
   'laudj.title': 'LauDJ — console',
   'laudj.connection': 'Connection',
-  'laudj.connected': 'Connected (mock engine)',
+  'laudj.connected': 'Connected (local audio engine)',
   'laudj.disconnected': 'Disconnected',
   'laudj.pairHint': 'Scan the QR on a tablet to control',
   'laudj.mode.padsOnly': 'Pads only',
