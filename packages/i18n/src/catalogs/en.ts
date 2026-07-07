@@ -160,4 +160,20 @@ export const en: Record<MessageKey, string> = {
   'presenter.kind.laudj': 'LauDJ',
   'presenter.kind.mic': 'Mic',
   'curation.writeError': 'Promote failed',
+
+  // --- laudj queue keys ---
+  'laudj.queue': 'Part queue',
+  'laudj.queue.start': 'Start queue',
+  'laudj.queue.clear': 'Clear',
+  'laudj.queue.empty': 'Queue is empty — drag parts here or tap +',
+  'laudj.queue.add': 'Add to queue',
+  'laudj.queue.playNow': 'Play now',
+  'laudj.queue.remove': 'Remove from queue',
+  'laudj.queue.repeats': 'Repeats',
+  'laudj.queue.crescendo': 'Crescendo',
+  'laudj.queue.drop': 'Drop',
+  'laudj.queue.solo.none': 'Solo: none',
+  'laudj.queue.solo.stem': 'Solo: {stem}',
+  'laudj.queue.nowPlaying': 'Playing',
+  'laudj.queue.dragHint': 'Drag to reorder',
 };

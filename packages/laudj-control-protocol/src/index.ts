@@ -47,6 +47,33 @@ export interface PadState {
   chord: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Part queue — operator-prepped play order; entries may span songs
+// ---------------------------------------------------------------------------
+
+export interface QueueEntryMods {
+  /** Ramp the entry's level 0.55 → 1.0 across its total duration (repeats included). */
+  crescendo: boolean;
+  /** Solo one stem for the entry (mixer-solo semantics), or null. */
+  solo: StemName | null;
+  /** Worship "drop": drums + bass muted for the entry (stripped-back). */
+  drop: boolean;
+}
+
+export interface QueueEntry {
+  id: string;
+  song_id: string;
+  song_title: string;
+  section_index: number;
+  section_label: string;
+  /** How many times the section plays before advancing (>= 1). */
+  repeats: number;
+  mods: QueueEntryMods;
+}
+
+/** The entry currently driving playback (popped off the queue). */
+export type ActiveQueueEntry = QueueEntry & { repeats_left: number };
+
 export interface EngineState {
   mode: 'pads_only' | 'full_engine';
   auto_advance: boolean;
@@ -57,6 +84,10 @@ export interface EngineState {
   master: number;
   transition: { type: TransitionType; crossfade_s: number };
   pads: PadState;
+  /** Prepped play order (operator-managed; the head plays next on auto-advance). */
+  queue: QueueEntry[];
+  /** Entry currently driving playback; null → the queue is disengaged. */
+  queue_current: ActiveQueueEntry | null;
   session_connected: boolean;
 }
 
@@ -84,7 +115,14 @@ export type EngineCommand =
   | { type: 'pad_stop' }
   | { type: 'pad_set_style'; style: PadStyle }
   | { type: 'pad_set_volume'; volume: number }
-  | { type: 'pad_interlude'; on: boolean };
+  | { type: 'pad_interlude'; on: boolean }
+  | { type: 'queue_add'; entry: Omit<QueueEntry, 'id'>; at?: number }
+  | { type: 'queue_remove'; id: string }
+  | { type: 'queue_move'; id: string; to: number }
+  | { type: 'queue_update'; id: string; patch: Partial<Pick<QueueEntry, 'repeats' | 'mods'>> }
+  | { type: 'queue_clear' }
+  /** Start this entry immediately (honoring the transition setting); pops it into queue_current. */
+  | { type: 'queue_play_now'; id: string };
 
 /** Wire envelope (WebSocket frames when the real engine ships). */
 export type PanelMessage = { kind: 'command'; command: EngineCommand };

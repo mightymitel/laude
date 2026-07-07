@@ -9,6 +9,7 @@ import type {
   EngineCommand,
   EngineConnection,
   EngineState,
+  QueueEntry,
   TransportState,
 } from './index';
 
@@ -46,12 +47,15 @@ export class MockEngine implements EngineConnection {
     master: 0.85,
     transition: { type: 'quantized', crossfade_s: 2 },
     pads: { running: false, style: 'warm', volume: 0.5, interlude: false, chord: null },
+    queue: [],
+    queue_current: null,
     session_connected: false,
   };
 
   private listeners = new Set<(state: EngineState) => void>();
   private ticker: ReturnType<typeof setInterval>;
   private songs = new Map<string, MockSong>();
+  private queueSeq = 0;
 
   constructor(songs: MockSong[] = []) {
     songs.forEach((s) => this.songs.set(s.song_id, s));
@@ -167,6 +171,56 @@ export class MockEngine implements EngineConnection {
       case 'pad_interlude':
         this.patch({ pads: { ...this.state.pads, interlude: command.on } });
         break;
+      // Part queue (STUB: state mutations only; the mock does not auto-advance
+      // through entries — the real engine owns boundary detection and mods).
+      case 'queue_add': {
+        this.queueSeq += 1;
+        const entry: QueueEntry = { ...command.entry, id: `q${this.queueSeq}` };
+        const queue = [...this.state.queue];
+        const at =
+          command.at === undefined ? queue.length : Math.max(0, Math.min(queue.length, command.at));
+        queue.splice(at, 0, entry);
+        this.patch({ queue });
+        break;
+      }
+      case 'queue_remove':
+        this.patch({ queue: this.state.queue.filter((e) => e.id !== command.id) });
+        break;
+      case 'queue_move': {
+        const queue = [...this.state.queue];
+        const from = queue.findIndex((e) => e.id === command.id);
+        if (from < 0) break;
+        const [entry] = queue.splice(from, 1);
+        queue.splice(Math.max(0, Math.min(queue.length, command.to)), 0, entry);
+        this.patch({ queue });
+        break;
+      }
+      case 'queue_update':
+        this.patch({
+          queue: this.state.queue.map((e) => (e.id === command.id ? { ...e, ...command.patch } : e)),
+        });
+        break;
+      case 'queue_clear':
+        this.patch({ queue: [] });
+        break;
+      case 'queue_play_now': {
+        const entry = this.state.queue.find((e) => e.id === command.id);
+        if (!entry) break;
+        this.patch({
+          queue: this.state.queue.filter((e) => e.id !== command.id),
+          queue_current: { ...entry, repeats_left: entry.repeats },
+        });
+        // Naive: jump only when the entry's song is already loaded.
+        const section = t.song_id === entry.song_id ? t.sections[entry.section_index] : undefined;
+        if (section) {
+          this.patchTransport({
+            current_section: entry.section_index,
+            position_s: section.start_s,
+            playing: true,
+          });
+        }
+        break;
+      }
     }
   }
 

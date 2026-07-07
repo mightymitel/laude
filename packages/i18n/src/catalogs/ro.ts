@@ -167,6 +167,22 @@ export const ro = {
   'presenter.kind.laudj': 'LauDJ',
   'presenter.kind.mic': 'Microfon',
   'curation.writeError': 'Promovarea a eșuat',
+
+  // --- laudj queue keys ---
+  'laudj.queue': 'Coadă de părți',
+  'laudj.queue.start': 'Pornește coada',
+  'laudj.queue.clear': 'Golește',
+  'laudj.queue.empty': 'Coada e goală — trage părți aici sau apasă +',
+  'laudj.queue.add': 'Adaugă în coadă',
+  'laudj.queue.playNow': 'Redă acum',
+  'laudj.queue.remove': 'Șterge din coadă',
+  'laudj.queue.repeats': 'Repetări',
+  'laudj.queue.crescendo': 'Crescendo',
+  'laudj.queue.drop': 'Drop',
+  'laudj.queue.solo.none': 'Solo: fără',
+  'laudj.queue.solo.stem': 'Solo: {stem}',
+  'laudj.queue.nowPlaying': 'În redare',
+  'laudj.queue.dragHint': 'Trage pentru a reordona',
 } as const;
 
 export type MessageKey = keyof typeof ro;
