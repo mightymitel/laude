@@ -15,6 +15,7 @@ import type { StemMix } from './audio-graph';
 import { clampToVariants } from './beats';
 import { EngineStateStore, advanceTransport, clamp, meteredStems } from './engine-state';
 import { QuantizedLauncher } from './quantize';
+import { QueueController } from './queue-controller';
 import { RealAudio } from './real-audio';
 
 export interface EnginePerformance {
@@ -47,6 +48,20 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
   /** Set once the loaded song's stems decoded; null → loading or simulated. */
   private real: RealAudio | null = null;
   private loadToken = 0;
+  /** Warmed stems for upcoming queue entries, keyed by song id. */
+  private readonly prefetched = new Map<string, Promise<RealAudio>>();
+  private readonly queue = new QueueController({
+    state: () => this.state,
+    setQueue: (queue) => this.patch({ queue }),
+    setCurrent: (queue_current) => this.patch({ queue_current }),
+    patchStem: (stem, partial) => this.patchStem(stem, partial),
+    applyMix: () => this.real?.setMix(this.currentMix()),
+    loadSong: (songId) => this.handleLoadSong(songId),
+    seekPlay: (positionS) => this.seekPlay(positionS),
+    launchSection: (index) => this.handleLaunchSection(index),
+    gesture: () => this.gesture(),
+    prefetch: (songId) => this.prefetchSong(songId),
+  });
   private readonly launcher = new QuantizedLauncher({
     read: () => ({
       queuedSection: this.state.transport.queued_section,
@@ -94,6 +109,10 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
         this.handleSeek(command.position_s);
         break;
       case 'load_song':
+        // Manual/session-driven load overrides the queue's active entry
+        // (mods restored, queue stays prepped); queue-driven loads go through
+        // the port and skip this.
+        this.queue.abortCurrent();
         this.handleLoadSong(command.song_id);
         break;
       case 'launch_section':
@@ -154,6 +173,24 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
       case 'pad_interlude':
         this.patch({ pads: { ...this.state.pads, interlude: command.on } });
         break;
+      case 'queue_add':
+        this.queue.add(command.entry, command.at);
+        break;
+      case 'queue_remove':
+        this.queue.remove(command.id);
+        break;
+      case 'queue_move':
+        this.queue.move(command.id, command.to);
+        break;
+      case 'queue_update':
+        this.queue.update(command.id, command.patch);
+        break;
+      case 'queue_clear':
+        this.queue.clear();
+        break;
+      case 'queue_play_now':
+        this.queue.playNow(command.id);
+        break;
     }
   }
 
@@ -210,9 +247,11 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
   }
 
   private async loadRealAudio(songId: string, perfId: string, token: number): Promise<void> {
+    const warmed = this.prefetched.get(songId);
+    this.prefetched.delete(songId);
     let real: RealAudio;
     try {
-      real = await RealAudio.load(songId, perfId);
+      real = warmed ? await warmed : await RealAudio.load(songId, perfId);
     } catch (err) {
       if (token === this.loadToken) {
         console.warn(`LauDJ: stems for "${songId}" are not playable audio — simulated playback`, err);
@@ -290,6 +329,28 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
     if (this.launcher.beatTimerPending) this.launcher.schedule();
   }
 
+  // --- queue plumbing -------------------------------------------------------------
+
+  /** Queue jumps: seek within the loaded song and make sure playback runs. */
+  private seekPlay(positionS: number): void {
+    if (this.real) {
+      if (this.real.isPlaying()) this.real.seek(positionS);
+      else this.real.play(positionS, this.currentMix(), this.state.transport.tempo_pct / 100);
+    }
+    this.patchTransport({ position_s: positionS, playing: true });
+  }
+
+  /** Warm the stems of an upcoming queue entry's song (null → nothing to warm). */
+  private prefetchSong(songId: string | null): void {
+    if (!songId || this.prefetched.has(songId)) return;
+    const perf = this.songs.get(songId)?.performance;
+    if (!perf || !ALL_STEMS.every((stem) => perf.stems.includes(stem))) return;
+    const loading = RealAudio.load(songId, perf.id);
+    // A failed prefetch is dropped; the normal load path retries and falls back.
+    loading.catch(() => this.prefetched.delete(songId));
+    this.prefetched.set(songId, loading);
+  }
+
   // --- shared plumbing ----------------------------------------------------------
 
   /** Create/resume the shared AudioContext inside a user-gesture command. */
@@ -310,7 +371,8 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
       const audible = !s.muted && (!anySolo || s.soloed);
       gains[s.stem] = audible ? s.gain : 0;
     });
-    return { gains, master: this.state.master };
+    // Crescendo is a dedicated live factor — the operator's master is untouched.
+    return { gains, master: this.state.master * (this.queue.crescendoFactor() ?? 1) };
   }
 
   // --- quantized section launches -------------------------------------------------
@@ -338,10 +400,23 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
     if (t.playing && t.duration_s > 0) {
       const realPos = this.real?.isPlaying() === true ? this.real.position() : null;
       const advanced = advanceTransport(t, realPos, dt);
-      if (!advanced.playing) this.real?.pause(); // reached the end
-      this.state = { ...this.state, transport: advanced };
-      this.launcher.tickFallback(dt, advanced.queued_section);
+      const armed = this.state.auto_advance && !this.state.yielded;
+      if (armed && this.queue.boundaryReached(advanced)) {
+        // Commit the position first, then let the queue repeat/advance/disengage.
+        // (While yielded the entry just keeps playing past its boundary; it
+        // advances on the first tick after resume_auto_advance.)
+        this.state = { ...this.state, transport: advanced };
+        this.queue.advance();
+        // Queue exhausted exactly at song end → settle the paused player.
+        if (!this.state.transport.playing) this.real?.pause();
+      } else {
+        if (!advanced.playing) this.real?.pause(); // reached the end
+        this.state = { ...this.state, transport: advanced };
+        this.launcher.tickFallback(dt, advanced.queued_section);
+      }
     }
+    // Crescendo ramps live: refresh the mix while an entry drives it.
+    if (this.queue.crescendoFactor() !== null) this.real?.setMix(this.currentMix());
     this.state = {
       ...this.state,
       stems: meteredStems(this.state, this.real ? this.real.meters() : null),

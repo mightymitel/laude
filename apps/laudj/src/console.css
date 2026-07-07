@@ -163,3 +163,84 @@ body {
   border-top: 1px solid var(--ld-border);
   border-bottom: none;
 }
+
+/* --- parts palette + part queue --- */
+
+.laudj-part {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  cursor: grab;
+}
+
+.laudj-part__add {
+  min-width: 40px;
+  min-height: var(--ld-hit);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-raised);
+  color: var(--ld-text);
+  font-size: var(--ld-fs-md);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.laudj-part__add:hover {
+  background: var(--ld-bg-sunken);
+}
+
+.laudj-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 56px;
+}
+
+.laudj-queue__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: var(--ld-hit);
+  padding: 6px 10px;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-raised);
+}
+
+.laudj-queue__row--current {
+  border-color: var(--ld-g5);
+  border-width: 2px;
+  background: var(--ld-bg-sunken);
+}
+
+.laudj-queue__handle {
+  min-width: 32px;
+  min-height: var(--ld-hit);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--ld-text-2);
+  font-size: var(--ld-fs-lg);
+  user-select: none;
+}
+
+.laudj-queue__label {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+  flex: 1;
+}
+
+.laudj-queue__song {
+  font-size: var(--ld-fs-sm);
+  color: var(--ld-text-2);
+}
+
+.laudj-queue__pass {
+  font-family: var(--ld-font-chord);
+  font-weight: 700;
+  font-size: var(--ld-fs-lg);
+}

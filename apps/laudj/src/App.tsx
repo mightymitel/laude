@@ -4,6 +4,7 @@ import { engine } from './engine';
 import { useEngineState } from './hooks';
 import { Mixer } from './components/Mixer';
 import { PadsPanel } from './components/PadsPanel';
+import { QueuePanel } from './components/QueuePanel';
 import { SectionLauncher } from './components/SectionLauncher';
 import { SessionStrip } from './components/SessionStrip';
 import { TopBar } from './components/TopBar';
@@ -40,6 +41,7 @@ export default function App() {
           {!padsOnly && <Mixer state={state} />}
           <div className="ld-vstack" style={{ flex: 1, minWidth: 320 }}>
             {!padsOnly && <SectionLauncher state={state} />}
+            {!padsOnly && <QueuePanel state={state} />}
             <PadsPanel state={state} />
           </div>
         </div>

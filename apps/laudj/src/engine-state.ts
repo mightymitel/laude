@@ -29,6 +29,8 @@ export function initialEngineState(): EngineState {
     master: 0.85,
     transition: { type: 'quantized', crossfade_s: 2 },
     pads: { running: false, style: 'warm', volume: 0.5, interlude: false, chord: null },
+    queue: [],
+    queue_current: null,
     session_connected: false,
   };
 }
