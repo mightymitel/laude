@@ -1,0 +1,17 @@
+{
+  "name": "@laude/laudj-control-protocol",
+  "version": "0.0.1",
+  "private": true,
+  "description": "LauDJ engine command + state contract (control tier 3, WebSocket on the LAN) — plus an in-process MockEngine for the wireframe.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./mock": "./src/mock.ts"
+  },
+  "dependencies": {
+    "@laude/song-model": "*",
+    "@laude/pad-engine": "*"
+  }
+}

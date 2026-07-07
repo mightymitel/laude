@@ -9,6 +9,17 @@ export function initializeFirebase(): void {
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 
+    // Emulator Suite: firebase-admin auto-detects FIRESTORE_EMULATOR_HOST /
+    // FIREBASE_AUTH_EMULATOR_HOST; it only needs a project id and no credentials.
+    if (process.env.FIRESTORE_EMULATOR_HOST) {
+        admin.initializeApp({ projectId: projectId || 'demo-laude' });
+        console.log(
+            `✅ Firebase Admin SDK initialized against the EMULATOR (${process.env.FIRESTORE_EMULATOR_HOST}, project ${projectId || 'demo-laude'})`,
+        );
+        initialized = true;
+        return;
+    }
+
     // Check if explicit credentials are provided
     if (projectId && privateKey && clientEmail) {
         // Use explicit service account credentials (local development)

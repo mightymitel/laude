@@ -1,7 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getAuth, Auth, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -27,6 +27,13 @@ if (typeof window !== 'undefined') { // Vite is always client-side, but this che
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
+
+    // Emulator Suite wiring (PoC runs against demo-laude, never a real project).
+    if (import.meta.env.VITE_USE_EMULATOR === '1') {
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+        connectFirestoreEmulator(db, '127.0.0.1', 8080);
+        connectStorageEmulator(storage, '127.0.0.1', 9199);
+    }
 }
 
 // Auth providers

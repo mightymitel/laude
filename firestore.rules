@@ -19,15 +19,33 @@ service cloud.firestore {
 
     // Songs collection
     match /songs/{songId} {
-      allow read: if resource.data.visibility == 'public' 
+      allow read: if resource.data.visibility == 'public'
                   || (isAuthenticated() && resource.data.ownerId == request.auth.uid)
                   || (isAuthenticated() && resource.data.libraryType == 'official');
-                  
-      allow create: if isAuthenticated() 
+
+      allow create: if isAuthenticated()
                     && request.resource.data.ownerId == request.auth.uid;
-                    
-      allow update, delete: if isAuthenticated() 
+
+      allow update, delete: if isAuthenticated()
                             && resource.data.ownerId == request.auth.uid;
     }
+
+    // ------------------------------------------------------------------
+    // Worship Platform contract collections — PoC/EMULATOR-ONLY rules.
+    // The wireframe reads/writes these from the browser without auth.
+    // TODO: per-collection rules before anything real ships (see Notion
+    // "Firebase Data Model & Contract" acceptance criteria).
+    // ------------------------------------------------------------------
+    match /song_lyrics/{docId} { allow read, write: if true; }
+    match /song_links/{docId} { allow read, write: if true; }
+    match /recorded_services/{docId} { allow read, write: if true; }
+    match /segments/{docId} { allow read, write: if true; }
+    match /performances/{docId} { allow read, write: if true; }
+    match /sections/{docId} { allow read, write: if true; }
+    match /beatgrid/{docId} { allow read, write: if true; }
+    match /chords/{docId} { allow read, write: if true; }
+    match /setlists/{docId} { allow read, write: if true; }
+    match /setlist_items/{docId} { allow read, write: if true; }
+    match /sessions/{docId} { allow read, write: if true; }
   }
 }

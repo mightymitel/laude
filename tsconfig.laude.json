@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@laude/song-model": ["packages/song-model/src/index.ts"],
+      "@laude/chords": ["packages/chords/src/index.ts"],
+      "@laude/i18n": ["packages/i18n/src/index.ts"],
+      "@laude/i18n/react": ["packages/i18n/src/react.ts"],
+      "@laude/design-system": ["packages/design-system/src/index.tsx"],
+      "@laude/auth": ["packages/auth/src/index.ts"],
+      "@laude/session": ["packages/session/src/index.ts"],
+      "@laude/pad-engine": ["packages/pad-engine/src/index.ts"],
+      "@laude/laudj-control-protocol": ["packages/laudj-control-protocol/src/index.ts"],
+      "@laude/laudj-control-protocol/mock": ["packages/laudj-control-protocol/src/mock.ts"]
+    }
+  },
+  "include": [
+    "packages/song-model/src",
+    "packages/chords/src",
+    "packages/i18n/src",
+    "packages/design-system/src",
+    "packages/auth/src",
+    "packages/session/src",
+    "packages/pad-engine/src",
+    "packages/laudj-control-protocol/src"
+  ]
+}

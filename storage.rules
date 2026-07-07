@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// PoC/emulator rules — the wireframe runs on the Emulator Suite only.
+// TODO: tighten before any real deployment (read: authed, write: extractor only).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
