@@ -1,0 +1,29 @@
+[project]
+name = "laude-pipeline"
+version = "0.0.1"
+description = "Extractor pipeline (real): YouTube video -> lyrics (OCR), chords (audio), stems, beat grid, LRC. Writes a manifest consumed by the TS ingest step."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "yt-dlp>=2025.1.1",
+    "demucs>=4.0.1",
+    "torch==2.5.1+cu121",
+    "torchaudio==2.5.1+cu121",
+    "librosa>=0.10.2",
+    "soundfile>=0.12.1",
+    "numpy>=1.26,<2.1",
+    "pytesseract>=0.3.13",
+    "pillow>=10.4",
+    "rapidfuzz>=3.9",
+]
+
+[tool.uv]
+python-preference = "managed"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchaudio = { index = "pytorch-cu121" }
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true

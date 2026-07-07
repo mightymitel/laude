@@ -4,7 +4,9 @@
   "private": true,
   "description": "MOCK seeder standing in for the offline Python pipeline: writes realistic fake songs/lyrics/chords/performances/time-annotations into the Firebase emulator. No yt-dlp/Demucs/ML — the real Extractor replaces this behind the same data contract. NOTE: intentionally CommonJS (no \"type\":\"module\") — chordsheetjs v12 has no ESM exports map, so @laude/chords only loads via tsx's CJS interop.",
   "scripts": {
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "ingest": "tsx src/ingest.ts",
+    "extract": "bash extract.sh"
   },
   "dependencies": {
     "@laude/chords": "file:../../laudasist/packages/chords",

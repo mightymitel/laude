@@ -10,3 +10,7 @@ ui-debug.log
 storage-debug.log
 .emulator-data/
 target/
+.work/
+.venv/
+__pycache__/
+*.pyc
