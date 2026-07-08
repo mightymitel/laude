@@ -22,6 +22,7 @@ import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as PlatformStageRouteImport } from './routes/platform/stage'
 import { Route as PlatformSessionRouteImport } from './routes/platform/session'
 import { Route as PlatformLibraryRouteImport } from './routes/platform/library'
+import { Route as PlatformExtractRouteImport } from './routes/platform/extract'
 import { Route as PlatformCurationRouteImport } from './routes/platform/curation'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as DebugSongEditorRouteImport } from './routes/debug/song-editor'
@@ -97,6 +98,11 @@ const PlatformLibraryRoute = PlatformLibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => PlatformRouteRoute,
 } as any)
+const PlatformExtractRoute = PlatformExtractRouteImport.update({
+  id: '/extract',
+  path: '/extract',
+  getParentRoute: () => PlatformRouteRoute,
+} as any)
 const PlatformCurationRoute = PlatformCurationRouteImport.update({
   id: '/curation',
   path: '/curation',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/platform/curation': typeof PlatformCurationRoute
+  '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
   '/platform/stage': typeof PlatformStageRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/platform/curation': typeof PlatformCurationRoute
+  '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
   '/platform/stage': typeof PlatformStageRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
   '/platform/curation': typeof PlatformCurationRoute
+  '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
   '/platform/stage': typeof PlatformStageRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | '/debug/song-editor'
     | '/library/new'
     | '/platform/curation'
+    | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
     | '/platform/stage'
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/debug/song-editor'
     | '/library/new'
     | '/platform/curation'
+    | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
     | '/platform/stage'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/debug/song-editor'
     | '/library/new'
     | '/platform/curation'
+    | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
     | '/platform/stage'
@@ -399,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformLibraryRouteImport
       parentRoute: typeof PlatformRouteRoute
     }
+    '/platform/extract': {
+      id: '/platform/extract'
+      path: '/extract'
+      fullPath: '/platform/extract'
+      preLoaderRoute: typeof PlatformExtractRouteImport
+      parentRoute: typeof PlatformRouteRoute
+    }
     '/platform/curation': {
       id: '/platform/curation'
       path: '/curation'
@@ -467,6 +486,7 @@ declare module '@tanstack/react-router' {
 
 interface PlatformRouteRouteChildren {
   PlatformCurationRoute: typeof PlatformCurationRoute
+  PlatformExtractRoute: typeof PlatformExtractRoute
   PlatformLibraryRoute: typeof PlatformLibraryRoute
   PlatformSessionRoute: typeof PlatformSessionRoute
   PlatformStageRoute: typeof PlatformStageRoute
@@ -477,6 +497,7 @@ interface PlatformRouteRouteChildren {
 
 const PlatformRouteRouteChildren: PlatformRouteRouteChildren = {
   PlatformCurationRoute: PlatformCurationRoute,
+  PlatformExtractRoute: PlatformExtractRoute,
   PlatformLibraryRoute: PlatformLibraryRoute,
   PlatformSessionRoute: PlatformSessionRoute,
   PlatformStageRoute: PlatformStageRoute,

@@ -40,6 +40,7 @@ function PlatformLayout() {
             <Link to="/platform/session">{t('hub.session')}</Link>
             <Link to="/platform/stage">{t('hub.stage')}</Link>
             <Link to="/platform/curation">{t('hub.curation')}</Link>
+            <Link to="/platform/extract">{t('hub.extract')}</Link>
           </nav>
           <span className="ld-spacer" />
           <Segmented options={LOCALES} value={locale} onChange={setLocale} />

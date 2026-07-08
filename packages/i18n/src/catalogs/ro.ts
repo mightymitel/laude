@@ -183,6 +183,30 @@ export const ro = {
   'laudj.queue.solo.stem': 'Solo: {stem}',
   'laudj.queue.nowPlaying': 'În redare',
   'laudj.queue.dragHint': 'Trage pentru a reordona',
+
+  // --- extractor UI keys ---
+  'extract.title': 'Extrage o cântare',
+  'extract.youtube': 'Link YouTube (cântare cu versuri pe ecran)',
+  'extract.reference': 'Link partitură de referință (opțional, melodia.ro)',
+  'extract.start': 'Extrage',
+  'extract.hint': 'Extragerea durează câteva minute: descărcare, OCR versuri, separare stem-uri, analiză acorduri, ingest.',
+  'extract.jobs': 'Extrageri',
+  'extract.empty': 'Nicio extragere încă',
+  'extract.status.queued': 'În așteptare',
+  'extract.status.running': 'Rulează',
+  'extract.status.done': 'Gata',
+  'extract.status.error': 'Eroare',
+  'extract.stage.download': 'Descărcare',
+  'extract.stage.ocr': 'Versuri (OCR)',
+  'extract.stage.stems': 'Stem-uri',
+  'extract.stage.analysis': 'Analiză',
+  'extract.stage.assemble': 'Asamblare',
+  'extract.stage.ingest': 'Ingest',
+  'extract.stage.validation': 'Validare',
+  'extract.openSong': 'Deschide cântarea',
+  'extract.serviceDown': 'Serviciul de extragere nu rulează (npm run poc îl pornește)',
+  'hub.extract': 'Extrage cântare',
+  'hub.extract.desc': 'YouTube → versuri, acorduri, stem-uri',
 } as const;
 
 export type MessageKey = keyof typeof ro;

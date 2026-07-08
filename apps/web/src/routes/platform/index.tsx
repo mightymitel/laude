@@ -18,6 +18,7 @@ function HubPage() {
     { to: '/platform/session', title: t('hub.session'), desc: t('hub.session.desc') },
     { to: '/platform/stage', title: t('hub.stage'), desc: t('hub.stage.desc') },
     { to: '/platform/curation', title: t('hub.curation'), desc: t('hub.curation.desc') },
+    { to: '/platform/extract', title: t('hub.extract'), desc: t('hub.extract.desc') },
   ] as const;
 
   return (
