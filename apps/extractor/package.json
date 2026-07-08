@@ -6,7 +6,8 @@
   "scripts": {
     "seed": "tsx src/seed.ts",
     "ingest": "tsx src/ingest.ts",
-    "extract": "bash extract.sh"
+    "extract": "bash extract.sh",
+    "serve": "tsx src/server.ts"
   },
   "dependencies": {
     "@laude/chords": "file:../../laudasist/packages/chords",

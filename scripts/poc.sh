@@ -14,10 +14,11 @@ fi
 # No --kill-others: the seeder is a one-shot that exits when done; the rest
 # keep running. Ctrl+C stops the whole stack.
 exec npx concurrently \
-  -n emu,seed,api,web,laudj \
-  -c gray,cyan,green,blue,magenta \
+  -n emu,seed,api,web,laudj,ext \
+  -c gray,cyan,green,blue,magenta,yellow \
   "cd laudasist && firebase emulators:start --project demo-laude ${IMPORT_ARGS} --export-on-exit ../.emulator-data" \
   "npm run seed -w apps/extractor" \
   "cd laudasist && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev:api" \
   "cd laudasist && npm run dev:web" \
-  "npm run dev -w apps/laudj"
+  "npm run dev -w apps/laudj" \
+  "npm run serve -w apps/extractor"
