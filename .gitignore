@@ -1,19 +1,54 @@
+# Dependencies
 node_modules/
-laudasist/
-.turbo/
+
+# Build outputs
 dist/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+storybook-static/
+target/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
+npm-debug.log*
+
+# Testing
+coverage/
+test-results/
+test-output/
+playwright-report/
+
+# Firebase
 .firebase/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
 storage-debug.log
 .emulator-data/
-target/
-.work/
+
+# Python
 .venv/
 __pycache__/
 *.pyc
+.work/
+
+# Misc
+.claude/
 
 # LaudStudio local-first store (personal domain, never committed)
-apps/laudstudio/data/
+apps/studio/data/

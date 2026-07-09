@@ -1,0 +1,16 @@
+{
+  "name": "@laude/design-system",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Wireframe-grade design system: grayscale tokens (app + stage themes), touch-first primitives. Hero views live as the app screens in this PoC.",
+  "type": "module",
+  "main": "src/index.tsx",
+  "types": "src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./styles.css": "./src/styles.css"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}

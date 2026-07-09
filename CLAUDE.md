@@ -1,57 +1,77 @@
-# Worship Platform — project rules (CLAUDE.md)
+# Worship Platform — `laude` monorepo (CLAUDE.md)
 
 ## What this is
-Turn our church's YouTube service recordings into a bilingual worship platform
-for small house-groups: a song library with karaoke lyrics + transposable chord
-charts (**Laudasist**), an offline extraction pipeline (**LaudStudio**), and live
-multi-stem audio (**LauDJ**). Three apps over shared `@laude/*` packages, joined
-by the **song ID**. NOTION is the source of truth — read it via the Notion MCP
-(Worship Platform → Architecture + the per-app feature specs + Next Up).
+A bilingual worship platform built from our church's service recordings: a song
+library with karaoke lyrics + transposable chord charts (**Laudasist**), an
+offline extraction/interpretation studio (**LaudStudio**), and live multi-stem
+audio (**LauDJ**). One repo, three deploy targets. NOTION is the source of
+truth for design — read it via the Notion MCP (Worship Platform → Architecture,
+Firebase Data Model & Contract, Session & Realtime Sync, the LaudStudio specs,
+and the Decision Log).
 
-## Right now: this is a WIREFRAME PoC (YOLO)
-Build a clickable, functional wireframe of the WHOLE platform — every app + main
-feature — with **mock data on the Firebase emulator**. Prototype quality: stub
-anything heavy (ML pipeline, native audio DSP, real integrations). Breadth over
-depth. It's disposable; we refine section by section later.
+## Two domains, joined only by the song ID
+- **Global (Firebase):** the song as a *work* — `songs`, `song_lyrics`,
+  `song_links`, `setlists`, `setlist_items`, users. Chords are stored as
+  **Nashville degrees** inside ChordPro with a `{key:}` reference (DEC-45/46).
+  Cloud Storage holds pads only. Firebase = **emulator only** in dev
+  (`demo-laude`); never the real project or real data.
+- **Personal (local-first):** LaudStudio + LauDJ share one SQLite store +
+  local audio files (`apps/studio/data/`, never committed). Performances,
+  sections, beat grid, chord events, LRC, stems stay local — **LRC never
+  crosses to global** (DEC-44).
 
-## Architecture
-- **LaudStudio** (Python, offline batch) — real pipeline later; **for the PoC, a
-  MOCK seeder** that writes realistic fake songs/lyrics/chords/time-annotations
-  into the emulator. No yt-dlp/Demucs/ML yet.
-- **packages/** (TypeScript, shared): `@laude/chords` (real — ChordSheetJS +
-  notation), `song-model`, `design-system` (tokens + primitives + 3 hero views),
-  `i18n` (ro/en), `auth`, `session`, `pad-engine` (stub), `laudj-control-protocol`.
-- **Laudasist** (existing TS + Firebase app) — cloned into the monorepo, run
-  against the emulator, restyled with the design tokens.
-- **LauDJ** — **Tauri + native Rust** (DECIDED; spikes skipped). Scaffold the
-  Tauri shell + web control panel wireframe; **stub the audio engine** (pads,
-  stems, transport, session-follow) with mocks.
+## Repo layout
+- `apps/web` — Laudasist frontend (React 19 + Vite + TanStack Router/Query).
+- `apps/api` — Laudasist backend (Express, Firebase Admin, REST only).
+- `apps/relay` — stateful session relay (Express + socket.io, :3003).
+  DEC-52 wants it re-fused as `packages/relay`; until that ticket lands it
+  stays a workspace app.
+- `apps/laudj` — LauDJ engine + control panel (web now, Tauri shell later).
+- `apps/studio` — LaudStudio: local SQLite store + HTTP service (:3002),
+  seeders, ingest, editor. (Folder renamed from `laudstudio`; product name is
+  still LaudStudio and `LAUDSTUDIO_*` env vars keep their names.)
+- `packages/*` — shared `@laude/*`: song-model, chords, session, design-system,
+  i18n, auth, pad-engine, tuner, laudj-control-protocol, shared.
 
-## Backend = Firebase (EMULATOR ONLY for the PoC)
-Firestore + Cloud Storage + Auth via the Emulator Suite. Never a real project or
-real data. The Firestore schema + storage layout is the data contract; the **song
-ID is the join key**. No Postgres/SQLite.
+**Boundary rule (enforced by `npm run check:boundaries`):** `packages/*`,
+`apps/web` and `apps/api` may never import from `apps/laudj` or `apps/studio`.
+Laudasist is complete alone; Studio and LauDJ are power-ups (DEC-64).
 
-## Bilingual rules
-1. App UI fully bilingual via `@laude/i18n` — NEVER hardcode a user-facing string;
-   every key in `ro.json` AND `en.json`. Default locale: RO.
-2. Content is language-separated; the only cross-link is a `song_links`
-   translation relation.
+## The frozen laudasist repo
+The old `laudasist` repo (github.com/mightymitel/laudasist) is **FROZEN**: its
+main branch auto-deploys laudasist.ro against the old Firebase project and is
+the rollback. Never commit to it, never push to it, never wire
+`apphosting.yaml` from here without an explicit ticket.
+
+## Commands (npm everywhere; Node via nvm)
+- Install: `npm i` · One-command dev stack: `npm run poc`
+- Emulators only: `npm run emulators`
+- Tests: `npm run test` (all workspaces + boundary check) ·
+  `npm run test:e2e` (hermetic: boots emulators, seeds, runs Playwright)
+- `npm run lint` is currently broken by a pre-existing dep issue (ticketed).
 
 ## Conventions
-- Auto/mock-extracted content is written `verified=false` (UNVERIFIED).
-- Chords: canonical ChordPro; display in any notation (incl. user-defined);
-  transpose client-side.
-- Keys pre-rendered, tempo live (drums excluded) — stubbed in the wireframe.
-- LauDJ joins the session as a peer presenter; yields to humans on external change.
+- Bilingual RO (default) + EN via `@laude/i18n` for existing surfaces; per
+  DEC-18 new features may hardcode English, a translation pass comes later.
+- Change a shared shape → update every consumer in the same change; the
+  `@laude/song-model` types + Firestore rules are the data contract.
+- Auto/mock-extracted content ships `verified=false` (UNVERIFIED).
+- Keep domain logic in plain framework-agnostic TS modules; React renders.
 
-## Commands
-- Install deps: `pnpm i` · Dev: `pnpm --filter <app> dev`
-- Typecheck: `pnpm turbo typecheck` · Test: `pnpm turbo test`
-- Firebase emulators: `firebase emulators:start`
-- LauDJ (Tauri): `pnpm --filter @wp/laudj tauri dev`
+## Code quality
+- Correctness and clarity over cleverness; follow existing patterns.
+- Minimal targeted diffs; no reformatting unrelated code; no dead code.
+- Handle errors explicitly; never swallow them.
+- Don't invent APIs; verify deps exist. Ask before adding a dependency.
+- No hacks by default — if truly needed, smallest possible, labeled `// HACK:`.
+- Never hardcode secrets.
 
-## YOLO session rules
-Work on a `yolo/poc` branch (git = rollback). Commit often. Make reasonable
-assumptions for anything minor and LOG them. At the end, give a section-by-section
-summary + assumption log + open questions to fold back into the Notion specs.
+## TypeScript
+- **No `any`**; prefer `unknown` + narrowing. **No casts (`as`)** except
+  genuinely exceptional cases, isolated and justified in a comment.
+- `strict` tsconfig; fix type errors properly.
+
+## Testing
+- Unit: node:test/tsx in packages + studio; Vitest where already present.
+- E2E: Playwright against the **emulator** with seeded data — never real
+  Firebase. Never weaken, skip, or delete a test to go green.

@@ -1,44 +1,51 @@
-# Worship Platform — PoC wireframe (YOLO)
+# Worship Platform — `laude`
 
-Clickable wireframe of the whole platform: **Laudasist** (library, song detail,
-karaoke, presenter/stage, live session, companion controls) · **LaudStudio**
-(mock seeder standing in for the offline pipeline) · **LauDJ** (Tauri shell +
-web console: mixer, transport, section launcher, pads, session-follow).
-Everything runs on the **Firebase Emulator Suite** (`demo-laude`) with mock
-data — no real Firebase project, no network dependencies.
+One monorepo, three products over shared `@laude/*` packages, joined by the
+song ID:
+
+- **Laudasist** (`apps/web` + `apps/api`) — bilingual song library, chord
+  charts (Nashville degrees + reference key), presenter/viewer sessions.
+- **LaudStudio** (`apps/studio`) — offline extraction + interpretation studio;
+  local-first SQLite store + audio files served over HTTP (:3002).
+- **LauDJ** (`apps/laudj`) — live multi-stem audio console; joins sessions as
+  a `dj` presenter. Tauri shell included (`src-tauri/`), engine stubbed.
+- **Session relay** (`apps/relay`) — stateful socket.io relay (:3003).
+
+Design source of truth: Notion (Worship Platform). Working contract for
+agents: `CLAUDE.md`.
 
 ## Run it
 
 ```bash
-npm run poc
+npm i
+npm run poc     # emulators + seeders + api + relay + web + laudj + studio
 ```
-
-Then open:
 
 | What | URL |
 | --- | --- |
-| Laudasist (existing app) | http://localhost:5173 |
-| **Platform wireframe hub** | http://localhost:5173/platform |
+| Laudasist | http://localhost:5173 |
 | LauDJ console | http://localhost:5175 |
-| Emulator UI (data browser) | http://localhost:4000 |
+| LaudStudio service | http://localhost:3002/health |
+| Emulator UI | http://localhost:4000 |
 
-Demo sign-in (auth emulator): `demo@laude.local` / `parola-demo` — the platform
-views sign in automatically.
+Firebase = **emulator only** (`demo-laude`). Demo sign-in:
+`demo@laude.local` / `parola-demo`.
 
-## Layout
+## Tests
 
-- `laudasist/` — **its own git repo** (branch `yolo/poc`), hosted app untouched.
-  Also hosts the shared packages: `laudasist/packages/{song-model, chords, i18n,
-  design-system, auth, session, pad-engine, laudj-control-protocol}` (`@laude/*`)
-  so the deployable app owns everything it needs.
-- `apps/laudstudio/` — mock seeder (`npm run seed`). The real Python pipeline
-  replaces it behind the same data contract.
-- `apps/laudj/` — LauDJ Vite panel + `src-tauri/` shell. Audio engine is a stub
-  (`MockEngine` + `PadEngine`); the native Rust engine lands behind the same
-  `@laude/laudj-control-protocol` contract. Compiling the Tauri shell needs:
-  `sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev
-  libayatana-appindicator3-dev libssl-dev libxdo-dev`, then
-  `npm run tauri -w apps/laudj -- dev`.
+```bash
+npm run test        # all workspace unit tests + boundary check
+npm run test:e2e    # hermetic Playwright run (boots emulators, seeds)
+```
 
-Design source of truth: Notion → Worship Platform (Architecture + feature
-specs). This wireframe is disposable; refine section by section.
+## History
+
+This repo merged two histories on 2026-07-09 (tag `pre-degrees-migration`):
+the original outer `laude` workspace (LaudStudio + LauDJ) and the `laudasist`
+repo (web, api, relay, packages). The old `laudasist` GitHub repo is frozen as
+the laudasist.ro deploy source / rollback.
+
+Compiling the Tauri shell needs:
+`sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev
+libayatana-appindicator3-dev libssl-dev libxdo-dev`, then
+`npm run tauri -w apps/laudj -- dev`.

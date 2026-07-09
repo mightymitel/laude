@@ -1,0 +1,52 @@
+/* Alteration Menu */
+.menuBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+}
+
+.alterationMenu {
+    position: fixed;
+    z-index: 101;
+    background: var(--color-surface-elevated, #252542);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    width: 200px;
+}
+
+.menuGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.menuButton {
+    padding: 0.5rem;
+    background: var(--color-surface, #1a1a2e);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 4px;
+    color: var(--color-text, #e8e8e8);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.menuButton:hover {
+    border-color: var(--color-primary, #6366f1);
+    background: var(--color-primary-transparent, rgba(99, 102, 241, 0.1));
+}
+
+.menuInput {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--color-surface, #1a1a2e);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 4px;
+    color: inherit;
+    font-size: 0.8rem;
+}

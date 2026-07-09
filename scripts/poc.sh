@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 IMPORT_ARGS=""
 if [ -d .emulator-data ]; then
-  IMPORT_ARGS="--import ../.emulator-data"
+  IMPORT_ARGS="--import .emulator-data"
 fi
 
 # No --kill-others: the seeder is a one-shot that exits when done; the rest
@@ -17,10 +17,10 @@ fi
 exec npx concurrently \
   -n emu,seed,api,relay,web,laudj,studio \
   -c gray,cyan,green,red,blue,magenta,yellow \
-  "cd laudasist && firebase emulators:start --project demo-laude ${IMPORT_ARGS} --export-on-exit ../.emulator-data" \
-  "npm run seed -w apps/laudstudio" \
-  "cd laudasist && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev:api" \
-  "cd laudasist && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev -w apps/relay" \
-  "cd laudasist && npm run dev:web" \
+  "firebase emulators:start --project demo-laude ${IMPORT_ARGS} --export-on-exit .emulator-data" \
+  "npm run seed -w apps/studio" \
+  "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev -w apps/api" \
+  "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev -w apps/relay" \
+  "npm run dev -w apps/web" \
   "npm run dev -w apps/laudj" \
-  "npm run serve -w apps/laudstudio"
+  "npm run serve -w apps/studio"

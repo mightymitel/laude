@@ -1,0 +1,63 @@
+.bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 1rem;
+    background: #17171c;
+    color: #e8e8ee;
+    border-bottom: 1px solid #2a2a33;
+    flex-wrap: wrap;
+}
+
+.label {
+    font-size: 0.8rem;
+    opacity: 0.65;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.classBtn {
+    background: transparent;
+    color: inherit;
+    border: 1px solid #3a3a45;
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.classActive {
+    border-color: #7aa2ff;
+    color: #7aa2ff;
+}
+
+.toggleBtn {
+    background: #22222a;
+    color: inherit;
+    border: 1px solid #3a3a45;
+    border-radius: 6px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.toggleBtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.on {
+    background: #7aa2ff;
+    border-color: #7aa2ff;
+    color: #0b0b0f;
+}
+
+.messageInput {
+    background: #101014;
+    border: 1px solid #3a3a45;
+    color: inherit;
+    border-radius: 6px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.85rem;
+    width: 180px;
+}

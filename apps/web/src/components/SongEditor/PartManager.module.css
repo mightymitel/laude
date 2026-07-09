@@ -1,0 +1,41 @@
+/* Part Manager */
+.partManagerExpanded {
+    padding: 1rem;
+    background: var(--color-surface-elevated, #252542);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.partTypeGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.typeButton {
+    padding: 0.5rem 1rem;
+    background: var(--color-surface, #1a1a2e);
+    border: 1px solid var(--color-border, #444);
+    border-radius: 6px;
+    color: var(--color-text, #e8e8e8);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.typeButton:hover {
+    border-color: var(--color-primary, #6366f1);
+}
+
+.typeButton.active {
+    background: var(--color-primary, #6366f1);
+    border-color: var(--color-primary, #6366f1);
+    color: white;
+}
+
+.partManagerActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}

@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Owner check against the parent song doc (one get() per write).
+    function songOwner(songId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/songs/$(songId)).data.ownerId == request.auth.uid;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated(); // Users can read other profiles (simplified)
+      allow write: if isOwner(userId); // Only owner can edit their profile
+    }
+
+    // Songs collection
+    match /songs/{songId} {
+      allow read: if resource.data.visibility == 'public'
+                  || (isAuthenticated() && resource.data.ownerId == request.auth.uid)
+                  || (isAuthenticated() && resource.data.libraryType == 'official');
+
+      allow create: if isAuthenticated()
+                    && request.resource.data.ownerId == request.auth.uid;
+
+      allow update, delete: if isAuthenticated()
+                            && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Lyrics carry a denormalized `visibility` (copied from their song) so
+    // public-library queries stay statically provable; writes check the
+    // parent song's owner.
+    match /song_lyrics/{docId} {
+      allow read: if resource.data.visibility == 'public'
+                  || songOwner(resource.data.song_id);
+      allow create: if songOwner(request.resource.data.song_id);
+      allow update, delete: if songOwner(resource.data.song_id);
+    }
+
+    // Song relations (translation/medley/alternate): public metadata.
+    match /song_links/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /setlists/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /setlist_items/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // NO client `sessions` collection: the live session is owned by the
+    // session relay (authoritative in-memory state; socket/REST transport).
+    // Its optional Firestore mirror (`liveSessions`) is written by the relay
+    // through the Admin SDK, which bypasses rules — clients get default deny.
+    //
+    // NO personal-domain collections (performances, sections, beatgrid,
+    // chords, recorded_services, segments): that data lives in LaudStudio's
+    // local store, never in Firestore — default deny by omission.
+  }
+}

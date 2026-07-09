@@ -11,12 +11,12 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@laude/design-system": "file:../../laudasist/packages/design-system",
-    "@laude/i18n": "file:../../laudasist/packages/i18n",
-    "@laude/laudj-control-protocol": "file:../../laudasist/packages/laudj-control-protocol",
-    "@laude/pad-engine": "file:../../laudasist/packages/pad-engine",
-    "@laude/session": "file:../../laudasist/packages/session",
-    "@laude/song-model": "file:../../laudasist/packages/song-model",
+    "@laude/design-system": "file:../../packages/design-system",
+    "@laude/i18n": "file:../../packages/i18n",
+    "@laude/laudj-control-protocol": "file:../../packages/laudj-control-protocol",
+    "@laude/pad-engine": "file:../../packages/pad-engine",
+    "@laude/session": "file:../../packages/session",
+    "@laude/song-model": "file:../../packages/song-model",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io-client": "^4.8.3"

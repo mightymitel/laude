@@ -8,9 +8,9 @@ export default defineConfig({
     strictPort: true,
   },
   resolve: {
-    // The @laude/* packages are file-linked from ./laudasist, which carries its
-    // own node_modules — without dedupe Vite would bundle two React/Firebase
-    // copies (breaking hooks and Firestore instanceof checks).
+    // The @laude/* workspace packages may resolve their own peer copies —
+    // without dedupe Vite would bundle two React/socket.io copies (breaking
+    // hooks and instanceof checks).
     dedupe: ['react', 'react-dom', 'socket.io-client'],
   },
 });

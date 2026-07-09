@@ -1,0 +1,208 @@
+/* @laude/design-system — WIREFRAME grayscale tokens + primitive styles.
+   Two contexts, one system:
+   - .ld-app   → edit/browse: light neutral, dense, precise
+   - .ld-stage → live/stage: dark, glanceable, big touch targets (≥48px)
+   State colors are grayscale in the wireframe: current=black/white inversion,
+   queued=outline, muted=dim, warning=dashed. Swap for real color later. */
+
+:root {
+  /* Gray ramp */
+  --ld-g0: #ffffff;
+  --ld-g1: #f4f4f4;
+  --ld-g2: #e2e2e2;
+  --ld-g3: #c8c8c8;
+  --ld-g4: #9a9a9a;
+  --ld-g5: #6b6b6b;
+  --ld-g6: #3f3f3f;
+  --ld-g7: #222222;
+  --ld-g8: #111111;
+
+  /* Type scale */
+  --ld-font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ld-font-chord: 'Menlo', 'Consolas', monospace;
+  --ld-fs-xs: 12px;
+  --ld-fs-sm: 14px;
+  --ld-fs-md: 16px;
+  --ld-fs-lg: 20px;
+  --ld-fs-xl: 28px;
+  --ld-fs-stage: 40px;   /* stage lyrics: legible at distance */
+  --ld-fs-stage-chord: 24px;
+
+  --ld-radius: 6px;
+  --ld-space: 8px;
+  --ld-hit: 48px;        /* min touch target on live surfaces */
+}
+
+/* Theme: edit/browse (light neutral) */
+.ld-app {
+  --ld-bg: var(--ld-g1);
+  --ld-bg-raised: var(--ld-g0);
+  --ld-bg-sunken: var(--ld-g2);
+  --ld-border: var(--ld-g3);
+  --ld-text: var(--ld-g8);
+  --ld-text-2: var(--ld-g5);
+  --ld-text-3: var(--ld-g4);
+  --ld-accent: var(--ld-g8);
+  --ld-accent-contrast: var(--ld-g0);
+  background: var(--ld-bg);
+  color: var(--ld-text);
+  font-family: var(--ld-font);
+  font-size: var(--ld-fs-md);
+}
+
+/* Theme: live/stage (dark, high contrast) */
+.ld-stage {
+  --ld-bg: var(--ld-g8);
+  --ld-bg-raised: var(--ld-g7);
+  --ld-bg-sunken: #000000;
+  --ld-border: var(--ld-g6);
+  --ld-text: var(--ld-g0);
+  --ld-text-2: var(--ld-g3);
+  --ld-text-3: var(--ld-g5);
+  --ld-accent: var(--ld-g0);
+  --ld-accent-contrast: var(--ld-g8);
+  background: var(--ld-bg);
+  color: var(--ld-text);
+  font-family: var(--ld-font);
+  font-size: var(--ld-fs-md);
+}
+
+/* ---------- primitives ---------- */
+
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  min-height: 36px;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-raised);
+  color: var(--ld-text);
+  font: inherit;
+  cursor: pointer;
+  user-select: none;
+}
+.ld-btn:hover { border-color: var(--ld-text-2); }
+.ld-btn--primary { background: var(--ld-accent); color: var(--ld-accent-contrast); border-color: var(--ld-accent); }
+.ld-btn--ghost { background: transparent; border-color: transparent; }
+.ld-btn--big { min-height: var(--ld-hit); min-width: var(--ld-hit); font-size: var(--ld-fs-lg); }
+.ld-btn--active { background: var(--ld-accent); color: var(--ld-accent-contrast); }
+.ld-btn:disabled { opacity: 0.4; cursor: default; }
+
+.ld-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border: 1px solid var(--ld-border);
+  border-radius: 999px;
+  font-size: var(--ld-fs-xs);
+  color: var(--ld-text-2);
+  white-space: nowrap;
+}
+.ld-chip--current { background: var(--ld-accent); color: var(--ld-accent-contrast); border-color: var(--ld-accent); }
+.ld-chip--queued { border-style: dotted; border-color: var(--ld-text); color: var(--ld-text); }
+.ld-chip--warn { border-style: dashed; }
+
+.ld-card {
+  background: var(--ld-bg-raised);
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  padding: calc(var(--ld-space) * 2);
+}
+.ld-card--clickable { cursor: pointer; }
+.ld-card--clickable:hover { border-color: var(--ld-text-2); }
+
+.ld-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ld-space) * 1.5);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ld-border);
+  cursor: pointer;
+}
+.ld-row:hover { background: var(--ld-bg-sunken); }
+
+.ld-input, .ld-select {
+  padding: 8px 12px;
+  border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius);
+  background: var(--ld-bg-raised);
+  color: var(--ld-text);
+  font: inherit;
+  min-height: 36px;
+}
+.ld-input:focus, .ld-select:focus { outline: 2px solid var(--ld-text-2); }
+
+.ld-seg { display: inline-flex; border: 1px solid var(--ld-border); border-radius: var(--ld-radius); overflow: hidden; }
+.ld-seg > button {
+  border: none;
+  background: var(--ld-bg-raised);
+  color: var(--ld-text-2);
+  padding: 8px 12px;
+  font: inherit;
+  cursor: pointer;
+  min-height: 36px;
+}
+.ld-seg > button + button { border-left: 1px solid var(--ld-border); }
+.ld-seg > button.ld-seg--on { background: var(--ld-accent); color: var(--ld-accent-contrast); }
+
+.ld-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.ld-toggle__track {
+  width: 44px; height: 24px; border-radius: 999px;
+  border: 1px solid var(--ld-border); background: var(--ld-bg-sunken);
+  position: relative; transition: background 0.15s;
+}
+.ld-toggle__knob {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--ld-text-2); transition: left 0.15s, background 0.15s;
+}
+.ld-toggle--on .ld-toggle__track { background: var(--ld-accent); }
+.ld-toggle--on .ld-toggle__knob { left: 22px; background: var(--ld-accent-contrast); }
+
+.ld-stepper { display: inline-flex; align-items: center; gap: 4px; }
+.ld-stepper > button { min-width: var(--ld-hit); min-height: 36px; }
+.ld-stepper__value { min-width: 56px; text-align: center; font-family: var(--ld-font-chord); }
+
+/* Vertical fader (mixer) */
+.ld-fader { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ld-fader__track {
+  width: var(--ld-hit); height: 180px; border: 1px solid var(--ld-border);
+  border-radius: var(--ld-radius); background: var(--ld-bg-sunken);
+  position: relative; cursor: pointer; touch-action: none;
+}
+.ld-fader__fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ld-g4); border-radius: 0 0 var(--ld-radius) var(--ld-radius); }
+.ld-fader__thumb { position: absolute; left: -4px; right: -4px; height: 14px; background: var(--ld-text); border-radius: 4px; }
+.ld-fader--muted { opacity: 0.35; }
+
+.ld-meter { width: 8px; height: 180px; border: 1px solid var(--ld-border); background: var(--ld-bg-sunken); position: relative; overflow: hidden; }
+.ld-meter__fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--ld-text-2); transition: height 0.1s linear; }
+
+.ld-statusdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--ld-text); }
+.ld-statusdot--on { background: var(--ld-text); }
+.ld-statusdot--warn { background: transparent; border-style: dashed; }
+
+.ld-empty { padding: 32px; text-align: center; color: var(--ld-text-3); border: 1px dashed var(--ld-border); border-radius: var(--ld-radius); }
+
+/* Chord+lyric tracker */
+.ld-tracker__section { margin-bottom: calc(var(--ld-space) * 3); }
+.ld-tracker__sectionlabel { font-size: var(--ld-fs-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ld-text-3); margin-bottom: 8px; }
+.ld-tracker__line { display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 6px; }
+.ld-tracker__pair { display: inline-flex; flex-direction: column; }
+.ld-tracker__chord { font-family: var(--ld-font-chord); font-weight: 700; font-size: 0.85em; min-height: 1.2em; color: var(--ld-text); }
+.ld-tracker__lyric { white-space: pre-wrap; }
+.ld-tracker--stage .ld-tracker__lyric { font-size: var(--ld-fs-stage); line-height: 1.3; }
+.ld-tracker--stage .ld-tracker__chord { font-size: var(--ld-fs-stage-chord); }
+.ld-tracker__line--past { color: var(--ld-text-3); }
+.ld-tracker__line--current { background: var(--ld-accent); color: var(--ld-accent-contrast); border-radius: 4px; padding: 2px 6px; }
+.ld-tracker__line--current .ld-tracker__chord { color: var(--ld-accent-contrast); }
+
+/* Layout helpers */
+.ld-topbar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--ld-border); background: var(--ld-bg-raised); position: sticky; top: 0; z-index: 10; }
+.ld-page { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.ld-grid { display: grid; gap: 12px; }
+.ld-hstack { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ld-vstack { display: flex; flex-direction: column; gap: 8px; }
+.ld-spacer { flex: 1; }
+.ld-label { font-size: var(--ld-fs-xs); color: var(--ld-text-3); text-transform: uppercase; letter-spacing: 0.08em; }

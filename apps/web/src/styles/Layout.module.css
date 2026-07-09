@@ -1,0 +1,61 @@
+/* Standard Page Layouts */
+
+.pageContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    width: 100%;
+}
+
+.pageHeader {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border, #eee);
+    padding-bottom: 1.5rem;
+}
+
+.pageTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.pageActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Flex Utilities */
+.flexBetween {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flexCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Loading / Error States */
+.stateMessage {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-secondary, #666);
+    background: var(--bg-secondary, #f8f9fa);
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.errorMessage {
+    composes: stateMessage;
+    color: var(--error, #ef4444);
+    background: #fef2f2;
+}

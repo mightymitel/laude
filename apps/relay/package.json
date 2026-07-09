@@ -1,0 +1,27 @@
+{
+  "name": "@laudasist/relay",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Stateful session relay \u2014 the authoritative home of live session state (Session & Realtime Sync spec). Plain Node service: runs in the cloud or LAN-local (LaudStudio hosts it offline). Firestore is an optional durability mirror, never the transport.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "tsx --test src/state.test.ts"
+  },
+  "dependencies": {
+    "@laude/session": "*",
+    "@laude/song-model": "*",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase-admin": "^12.0.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

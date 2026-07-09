@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@laude/session": ["../../packages/session/src/index.ts"],
+      "@laude/song-model": ["../../packages/song-model/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

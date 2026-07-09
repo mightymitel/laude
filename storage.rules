@@ -1,0 +1,13 @@
+rules_version = '2';
+
+// Global Cloud Storage holds ONLY shared pads. Personal audio (stems, key
+// variants, mixdowns) lives on LaudStudio's local disk — never uploaded.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /pads/{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // pads ship via tooling (Admin SDK bypasses rules)
+    }
+    // Everything else: default deny.
+  }
+}

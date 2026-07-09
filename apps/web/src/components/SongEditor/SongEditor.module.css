@@ -1,0 +1,688 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Header */
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .titleRow {
+        gap: 0.5rem;
+    }
+}
+
+.titleInput {
+    flex: 1;
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: inherit;
+    padding: 0.25rem 0;
+    transition: border-color 0.2s;
+}
+
+.titleInput:focus {
+    outline: none;
+    border-bottom-color: var(--primary);
+}
+
+.titleInput::placeholder {
+    color: var(--text-muted);
+}
+
+.metaRow {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.metaInput {
+    padding: 0.5rem 0.75rem;
+    /* Use transparent or secondary for input background */
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: inherit;
+    font-size: 0.875rem;
+    min-width: 120px;
+}
+
+.metaInput:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.select {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Mode Toggle */
+.modeToggle {
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    padding: 2px;
+    flex-shrink: 0;
+}
+
+.modeButton {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.modeButton.active {
+    background: var(--primary);
+    color: white;
+}
+
+@media (max-width: 480px) {
+    .modeToggle {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modeButton {
+        flex: 1;
+        padding: 0.625rem 0.75rem;
+    }
+
+    .titleInput {
+        font-size: 1.25rem;
+        width: 100%;
+    }
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.chordPalette {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.chordButton {
+    padding: 0.75rem 1rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: grab;
+    user-select: none;
+    white-space: nowrap;
+    transition: transform 0.1s, box-shadow 0.1s;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chordButton:active {
+    cursor: grabbing;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb, 99, 102, 241), 0.4);
+}
+
+.chordButton.minor {
+    background: var(--accent);
+}
+
+.chordButton.songChord {
+    background: var(--success, #10b981);
+}
+
+.chordButton.customChord {
+    background: var(--warning, #f59e0b);
+}
+
+.customChordButton {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-primary);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.lockButton {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.lockButton.locked {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+/* Part */
+.part {
+    margin-bottom: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.partHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary);
+    /* slightly distinct header */
+    border-bottom: 1px solid var(--border);
+}
+
+.partDragHandle {
+    cursor: grab;
+    color: var(--text-muted);
+    padding: 0.25rem;
+}
+
+.partLabelInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.partLabelInput:focus {
+    outline: none;
+}
+
+.partActions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.partActionButton {
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.partActionButton:hover {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.partActionButton.delete:hover {
+    color: var(--error);
+}
+
+/* Chord Source Menu */
+.chordSourceMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    min-width: 200px;
+    overflow: hidden;
+}
+
+.chordSourceMenuHeader {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.chordSourceMenuItem {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+}
+
+.chordSourceMenuItem:hover {
+    background: var(--bg-secondary);
+}
+
+.partContent {
+    padding: 1rem;
+}
+
+/* Lines - Segmented Layout matching SongLine */
+.line {
+    font-family: 'Fira Code', 'SF Mono', monospace;
+    font-size: 1.1rem;
+    position: relative;
+    padding: 0.5rem 0;
+
+    /* Block container */
+    display: block;
+    line-height: normal;
+    white-space: normal;
+}
+
+/* Edit Layer - overlays structure */
+
+
+/* Visual Segments Layer */
+.visualLayer {
+    position: relative;
+    /* z-index: auto; - Default, allowing interleaving */
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+
+
+/* ... */
+
+.chordBadge:hover {
+    /* Scaling without translation prevents layout shift */
+    transform: scale(1.1);
+    z-index: 30;
+}
+
+.chordBadge:active {
+    cursor: grabbing;
+}
+
+.chordBadge.dragging {
+    opacity: 0.3;
+    transform: scale(0.9);
+}
+
+/* Visual Segments */
+.segment {
+    display: inline-block;
+    vertical-align: bottom;
+    position: relative;
+    width: auto;
+    white-space: pre;
+    min-height: 2.8rem;
+    margin: 0;
+    pointer-events: auto;
+    /* Allow interaction */
+}
+
+.segmentChords {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.3rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary);
+    line-height: 1;
+    min-height: 1em;
+    pointer-events: auto;
+    /* Allow chord interaction */
+    position: relative;
+    z-index: 10;
+    /* Above lineEditor (5) */
+}
+
+.visualTextWrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.segmentText {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    white-space: pre;
+    color: var(--text-primary);
+    min-height: 1.5em;
+    display: inline-block;
+    min-width: 1px;
+    position: relative;
+    z-index: 1;
+    outline: none;
+    caret-color: var(--primary);
+}
+
+/* Force height if empty */
+.segmentText::before {
+    content: '\200b';
+    display: inline-block;
+    width: 0;
+}
+
+/* Placeholder for empty segments */
+.segmentText.emptyPlaceholder:empty::after {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    opacity: 0.6;
+    pointer-events: none;
+    font-style: italic;
+}
+
+/* Chord Badge - Positioned relative to anchor */
+/* Chord Badge - Flowing in segmentChords */
+.chordBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.125rem 0.375rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+
+    cursor: grab;
+    user-select: none;
+    pointer-events: auto;
+
+    transition: transform 0.1s, opacity 0.1s;
+    white-space: nowrap;
+    min-width: 1.5rem;
+}
+
+.chordBadge:hover {
+    transform: scale(1.1);
+    z-index: 30;
+}
+
+.chordBadge:active {
+    cursor: grabbing;
+}
+
+.chordBadge.dragging {
+    opacity: 0.3;
+    transform: scale(0.9);
+}
+
+/* Drop Caret */
+.dropCaret {
+    position: absolute;
+    top: 0;
+    /* Align top */
+    /* Left is set via inline style in ch units */
+    width: 2px;
+    height: 1.5em;
+    /* Match line height of segmentText (1.5) */
+    background: var(--primary);
+    /* Use background instead of border for consistent sizing */
+    border: none;
+
+    pointer-events: none;
+    z-index: 25;
+
+    animation: blink 0.8s infinite;
+
+    transform: translateX(-1px);
+}
+
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Add Part Button */
+.addPartButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background: transparent;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.addPartButton:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Footer */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+.footerLeft {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.footerRight {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.buttonPrimary {
+    background: var(--primary);
+    border: none;
+    color: white;
+}
+
+.buttonPrimary:hover {
+    background: var(--primary-hover);
+}
+
+.buttonSecondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}
+
+.buttonSecondary:hover {
+    background: var(--bg-primary);
+}
+
+/* Raw Editor */
+.rawEditor {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    background: var(--bg-primary);
+    border: none;
+    color: inherit;
+    font-family: 'Fira Code', 'SF Mono', monospace;
+    font-size: 0.875rem;
+    padding: 1rem;
+    resize: none;
+}
+
+.rawEditor:focus {
+    outline: none;
+}
+
+/* Error */
+.error {
+    color: var(--error);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Validation */
+.titleInput.invalid {
+    border-bottom-color: var(--error);
+}
+
+/* Variants */
+.container.modal {
+    max-height: 80vh;
+}
+
+
+/* Delete Drop Zone */
+.deleteZone {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 1.5rem 2rem;
+    background: var(--error);
+    color: white;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    z-index: 1000;
+    transition: all 0.2s;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+.deleteZone.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.deleteZone.dragOver {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.6);
+}
+
+.container.drawer {
+    height: 100%;
+}
+
+/* Touch Drag Indicator */
+.dragIndicator {
+    position: fixed;
+    transform: translate(-50%, -120%);
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Prevent text selection and focus while dragging */
+.container.isDragging {
+    user-select: none;
+}
+
+.container.isDragging .segmentText {
+    pointer-events: none;
+}
+
+/* Touch-friendly chord badges */
+@media (pointer: coarse) {
+    .chordBadge {
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .chordButton {
+        min-width: 3rem;
+        min-height: 3rem;
+    }
+}
