@@ -87,7 +87,7 @@ function main(): void {
           end_s: segDef.end_s,
           detected_key: key,
           bpm,
-          lrc: song.withLrc ? buildLrc(song) : [],
+          lrc: song.withLrc ? buildLrc(song, durationS) : [],
           verified: perfDef.verified,
           created_at: NOW_ISO,
         });

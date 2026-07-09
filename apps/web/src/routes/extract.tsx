@@ -50,10 +50,18 @@ function isJob(value: unknown): value is Job {
   return typeof value === 'object' && value !== null && 'id' in value && 'status' in value;
 }
 
+interface BridgeCandidate {
+  song_id: string;
+  title: string;
+  author: string | null;
+  snippet: string;
+}
+
 interface LinkState {
-  status: 'linking' | 'done' | 'error';
+  status: 'searching' | 'choosing' | 'linking' | 'done' | 'error';
   song_id?: string;
   error?: string;
+  candidates?: BridgeCandidate[];
 }
 
 interface StudioAuth {
@@ -117,13 +125,42 @@ function ExtractPage() {
     }
   };
 
-  // Mint-or-link bridge: the ONLY cloud touch of the personal domain, and a
-  // deliberate one — extraction itself never writes to the library.
-  const linkSong = async (job: Job) => {
+  // Mint-or-link bridge (WP-103): the ONLY cloud touch of the personal
+  // domain, and a deliberate one. SUGGEST, HUMAN CONFIRMS — the button
+  // fetches candidates; the human picks a match or mints. No auto-link.
+  const findCandidates = async (job: Job) => {
+    if (job.song_id === null) return;
+    setLinks((prev) => ({ ...prev, [job.id]: { status: 'searching' } }));
+    try {
+      const res = await fetch(`${SERVICE_URL}/bridge/candidates/${job.song_id}`);
+      const data: unknown = await res.json();
+      const record =
+        typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
+      if (!res.ok || !Array.isArray(record.candidates)) {
+        const message = typeof record.error === 'string' ? record.error : `HTTP ${res.status}`;
+        setLinks((prev) => ({ ...prev, [job.id]: { status: 'error', error: message } }));
+        return;
+      }
+      setLinks((prev) => ({
+        ...prev,
+        [job.id]: { status: 'choosing', candidates: record.candidates as BridgeCandidate[] },
+      }));
+    } catch {
+      setLinks((prev) => ({ ...prev, [job.id]: { status: 'error', error: t('extract.serviceDown') } }));
+    }
+  };
+
+  const confirmBridge = async (job: Job, globalSongId: string | null) => {
     if (job.song_id === null) return;
     setLinks((prev) => ({ ...prev, [job.id]: { status: 'linking' } }));
     try {
-      const res = await fetch(`${SERVICE_URL}/link/${job.song_id}`, { method: 'POST' });
+      const res = globalSongId === null
+        ? await fetch(`${SERVICE_URL}/mint/${job.song_id}`, { method: 'POST' })
+        : await fetch(`${SERVICE_URL}/link/${job.song_id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ song_id: globalSongId }),
+          });
       const data: unknown = await res.json();
       const record =
         typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
@@ -281,10 +318,12 @@ function ExtractPage() {
                   <>
                     <Button
                       variant="primary"
-                      disabled={links[job.id]?.status === 'linking'}
-                      onClick={() => void linkSong(job)}
+                      disabled={links[job.id]?.status === 'linking' || links[job.id]?.status === 'searching'}
+                      onClick={() => void findCandidates(job)}
                     >
-                      {links[job.id]?.status === 'linking' ? t('extract.linking') : t('extract.link')}
+                      {links[job.id]?.status === 'linking' || links[job.id]?.status === 'searching'
+                        ? t('extract.linking')
+                        : t('extract.link')}
                     </Button>
                     {links[job.id]?.status === 'error' && (
                       <Chip state="warn">{links[job.id]?.error}</Chip>
@@ -293,6 +332,26 @@ function ExtractPage() {
                 )
               )}
             </div>
+            {links[job.id]?.status === 'choosing' && (
+              <div className="ld-vstack">
+                <span className="ld-label">{t('extract.bridge.confirm')}</span>
+                {(links[job.id]?.candidates ?? []).map((candidate) => (
+                  <div className="ld-hstack" key={candidate.song_id}>
+                    <Button onClick={() => void confirmBridge(job, candidate.song_id)}>
+                      {t('extract.bridge.linkTo')} „{candidate.title}”
+                    </Button>
+                    <span className="ld-label" style={{ overflowWrap: 'anywhere' }}>
+                      {candidate.snippet}
+                    </span>
+                  </div>
+                ))}
+                <div className="ld-hstack">
+                  <Button variant="primary" onClick={() => void confirmBridge(job, null)}>
+                    {t('extract.bridge.mint')}
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="ld-hstack">
               {STAGES.map((stage) => (
                 <Chip key={stage} state={job.stages_done.includes(stage) ? 'current' : 'default'}>

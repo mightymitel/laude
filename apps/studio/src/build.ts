@@ -95,16 +95,35 @@ export function stripChords(line: string): string {
   return line.replace(CHORD_TOKEN, '').replace(/\s{2,}/g, ' ').trim();
 }
 
-export function buildLrc(song: SeedSongDef): LrcLine[] {
-  const secondsPerLine = (8 * 60) / song.bpm;
+/**
+ * Mock LRC, structurally faithful: lyric lines land INSIDE the same section
+ * template buildSections uses (nothing during Intro/Outro), so the alignment
+ * matcher sees realistic evidence — a real LRC has no lines during
+ * instrumental stretches.
+ */
+export function buildLrc(song: SeedSongDef, durationS: number): LrcLine[] {
   const lines: LrcLine[] = [];
-  let t = 10; // instrumental intro before the first line
-  for (const section of song.sections) {
-    for (const line of section.lines) {
-      lines.push({ time_s: Math.round(t * 10) / 10, text: stripChords(line) });
-      t += secondsPerLine;
+  const verses = song.sections.filter((s) => s.type === 'verse');
+  const chorus = song.sections.find((s) => s.type === 'chorus') ?? null;
+  let verseIdx = 0;
+  for (const tpl of SECTION_TEMPLATE) {
+    let source: SeedSongDef['sections'][number] | null = null;
+    if (/^Verse/.test(tpl.label)) {
+      source = verses[verseIdx] ?? verses[verses.length - 1] ?? null;
+      verseIdx += 1;
+    } else if (tpl.label === 'Chorus') {
+      source = chorus;
     }
-    t += secondsPerLine / 2; // short instrumental gap between sections
+    if (!source) continue; // Intro/Outro: no lyrics — instrumental by construction
+    const from = tpl.from * durationS;
+    const span = (tpl.to - tpl.from) * durationS;
+    const step = span / (source.lines.length + 1);
+    source.lines.forEach((line, i) => {
+      lines.push({
+        time_s: Math.round((from + step * (i + 1)) * 10) / 10,
+        text: stripChords(line),
+      });
+    });
   }
   return lines;
 }

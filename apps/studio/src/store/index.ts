@@ -274,6 +274,36 @@ export class LocalStore {
       .run(globalSongId, new Date().toISOString(), localSongId);
   }
 
+  /**
+   * UNLINK (DEC-61/68): drop the global id; the chart becomes
+   * derived_chordpro where the editor did work, or the snapshot is promoted
+   * to an editable chart where it didn't. Lossless exactly where work was
+   * done, free where it wasn't. There is NO fork verb — "I disagree with the
+   * community chart" is unlink → edit → mint.
+   */
+  unlinkSong(localSongId: string): void {
+    const song = this.getLocalSong(localSongId);
+    if (!song) throw new Error(`unknown local song ${localSongId}`);
+    this.upsertLocalSong({
+      ...song,
+      global_song_id: null,
+      link_state: 'local',
+      chordpro: song.derived_chordpro ?? song.chordpro,
+      chart_source: 'derived',
+      derived_chordpro: null,
+      snapshot_parts: null,
+      snapshot_taken_at: null,
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  listPerformances(localSongId: string): PerformanceRow[] {
+    return this.db
+      .prepare('SELECT * FROM performances WHERE local_song_id = ? ORDER BY created_at')
+      .all(localSongId)
+      .map(rowToPerformance);
+  }
+
   // --- reads ----------------------------------------------------------------
 
   getLocalSong(id: string): LocalSongRow | null {

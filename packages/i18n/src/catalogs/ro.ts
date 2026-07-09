@@ -121,6 +121,9 @@ export const ro = {
   'extract.auth.signIn': 'Autentificare',
   'extract.auth.signOut': 'Deconectare',
   'extract.auth.password': 'Parola',
+  'extract.bridge.confirm': 'Există deja cântarea? Confirmă o potrivire sau creează una privată nouă:',
+  'extract.bridge.linkTo': 'Leagă de',
+  'extract.bridge.mint': 'Creează cântare privată nouă',
 } as const;
 
 export type MessageKey = keyof typeof ro;

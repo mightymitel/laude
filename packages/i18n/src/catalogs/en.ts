@@ -112,4 +112,7 @@ export const en: Record<MessageKey, string> = {
   'extract.auth.signIn': 'Sign in',
   'extract.auth.signOut': 'Sign out',
   'extract.auth.password': 'Password',
+  'extract.bridge.confirm': 'Is this an existing song? Confirm a match, or mint a new private song:',
+  'extract.bridge.linkTo': 'Link to',
+  'extract.bridge.mint': 'Mint a new private song',
 };

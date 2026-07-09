@@ -6,7 +6,10 @@
  *   GET  /songs/:localSongId                           -> work-level detail (the chart)
  *   GET  /performances/:id                             -> grid/chord events/sections/LRC
  *   GET  /audio/:perfId/(stem/:stem|variant/:stem/:n|mixdown) -> audio files
- *   POST /link/:localSongId                            -> mint-or-link bridge (STUB)
+ *   GET  /bridge/candidates/:localSongId               -> match candidates (human confirms)
+ *   POST /link/:localSongId { song_id }                -> link to a confirmed global song
+ *   POST /mint/:localSongId                            -> mint a new private global song
+ *   POST /unlink/:localSongId                          -> drop the link (chart re-editable)
  *   GET  /health
  * Node stdlib only for HTTP; state lives in the SQLite store (src/store).
  */
@@ -14,7 +17,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { enqueueJob, listJobs, YOUTUBE_URL } from './service/jobs';
 import { catalogBody, performanceBody, resolveAudio, streamAudio } from './service/catalog';
 import { authState, signIn, signOut } from './service/auth';
-import { linkOrMint } from './service/link';
+import { bridgeCandidates, linkToSong, mintSong, unlinkLocalSong } from './service/link';
 import { LocalStore } from './store';
 
 const PORT = Number(process.env.LAUDSTUDIO_PORT ?? 3002);
@@ -141,12 +144,56 @@ const server = createServer((req, res) => {
     else streamAudio(res, file);
     return;
   }
+  if (method === 'GET' && path.startsWith('/bridge/candidates/')) {
+    const localSongId = decodeURIComponent(path.slice('/bridge/candidates/'.length));
+    bridgeCandidates(store, localSongId).then(
+      (candidates) => json(res, 200, { candidates }),
+      (err: unknown) => json(res, 400, { error: err instanceof Error ? err.message : String(err) }),
+    );
+    return;
+  }
   if (method === 'POST' && path.startsWith('/link/')) {
     const localSongId = decodeURIComponent(path.slice('/link/'.length));
-    linkOrMint(store, localSongId).then(
+    void (async () => {
+      let songId = '';
+      try {
+        const parsed: unknown = JSON.parse(await readBody(req));
+        if (typeof parsed === 'object' && parsed !== null) {
+          const record = parsed as Record<string, unknown>;
+          if (typeof record.song_id === 'string') songId = record.song_id;
+        }
+      } catch {
+        // no body → missing song_id, rejected below
+      }
+      if (!songId) {
+        json(res, 400, { error: 'song_id is required — linking is human-confirmed (use /mint to create)' });
+        return;
+      }
+      try {
+        const result = await linkToSong(store, localSongId, songId);
+        json(res, result.ok ? 200 : 400, result);
+      } catch (err) {
+        json(res, 500, { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
+    return;
+  }
+  if (method === 'POST' && path.startsWith('/mint/')) {
+    const localSongId = decodeURIComponent(path.slice('/mint/'.length));
+    mintSong(store, localSongId).then(
       (result) => json(res, result.ok ? 200 : 400, result),
       (err: unknown) => json(res, 500, { error: err instanceof Error ? err.message : String(err) }),
     );
+    return;
+  }
+  if (method === 'POST' && path.startsWith('/unlink/')) {
+    const localSongId = decodeURIComponent(path.slice('/unlink/'.length));
+    try {
+      const result = unlinkLocalSong(store, localSongId);
+      json(res, result.ok ? 200 : 400, result);
+    } catch (err) {
+      json(res, 500, { error: err instanceof Error ? err.message : String(err) });
+    }
     return;
   }
   json(res, 404, { error: 'not found' });
