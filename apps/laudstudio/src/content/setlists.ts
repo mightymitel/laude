@@ -1,6 +1,6 @@
 // UNVERIFIED mock content — generated for the wireframe PoC.
 
-import type { LiveSession, Setlist, SetlistItem } from '@laude/song-model';
+import type { Setlist, SetlistItem } from '@laude/song-model';
 import type { PlaylistDoc } from '../laudasist-types';
 
 export const SEED_SETLISTS: Setlist[] = [
@@ -40,25 +40,6 @@ export const SEED_SETLIST_ITEMS: SetlistItem[] = [
   { id: 'sli-youth-night-4', setlist_id: 'setlist-youth-night', song_id: 'song-river-of-grace', order: 4 },
   { id: 'sli-youth-night-5', setlist_id: 'setlist-youth-night', song_id: 'song-close-to-you', order: 5, notes: 'Verse 1 in Romanian too' },
 ];
-
-export function buildLiveSession(nowIso: string): LiveSession {
-  return {
-    id: 'main',
-    title: 'Sesiune live — grup de casă',
-    setlist_id: 'setlist-duminica-seara',
-    current: {
-      song_id: 'song-aproape-de-tine',
-      section_index: 0,
-      key: 'G',
-      tempo_pct: 100,
-      blank: false,
-    },
-    presenters: [],
-    companion: { pads_on: false, pad_style: 'warm', pad_volume: 0.5, interlude: false },
-    updated_by: 'seed',
-    updated_at: nowIso,
-  };
-}
 
 export function buildDemoPlaylist(nowIso: string): PlaylistDoc {
   return {
