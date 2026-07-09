@@ -13,6 +13,7 @@
     "paths": {
       "@laude/song-model": ["packages/song-model/src/index.ts"],
       "@laude/chords": ["packages/chords/src/index.ts"],
+      "@laude/tuner": ["packages/tuner/src/index.ts"],
       "@laude/i18n": ["packages/i18n/src/index.ts"],
       "@laude/i18n/react": ["packages/i18n/src/react.ts"],
       "@laude/design-system": ["packages/design-system/src/index.tsx"],
@@ -26,6 +27,7 @@
   "include": [
     "packages/song-model/src",
     "packages/chords/src",
+    "packages/tuner/src",
     "packages/i18n/src",
     "packages/design-system/src",
     "packages/auth/src",

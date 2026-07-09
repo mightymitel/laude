@@ -1,133 +1,124 @@
-import { useEffect, useRef, useState } from 'react';
-import { useAudioAnalyzer } from './useAudioAnalyzer';
+/**
+ * Instrument tuner. Detection lives in @laude/tuner (pitchy / MPM with gates,
+ * median smoothing and hysteresis); this component owns the mic permission
+ * (requested on mount — the tuner only mounts when opened), the mode and
+ * notation controls, and the stable note readout. The needle is drawn by
+ * TunerGauge at rAF, decoupled from detection.
+ */
+import { useState } from 'react';
+import { englishNotation, getNotation, listNotations, type PitchClass } from '@laude/chords';
+import { TunerGauge } from './TunerGauge';
+import { useTuner, type TunerTarget, type TuningMode } from './useTuner';
 import styles from './Tuner.module.css';
 
 interface TunerProps {
     mode?: 'full' | 'mini';
 }
 
+const NOTATION_STORAGE_KEY = 'tuner.notation';
+const PITCH_CLASSES: readonly PitchClass[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+function loadNotationId(): string {
+    try {
+        return localStorage.getItem(NOTATION_STORAGE_KEY) ?? englishNotation.id;
+    } catch {
+        // Storage can be unavailable (privacy modes); fall back to the default.
+        return englishNotation.id;
+    }
+}
+
+function saveNotationId(id: string): void {
+    try {
+        localStorage.setItem(NOTATION_STORAGE_KEY, id);
+    } catch {
+        // Persistence is best-effort; the in-memory selection still applies.
+    }
+}
+
+function noteName(noteIndex: number, notationId: string): string {
+    const notation = getNotation(notationId) ?? englishNotation;
+    return notation.format({ root: PITCH_CLASSES[noteIndex], quality: '', accidental: 'sharp' });
+}
+
+// Nashville is key-relative — meaningless for a tuner, so it is not offered.
+const NOTATIONS = listNotations().filter((n) => n.id !== 'nashville');
+
+const STATUS_TEXT = {
+    requesting: 'Requesting microphone…',
+    denied: 'Microphone access was denied. Allow the microphone for this site in your browser settings, then reopen the tuner.',
+    error: 'Could not access the microphone. Check that one is connected and not in use by another app.',
+} as const;
+
+function NoteReadout({ target, notationId }: { target: TunerTarget; notationId: string }) {
+    const inTuneClass = target.inTune ? ` ${styles.inTune}` : '';
+    return (
+        <div className={styles.noteReadout + inTuneClass}>
+            <div className={styles.noteName}>
+                {target.noteIndex === null ? '–' : noteName(target.noteIndex, notationId)}
+                {target.octave !== null && <span className={styles.octave}>{target.octave}</span>}
+            </div>
+            <div className={styles.noteMeta}>
+                {target.stringNumber !== null
+                    ? `String ${target.stringNumber}`
+                    : target.idle
+                      ? 'Play a note'
+                      : ' '}
+            </div>
+        </div>
+    );
+}
+
 export function Tuner({ mode = 'full' }: TunerProps) {
-    const [active, setActive] = useState(false);
-    const { note, cents, frequency, isListening, error, analyser } = useAudioAnalyzer(active);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const rafRef = useRef<number | undefined>(undefined);
+    const [tuningMode, setTuningMode] = useState<TuningMode>('chromatic');
+    const [notationId, setNotationId] = useState<string>(loadNotationId);
+    const { status, target, readingRef } = useTuner(tuningMode);
+    const compact = mode === 'mini';
 
-    useEffect(() => {
-        // Determine if we should visualize
-        if (!isListening || !analyser || !canvasRef.current) return;
-
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        const draw = () => {
-            if (!active) return; // Stop if not active
-            rafRef.current = requestAnimationFrame(draw);
-
-            analyser.getByteTimeDomainData(dataArray);
-
-            ctx.fillStyle = '#1e1e1e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Waveform
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = '#3b82f6'; // Primary color
-            ctx.beginPath();
-
-            const sliceWidth = canvas.width * 1.0 / bufferLength;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = v * canvas.height / 2;
-
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-
-                x += sliceWidth;
-            }
-
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
-
-            // Draw Needle/Gauge if mode is full or even mini
-            // Determine offset from center based on cents
-            // Range: -50 to +50 cents usually shown
-            const centerX = canvas.width / 2;
-            // Map cents (-50 to 50) to angle (-45deg to 45deg)
-            // Cents can be outside -50/50, clamp it
-            const clampedCents = Math.max(-50, Math.min(50, cents));
-            const angle = (clampedCents / 50) * (Math.PI / 4); // +/- 45 degrees
-
-            const needleLen = canvas.height * 0.8;
-
-            ctx.save();
-            ctx.translate(centerX, canvas.height); // Pivot at bottom center
-            ctx.rotate(angle);
-
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(0, -needleLen);
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = Math.abs(cents) < 5 ? '#22c55e' : '#ef4444'; // Green if in tune, else red
-            ctx.stroke();
-
-            // Needle head
-            ctx.beginPath();
-            ctx.arc(0, -needleLen, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = ctx.strokeStyle;
-            ctx.fill();
-
-            ctx.restore();
-        };
-
-        // Start visualization loop
-        draw();
-    }, [isListening, analyser, active, cents]);
-
-    const toggleTuner = () => {
-        setActive(!active);
-    };
-
-    // Auto-start in full mode? Maybe let user click start for permission reasons first time
-    // But if reusing component, explicit start is better.
+    const modeButton = (value: TuningMode, label: string) => (
+        <button
+            type="button"
+            className={tuningMode === value ? styles.modeBtnActive : styles.modeBtn}
+            aria-pressed={tuningMode === value}
+            onClick={() => setTuningMode(value)}
+        >
+            {label}
+        </button>
+    );
 
     return (
-        <div className={`${styles.tunerContainer} ${styles[mode]}`}>
-            {mode === 'full' && <h1>Guitar Tuner</h1>}
-
-            <div className={styles.display}>
-                {error ? (
-                    <div className={styles.error}>{error}</div>
-                ) : (
-                    <>
-                        <div className={styles.noteDisplay}>{note}</div>
-                        <div className={styles.frequency}>{frequency.toFixed(1)} Hz</div>
-                        <div className={`${styles.cents} ${Math.abs(cents) < 5 ? styles.inTune : cents < 0 ? styles.flat : styles.sharp}`}>
-                            {isListening ? (cents > 0 ? `+${cents}` : cents) : 'Off'}
-                        </div>
-                    </>
-                )}
-
-                <canvas
-                    ref={canvasRef}
-                    className={styles.canvas}
-                    width={mode === 'mini' ? 300 : 600}
-                    height={mode === 'mini' ? 100 : 200}
-                />
-            </div>
+        <div className={compact ? styles.containerMini : styles.container}>
+            {!compact && <h1 className={styles.title}>Tuner</h1>}
 
             <div className={styles.controls}>
-                <button className={styles.startButton} onClick={toggleTuner}>
-                    {isListening ? 'Stop' : 'Start Tuner'}
-                </button>
+                <div className={styles.modeToggle} role="group" aria-label="Tuning mode">
+                    {modeButton('chromatic', 'Chromatic')}
+                    {modeButton('guitar', 'Guitar')}
+                </div>
+                <select
+                    className={styles.notationSelect}
+                    aria-label="Note names"
+                    value={notationId}
+                    onChange={(e) => {
+                        setNotationId(e.target.value);
+                        saveNotationId(e.target.value);
+                    }}
+                >
+                    {NOTATIONS.map((n) => (
+                        <option key={n.id} value={n.id}>
+                            {n.label}
+                        </option>
+                    ))}
+                </select>
             </div>
+
+            {status === 'listening' ? (
+                <>
+                    <NoteReadout target={target} notationId={notationId} />
+                    <TunerGauge readingRef={readingRef} mode={tuningMode} compact={compact} />
+                </>
+            ) : (
+                <p className={styles.status}>{STATUS_TEXT[status]}</p>
+            )}
         </div>
     );
 }
