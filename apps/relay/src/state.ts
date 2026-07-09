@@ -1,13 +1,17 @@
 /**
  * Authoritative in-memory session store. The relay owns live session state;
  * everything else (clients, the Firestore mirror) derives from here.
+ * Patch semantics are shared with the LocalTransport via applySessionPatch.
  */
 import { randomUUID } from 'node:crypto';
-import type { Presenter } from '@laude/song-model';
 import {
   DEFAULT_COMPANION,
   DEFAULT_CURRENT,
+  applySessionPatch,
   type DjManifestEntry,
+  type DjMode,
+  type InitialSessionState,
+  type SessionMember,
   type SessionPatch,
   type SessionState,
 } from '@laude/session';
@@ -22,13 +26,25 @@ function generateCode(): string {
   return code;
 }
 
+export interface CreateResult {
+  session: SessionState;
+  /** A prior active session of this owner that was ended (links revoked). */
+  endedSessionId: string | null;
+}
+
 export class SessionStore {
   private sessions = new Map<string, SessionState>();
 
-  /** Reuse the owner's active session or mint a fresh one (one per owner). */
-  createForOwner(ownerId: string): SessionState {
-    const existing = this.activeByOwner(ownerId);
-    if (existing) return existing;
+  /**
+   * Going live is repeatable (DEC-37): every call mints a FRESH session with
+   * fresh independent tokens and ends the owner's prior live one — that is
+   * the Phase-1 revoke/kick. The pushed `initial` state (from the local
+   * transport) becomes the relay's starting snapshot.
+   */
+  createForOwner(ownerId: string, initial?: InitialSessionState): CreateResult {
+    const previous = this.activeByOwner(ownerId);
+    if (previous) this.end(previous.id);
+
     const now = new Date().toISOString();
     const session: SessionState = {
       id: randomUUID(),
@@ -36,11 +52,12 @@ export class SessionStore {
       accessCode: generateCode(),
       presenterCode: generateCode(),
       status: 'active',
-      current: { ...DEFAULT_CURRENT },
-      currentSong: null,
-      sessionPlaylist: [],
-      chordStyle: 'letters',
-      companion: { ...DEFAULT_COMPANION },
+      current: { ...DEFAULT_CURRENT, ...initial?.current },
+      currentSong: initial?.currentSong ?? null,
+      sessionPlaylist: initial?.sessionPlaylist ?? [],
+      chordStyle: initial?.chordStyle ?? 'letters',
+      companion: { ...DEFAULT_COMPANION, ...initial?.companion },
+      directives: initial?.directives ?? {},
       presenters: [],
       dj_manifest: [],
       updated_by: ownerId,
@@ -48,13 +65,19 @@ export class SessionStore {
       created_at: now,
     };
     this.sessions.set(session.id, session);
-    return session;
+    return { session, endedSessionId: previous?.id ?? null };
   }
 
   /** Rehydrate one session from the mirror (relay restart with live clients). */
   restore(session: SessionState): void {
-    // Roster + manifest are transient — never restored.
-    this.sessions.set(session.id, { ...session, presenters: [], dj_manifest: [] });
+    // Roster + manifest are transient — never restored. Mirror docs written
+    // before the directives field existed hydrate to an empty map.
+    this.sessions.set(session.id, {
+      ...session,
+      directives: session.directives ?? {},
+      presenters: [],
+      dj_manifest: [],
+    });
   }
 
   byId(id: string): SessionState | null {
@@ -84,7 +107,7 @@ export class SessionStore {
     return null;
   }
 
-  /** Resolve either code; tells the caller which role it grants. */
+  /** Resolve either code; tells the caller which ROLE the link grants. */
   activeByAnyCode(code: string): { session: SessionState; role: 'presenter' | 'viewer' } | null {
     const asPresenter = this.activeByPresenterCode(code);
     if (asPresenter) return { session: asPresenter, role: 'presenter' };
@@ -93,43 +116,46 @@ export class SessionStore {
     return null;
   }
 
-  /** Apply a presenter patch; returns the updated session. */
+  /** Apply a writer patch; returns the updated session. */
   applyPatch(id: string, patch: SessionPatch, writerId: string): SessionState | null {
     const s = this.sessions.get(id);
     if (!s || s.status !== 'active') return null;
-    const next: SessionState = {
-      ...s,
-      ...(patch.current !== undefined ? { current: { ...s.current, ...patch.current } } : {}),
-      ...(patch.currentSong !== undefined ? { currentSong: patch.currentSong } : {}),
-      ...(patch.sessionPlaylist !== undefined ? { sessionPlaylist: patch.sessionPlaylist } : {}),
-      ...(patch.chordStyle !== undefined ? { chordStyle: patch.chordStyle } : {}),
-      ...(patch.companion !== undefined ? { companion: { ...s.companion, ...patch.companion } } : {}),
-      updated_by: writerId,
-      updated_at: new Date().toISOString(),
-    };
+    const next = applySessionPatch(s, patch, writerId);
     this.sessions.set(id, next);
     return next;
   }
 
-  /** Roster join (dedupe by presenter id — reconnects replace the entry). */
-  addPresenter(id: string, presenter: Presenter): SessionState | null {
+  /** Roster join (dedupe by member id — reconnects replace the entry). */
+  addMember(id: string, member: SessionMember): SessionState | null {
     const s = this.sessions.get(id);
     if (!s) return null;
-    const presenters = [...s.presenters.filter((p) => p.id !== presenter.id), presenter];
+    const presenters = [...s.presenters.filter((p) => p.id !== member.id), member];
     const next = { ...s, presenters };
     this.sessions.set(id, next);
     return next;
   }
 
-  /** Roster leave; clears the DJ manifest when the leaving presenter was the dj. */
-  removePresenter(id: string, presenterId: string): SessionState | null {
+  /** Roster leave; clears the DJ manifest when the leaving member was the dj. */
+  removeMember(id: string, memberId: string): SessionState | null {
     const s = this.sessions.get(id);
     if (!s) return null;
-    const leaving = s.presenters.find((p) => p.id === presenterId);
+    const leaving = s.presenters.find((p) => p.id === memberId);
     const next: SessionState = {
       ...s,
-      presenters: s.presenters.filter((p) => p.id !== presenterId),
+      presenters: s.presenters.filter((p) => p.id !== memberId),
       ...(leaving?.kind === 'dj' ? { dj_manifest: [] } : {}),
+    };
+    this.sessions.set(id, next);
+    return next;
+  }
+
+  /** DEC-43: the DJ's mode is reflected read-only on its roster entry. */
+  setDjMode(id: string, memberId: string, mode: DjMode): SessionState | null {
+    const s = this.sessions.get(id);
+    if (!s) return null;
+    const next = {
+      ...s,
+      presenters: s.presenters.map((p) => (p.id === memberId && p.kind === 'dj' ? { ...p, mode } : p)),
     };
     this.sessions.set(id, next);
     return next;

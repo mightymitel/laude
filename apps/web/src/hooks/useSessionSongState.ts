@@ -1,12 +1,12 @@
 /**
- * State brain of the /session page: local practice state vs live session
- * state (via useLiveSession), unified update helpers that route to whichever
- * is active, song search/ordering, and the pick-song flow (with the by-value
- * temporary-playlist behaviour when live).
+ * State brain of the /session page. There is no local-vs-live branching any
+ * more (DEC-35): ONE session object holds current song/part/key/playlist,
+ * and Go Live merely swaps its transport. Everything here writes to the
+ * session; display preferences stay per-device.
  */
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSongs, useSong } from '@/hooks/useSongs'
-import { useLiveSession } from '@/hooks/useLiveSession'
+import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
 import type { Key, Song } from '@laudasist/shared'
@@ -29,135 +29,108 @@ export function useSessionSongState(playlistId: string | undefined) {
     const { data: allSongsData } = useSongs({})
     const { data: initialPlaylist } = usePlaylist(playlistId || '')
 
-    // Local state for NON-LIVE practice mode only
-    const [localSongId, setLocalSongId] = useState<string | null>(null)
-    const [localPartIndex, setLocalPartIndex] = useState(0)
-    const [localDisplayKey, setLocalDisplayKey] = useState<Key>('C')
-    const [localPlaylist, setLocalPlaylist] = useState<SessionPlaylistItem[]>([])
-    const [playlistLoaded, setPlaylistLoaded] = useState(false)
     const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([])
     const [useOriginalKey, setUseOriginalKey] = useState(true)
+    const [playlistLoaded, setPlaylistLoaded] = useState(false)
 
-    // Auto-load playlist from URL param
-    useEffect(() => {
-        if (initialPlaylist && !playlistLoaded) {
-            const items = initialPlaylist.items.map((item) => ({
-                id: `${Date.now()}-${item.songId}`,
-                songId: item.songId,
-                key: item.key,
-                arrangement: item.arrangement,
-            }))
-            setLocalPlaylist(items)
-            setPlaylistLoaded(true)
-        }
-    }, [initialPlaylist, playlistLoaded])
+    // ONE session object — local transport until Go Live swaps it.
+    const live = useWorshipSession()
+    const { session, state } = live
 
-    // Live broadcasting over @laude/session (the relay owns state)
-    const live = useLiveSession()
-    const { isLive, session, updateSession, setPartIndex, setPlaylist } = live
-
-    // === DERIVED STATE: session state when live, local state otherwise ===
-    const currentSongId = isLive && session ? session.current.song_id : localSongId
-    const currentPartIndex = isLive && session ? session.current.section_index : localPartIndex
-    const displayKey = isLive && session ? asKey(session.current.key) : localDisplayKey
-    const sessionPlaylist = isLive && session ? session.sessionPlaylist : localPlaylist
+    // === DERIVED STATE (always from the session, solo or live) ===
+    const currentSongId = state?.current.song_id ?? null
+    const currentPartIndex = state?.current.section_index ?? 0
+    const displayKey = asKey(state?.current.key ?? null)
+    const sessionPlaylist = useMemo(() => state?.sessionPlaylist ?? [], [state])
 
     const { data: currentSong } = useSong(currentSongId || '')
 
-    // === UNIFIED STATE UPDATE HELPERS (local vs live routing) ===
+    // Auto-load a saved (by-ref) playlist from the URL param into the session.
+    useEffect(() => {
+        if (initialPlaylist && !playlistLoaded) {
+            session.setPlaylist(
+                initialPlaylist.items.map((item) => ({
+                    id: `${Date.now()}-${item.songId}`,
+                    songId: item.songId,
+                    key: item.key,
+                    arrangement: item.arrangement,
+                })),
+            )
+            setPlaylistLoaded(true)
+        }
+    }, [initialPlaylist, playlistLoaded, session])
+
+    // === UPDATE HELPERS (single write path, any transport) ===
     const setCurrentSongId = useCallback(
         (songId: string | null) => {
-            if (isLive) {
-                // Presenters/viewers render the by-value currentSong — resolve the
-                // embed from the playlist item or the loaded library (the relay
-                // never resolves by-ref ids itself).
-                const fromPlaylist = songId !== null
-                    ? sessionPlaylist.find((i) => i.songId === songId)?.song
-                    : undefined
-                const fromLibrary = songId !== null
-                    ? allSongsData?.data?.find((s) => s.id === songId)
-                    : undefined
-                const embedded = fromPlaylist ?? (fromLibrary ? embed(fromLibrary) : null)
-                updateSession({
-                    current: { song_id: songId, section_index: 0 },
-                    currentSong: songId === null ? null : embedded,
-                })
-            } else {
-                setLocalSongId(songId)
-            }
+            // Presenters/viewers render the by-value currentSong — resolve the
+            // embed from the playlist item or the loaded library (the relay
+            // never resolves by-ref ids itself).
+            const fromPlaylist = songId !== null
+                ? sessionPlaylist.find((i) => i.songId === songId)?.song
+                : undefined
+            const fromLibrary = songId !== null
+                ? allSongsData?.data?.find((s) => s.id === songId)
+                : undefined
+            const embedded = fromPlaylist ?? (fromLibrary ? embed(fromLibrary) : null)
+            session.send({
+                current: { song_id: songId, section_index: 0 },
+                currentSong: songId === null ? null : embedded,
+            })
         },
-        [isLive, updateSession, sessionPlaylist, allSongsData],
+        [session, sessionPlaylist, allSongsData],
     )
 
     const setCurrentPartIndex = useCallback(
         (partIndex: number) => {
-            if (isLive) setPartIndex(partIndex)
-            else setLocalPartIndex(partIndex)
+            session.setCurrent({ section_index: partIndex })
         },
-        [isLive, setPartIndex],
+        [session],
     )
 
     const setDisplayKey = useCallback(
         (key: Key) => {
-            if (isLive) updateSession({ current: { key } })
-            else setLocalDisplayKey(key)
+            session.setCurrent({ key })
         },
-        [isLive, updateSession],
+        [session],
     )
 
     const setSessionPlaylist = useCallback(
         (updater: SessionPlaylistItem[] | ((prev: SessionPlaylistItem[]) => SessionPlaylistItem[])) => {
-            if (isLive) {
-                const next = typeof updater === 'function' ? updater(sessionPlaylist) : updater
-                setPlaylist(next)
-            } else {
-                setLocalPlaylist(updater)
-            }
+            const prev = session.state?.sessionPlaylist ?? []
+            const next = typeof updater === 'function' ? updater(prev) : updater
+            session.setPlaylist(next)
         },
-        [isLive, sessionPlaylist, setPlaylist],
+        [session],
     )
-
-    // Push the local playlist to the relay when going live
-    useEffect(() => {
-        if (isLive && localPlaylist.length > 0) {
-            setPlaylist(localPlaylist)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLive])
 
     const pickSong = useCallback(
         (song: Song) => {
-            if (isLive) {
-                // Not in the playlist yet → add as a temporary (by-value) item
-                if (!sessionPlaylist.some((item) => item.songId === song.id)) {
-                    setSessionPlaylist((prev) => [
-                        ...prev,
-                        {
-                            id: `temp-${Date.now()}-${song.id}`,
-                            songId: song.id,
-                            key: song.originalKey,
-                            song: embed(song),
-                            temporary: true,
-                        },
-                    ])
-                }
-                updateSession({
-                    current: {
-                        song_id: song.id,
-                        section_index: 0,
-                        ...(useOriginalKey ? { key: song.originalKey } : {}),
+            // Not in the playlist yet → add as a temporary (by-value) item
+            if (!sessionPlaylist.some((item) => item.songId === song.id)) {
+                setSessionPlaylist((prev) => [
+                    ...prev,
+                    {
+                        id: `temp-${Date.now()}-${song.id}`,
+                        songId: song.id,
+                        key: song.originalKey,
+                        song: embed(song),
+                        temporary: true,
                     },
-                    currentSong: embed(song),
-                })
-            } else {
-                setCurrentSongId(song.id)
-                setCurrentPartIndex(0)
-                if (useOriginalKey) setDisplayKey(song.originalKey)
+                ])
             }
+            session.send({
+                current: {
+                    song_id: song.id,
+                    section_index: 0,
+                    ...(useOriginalKey ? { key: song.originalKey } : {}),
+                },
+                currentSong: embed(song),
+            })
             setSearchQuery('')
             setRecentlyPlayed((prev) => [song.id, ...prev.filter((id) => id !== song.id)].slice(0, 20))
         },
-        [isLive, sessionPlaylist, useOriginalKey, setSessionPlaylist, updateSession, setCurrentSongId, setCurrentPartIndex, setDisplayKey],
+        [session, sessionPlaylist, useOriginalKey, setSessionPlaylist],
     )
 
     // Smart ordering for library view when search is empty

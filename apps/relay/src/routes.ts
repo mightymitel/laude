@@ -9,7 +9,7 @@
  * link-following, late joins and non-socket clients.
  */
 import { Router, type Request, type Response } from 'express';
-import type { SessionPatch } from '@laude/session';
+import type { InitialSessionState, SessionPatch } from '@laude/session';
 import { ownerIdFromToken } from './firebase';
 import { SessionStore, viewerView } from './state';
 
@@ -59,7 +59,19 @@ export function sessionRoutes(store: SessionStore, events: RelayEvents): Router 
   router.post('/live', async (req, res) => {
     const ownerId = await requireOwner(req, res);
     if (!ownerId) return;
-    const session = store.createForOwner(ownerId);
+    const body =
+      typeof req.body === 'object' && req.body !== null ? (req.body as Record<string, unknown>) : {};
+    const initial =
+      typeof body.initial === 'object' && body.initial !== null
+        ? (body.initial as InitialSessionState)
+        : undefined;
+    // Repeatable go-live: a prior live session of this owner is ended and its
+    // links die (Phase-1 revoke); fresh independent tokens are minted.
+    const { session, endedSessionId } = store.createForOwner(ownerId, initial);
+    if (endedSessionId) {
+      events.broadcastEnd(endedSessionId);
+      events.mirror(endedSessionId);
+    }
     events.mirror(session.id);
     res.status(201).json(session);
   });

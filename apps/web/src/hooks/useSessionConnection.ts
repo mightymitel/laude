@@ -4,8 +4,7 @@
  * Firestore onSnapshot path — the relay pushes every change.
  */
 import { useEffect, useRef, useState } from 'react'
-import { SessionClient, type SessionState } from '@laude/session'
-import type { Presenter } from '@laude/song-model'
+import { SessionClient, type SessionIdentity, type SessionState } from '@laude/session'
 import { RELAY_URL } from '@/lib/relay'
 
 export interface SessionConnection {
@@ -17,18 +16,18 @@ export interface SessionConnection {
 }
 
 /**
- * Join with an accessCode (viewer) or presenterCode (+ presenter identity).
- * Pass null to stay disconnected. The presenter object is captured per
- * connection — its identity should be stable for the code's lifetime.
+ * Join with an accessCode (viewer) or presenterCode; the ROLE is resolved by
+ * the relay from the code used. Pass null to stay disconnected. The member
+ * identity is captured per connection and should stay stable for its lifetime.
  */
-export function useSessionConnection(code: string | null, presenter?: Presenter): SessionConnection {
+export function useSessionConnection(code: string | null, member: SessionIdentity): SessionConnection {
     const [state, setState] = useState<SessionState | null>(null)
     const [client, setClient] = useState<SessionClient | null>(null)
     const [connected, setConnected] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const presenterRef = useRef(presenter)
-    presenterRef.current = presenter
+    const memberRef = useRef(member)
+    memberRef.current = member
 
     useEffect(() => {
         if (!code) {
@@ -41,7 +40,7 @@ export function useSessionConnection(code: string | null, presenter?: Presenter)
         let cancelled = false
         let active: SessionClient | null = null
 
-        SessionClient.connect({ url: RELAY_URL, code, presenter: presenterRef.current })
+        SessionClient.connect({ url: RELAY_URL, code, member: memberRef.current })
             .then((c) => {
                 if (cancelled) {
                     c.leave()

@@ -12,5 +12,8 @@
   "dependencies": {
     "@laude/song-model": "*",
     "socket.io-client": "^4.8.3"
+  },
+  "scripts": {
+    "test": "tsx --test src/session.test.ts"
   }
 }

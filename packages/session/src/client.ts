@@ -1,35 +1,33 @@
 /**
- * SessionClient — the presenter/viewer SDK over the stateful relay.
- * Transport: socket.io (fast path state:sync) + REST (join snapshots,
- * owner lifecycle). NO Firestore — the relay is authoritative.
+ * SessionClient — the relay transport (socket.io fast path + REST). One
+ * client per joined connection; the resolved ROLE comes back with the join
+ * snapshot (owner via auth, presenter/viewer via which code was used).
  */
 import { io, type Socket } from 'socket.io-client';
-import type { Presenter, PresenterKind } from '@laude/song-model';
 import {
   EVENTS,
+  applySessionPatch,
   type DjManifestEntry,
+  type DjMode,
+  type InitialSessionState,
+  type SessionMember,
   type SessionPatch,
+  type SessionRole,
   type SessionState,
+  type SnapshotPayload,
   type StateSync,
 } from './types';
-
-export interface SessionChange {
-  state: SessionState;
-  /** True when the change came from another presenter (yield rule input). */
-  external: boolean;
-  /** The kind of the presenter who wrote the change, when known from the roster. */
-  writerKind: PresenterKind | null;
-}
-
-export type Unsubscribe = () => void;
+import type { SessionChange, SessionIdentity, SessionTransport, Unsubscribe } from './transport';
 
 export interface ConnectOptions {
   /** Relay base URL, e.g. http://localhost:3003 */
   url: string;
-  /** accessCode (viewer) or presenterCode (presenter). */
-  code: string;
-  /** Present to join as a presenter (roster entry + write access). */
-  presenter?: { id: string; name: string; kind: PresenterKind };
+  /** accessCode (viewer) or presenterCode (presenter). Omit for owner joins. */
+  code?: string;
+  /** Firebase ID token (or LAN-mode owner id) — resolves the owner role. */
+  auth?: string;
+  /** Who you are (self-declared type; role is resolved server-side). */
+  member: SessionIdentity;
 }
 
 async function restJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -41,16 +39,22 @@ async function restJson<T>(url: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Owner lifecycle: start (or resume) the owner's live session. */
-export function startLiveSession(url: string, idToken: string): Promise<SessionState> {
+/** Owner lifecycle: go live. Repeatable — every call ends the owner's prior
+ * live session (old links die) and mints fresh independent tokens. The local
+ * session's state rides along as the relay's initial snapshot. */
+export function startLiveSession(
+  url: string,
+  idToken: string,
+  initial?: InitialSessionState,
+): Promise<SessionState> {
   return restJson<SessionState>(`${url}/api/sessions/live`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
-    body: '{}',
+    body: JSON.stringify(initial ? { initial } : {}),
   });
 }
 
-/** Owner lifecycle: end a session. */
+/** Owner lifecycle: end a live session (links die; the local session object survives client-side). */
 export async function endLiveSession(url: string, idToken: string, sessionId: string): Promise<void> {
   await restJson<{ success: boolean }>(`${url}/api/sessions/live/${sessionId}`, {
     method: 'DELETE',
@@ -58,14 +62,16 @@ export async function endLiveSession(url: string, idToken: string, sessionId: st
   });
 }
 
-/** Snapshot fetch without a socket (link preview, SSR-ish uses). */
+/** Snapshot fetch without a socket (link preview, non-socket clients). */
 export function fetchSessionSnapshot(url: string, accessCode: string): Promise<SessionState> {
   return restJson<SessionState>(`${url}/api/sessions/join/${accessCode}`);
 }
 
-export class SessionClient {
+export class SessionClient implements SessionTransport {
+  readonly kind = 'relay' as const;
   private socket: Socket;
   private state: SessionState | null = null;
+  private myRole: SessionRole = 'viewer';
   private listeners = new Set<(change: SessionChange) => void>();
   private endListeners = new Set<() => void>();
 
@@ -88,10 +94,15 @@ export class SessionClient {
       }, 8000);
 
       socket.on('connect', () => {
-        socket.emit(EVENTS.join, { code: options.code, presenter: options.presenter ?? null });
+        socket.emit(EVENTS.join, {
+          code: options.code ?? null,
+          auth: options.auth ?? null,
+          member: options.member,
+        });
       });
-      socket.on(EVENTS.snapshot, (snapshot: SessionState) => {
-        client.state = snapshot;
+      socket.on(EVENTS.snapshot, (payload: SnapshotPayload) => {
+        client.state = payload.state;
+        client.myRole = payload.role;
         clearTimeout(timer);
         client.emitChange(false, null);
         resolve(client);
@@ -101,7 +112,7 @@ export class SessionClient {
         reject(err);
       });
       socket.on(EVENTS.stateSync, (sync: StateSync) => client.onSync(sync));
-      socket.on(EVENTS.rosterChanged, (presenters: Presenter[]) => {
+      socket.on(EVENTS.rosterChanged, (presenters: SessionMember[]) => {
         if (!client.state) return;
         client.state = { ...client.state, presenters };
         client.emitChange(false, null);
@@ -124,12 +135,16 @@ export class SessionClient {
     });
   }
 
-  get snapshot(): SessionState | null {
+  get role(): SessionRole {
+    return this.myRole;
+  }
+
+  snapshot(): SessionState | null {
     return this.state;
   }
 
-  get presenterId(): string | null {
-    return this.options.presenter?.id ?? null;
+  get memberId(): string {
+    return this.options.member.id;
   }
 
   /** Tier-1 musical intent (song/part/section/key/tempo/blank). */
@@ -154,15 +169,25 @@ export class SessionClient {
     this.send({ currentSong: song });
   }
 
+  /** Viewport directive merge for one target class (owner/presenter). */
+  setDirective(targetClass: string, partial: Partial<SessionState['directives'][string]>): void {
+    this.send({ directives: { [targetClass]: partial } });
+  }
+
   /** Any combined patch in one write (one state:sync for everyone). */
   send(patch: SessionPatch): void {
-    if (!this.options.presenter) throw new Error('viewers cannot write session state');
+    if (this.myRole === 'viewer') throw new Error('viewers cannot write session state');
     this.socket.emit(EVENTS.stateSet, patch);
   }
 
-  /** DJ capability manifest (presenter kind 'dj'). */
+  /** DJ capability manifest (kind 'dj'). */
   sendManifest(entries: DjManifestEntry[]): void {
     this.socket.emit(EVENTS.djManifest, entries);
+  }
+
+  /** DJ mode reflection (read-only for everyone else — DEC-43). */
+  sendMode(mode: DjMode): void {
+    this.socket.emit(EVENTS.djMode, mode);
   }
 
   subscribe(listener: (change: SessionChange) => void): Unsubscribe {
@@ -185,27 +210,20 @@ export class SessionClient {
     this.endListeners.clear();
   }
 
+  close(): void {
+    this.leave();
+  }
+
   private onSync(sync: StateSync): void {
     if (!this.state) return;
-    const { patch } = sync;
-    this.state = {
-      ...this.state,
-      ...(patch.current !== undefined ? { current: { ...this.state.current, ...patch.current } } : {}),
-      ...(patch.currentSong !== undefined ? { currentSong: patch.currentSong } : {}),
-      ...(patch.sessionPlaylist !== undefined ? { sessionPlaylist: patch.sessionPlaylist } : {}),
-      ...(patch.chordStyle !== undefined ? { chordStyle: patch.chordStyle } : {}),
-      ...(patch.companion !== undefined
-        ? { companion: { ...this.state.companion, ...patch.companion } }
-        : {}),
-      updated_by: sync.updated_by,
-      updated_at: sync.updated_at,
-    };
-    const external = sync.updated_by !== this.presenterId;
+    // Same merge the relay applied — one shared implementation, no drift.
+    this.state = applySessionPatch(this.state, sync.patch, sync.updated_by, sync.updated_at);
+    const external = sync.updated_by !== this.options.member.id;
     const writer = this.state.presenters.find((p) => p.id === sync.updated_by);
     this.emitChange(external, writer?.kind ?? null);
   }
 
-  private emitChange(external: boolean, writerKind: PresenterKind | null): void {
+  private emitChange(external: boolean, writerKind: SessionChange['writerKind']): void {
     if (!this.state) return;
     const change: SessionChange = { state: this.state, external, writerKind };
     this.listeners.forEach((fn) => fn(change));

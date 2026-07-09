@@ -4,4 +4,6 @@
  * socket.io + REST; Firestore is not a transport.
  */
 export * from './types';
+export * from './transport';
 export * from './client';
+export * from './session';

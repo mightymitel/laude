@@ -44,8 +44,9 @@ function embed(song: Song): EmbeddedSong {
 function PresenterPage() {
   const { code } = Route.useParams()
 
-  // One connection to the relay: join as a presenter with the code from the
-  // link; the snapshot arrives on join, deltas stream over state:sync.
+  // One connection to the relay: join with the presenter code from the link
+  // (role comes from the code); the snapshot arrives on join, deltas stream
+  // over state:sync.
   const presenter = useMemo(() => loadPresenter(), [])
   const { state: session, client, connected, error } = useSessionConnection(code, presenter)
 

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSessionConnection } from '@/hooks/useSessionConnection'
+import { loadViewerIdentity } from '@/lib/presenter'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Key, ChordStyle } from '@laudasist/shared'
 import { asChordStyle, asKey } from '@/lib/keys'
@@ -23,8 +24,10 @@ function GuestViewPage() {
     const navigate = useNavigate()
 
     // One viewer connection: snapshot on join, pushed deltas afterwards — no
-    // polling loop, no manual socket management.
-    const { state: session, error } = useSessionConnection(code)
+    // polling loop, no manual socket management. Viewers are roster members
+    // too (role viewer × self-declared type).
+    const viewer = useMemo(() => loadViewerIdentity(), [])
+    const { state: session, error } = useSessionConnection(code, viewer)
 
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')

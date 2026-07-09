@@ -52,7 +52,7 @@ function SessionPageContent() {
         embed,
     } = useSessionSongState(playlistId)
 
-    const { isLive, isLoading, startLive, endLive, getShareUrl, getPresenterUrl } = live
+    const { state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
 
     // Display preferences (always local)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
@@ -89,18 +89,26 @@ function SessionPageContent() {
                         (isLive ? (
                             <>
                                 <span className={styles.liveIndicator}>🔴 LIVE</span>
+                                {state && state.presenters.length > 0 && (
+                                    <span className={styles.guestIndicator} title="Connected members (role × type)">
+                                        {state.presenters
+                                            .map((m) => `${m.name} (${m.role}${m.kind === 'human' ? '' : ` · ${m.kind}`})`)
+                                            .join(' · ')}
+                                    </span>
+                                )}
                                 <button onClick={() => setShowQR(true)} className={styles.shareBtn}>
                                     📤 Share
                                 </button>
-                                <button onClick={endLive} className={styles.endLiveBtn}>
+                                <button onClick={() => void stopLive()} className={styles.endLiveBtn}>
                                     End Live
                                 </button>
                             </>
                         ) : (
-                            <button onClick={startLive} disabled={isLoading} className={styles.goLiveBtn}>
+                            <button onClick={() => void goLive()} disabled={isLoading} className={styles.goLiveBtn}>
                                 {isLoading ? 'Starting...' : '🔴 Go Live'}
                             </button>
                         ))}
+                    {error !== null && <span className={styles.guestIndicator}>⚠️ {error}</span>}
                     {isGuest && <span className={styles.guestIndicator}>👤 Guest Mode</span>}
                 </div>
             </header>
