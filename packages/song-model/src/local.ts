@@ -22,7 +22,10 @@ export interface LocalCatalogSong {
   duration_s: number;
   /** Preferred performance (null when a song has no extracted rendition yet). */
   performance_id: PerformanceId | null;
-  sections: { label: string; start_s: number }[];
+  /** work_part_index = the ONE-WAY DJ-section → work-part mapping (DEC-43):
+   * stored with the local performance, needed only for driving; null when
+   * unmapped (the DJ then drives audio without announcing that section). */
+  sections: { label: string; start_s: number; work_part_index: number | null }[];
   /** Stems with real audio on disk (empty → simulated playback). */
   stems: StemName[];
   /** Pre-rendered key variants incl. 0 (the original), e.g. [-2,-1,0,1,2]. */
@@ -40,7 +43,14 @@ export interface LocalPerformanceDetail {
   /** Indices into `beats` that are downbeats. */
   downbeats: number[];
   chords: ChordEvent[];
-  sections: { label: string; start_s: number; end_s: number; start_bar: number; end_bar: number }[];
+  sections: {
+    label: string;
+    start_s: number;
+    end_s: number;
+    start_bar: number;
+    end_bar: number;
+    work_part_index: number | null;
+  }[];
   lrc: LrcLine[];
   chordpro: string;
   audio: { stems: StemName[]; key_variants: number[]; mixdown: boolean };

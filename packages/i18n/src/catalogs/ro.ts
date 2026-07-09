@@ -60,6 +60,8 @@ export const ro = {
   'laudj.session.codePlaceholder': 'Cod',
   'laudj.session.join': 'Intră în sesiune',
   'laudj.session.leave': 'Ieși',
+  'laudj.mode.companion': 'Însoțitor',
+  'laudj.mode.playback': 'Conduce',
 
   // --- laudj extra keys ---
   'laudj.pair': 'Asociază',
