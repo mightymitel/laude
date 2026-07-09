@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Worship Platform PoC — one command to run everything against the Firebase emulator.
 #   npm run poc
-# Starts: emulator suite (demo-laude) · mock seeder (idempotent, waits for the
-# emulator) · Laudasist API (3001) · Laudasist web (5173) · LauDJ panel (5175).
+# Starts: emulator suite (demo-laude) · seeders (global Firestore + local
+# SQLite) · Laudasist API (3001) · session relay (3003) · Laudasist web (5173)
+# · LauDJ panel (5175) · LaudStudio service (3002).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -14,11 +15,12 @@ fi
 # No --kill-others: the seeder is a one-shot that exits when done; the rest
 # keep running. Ctrl+C stops the whole stack.
 exec npx concurrently \
-  -n emu,seed,api,web,laudj,studio \
-  -c gray,cyan,green,blue,magenta,yellow \
+  -n emu,seed,api,relay,web,laudj,studio \
+  -c gray,cyan,green,red,blue,magenta,yellow \
   "cd laudasist && firebase emulators:start --project demo-laude ${IMPORT_ARGS} --export-on-exit ../.emulator-data" \
   "npm run seed -w apps/laudstudio" \
   "cd laudasist && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev:api" \
+  "cd laudasist && FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=demo-laude npm run dev -w apps/relay" \
   "cd laudasist && npm run dev:web" \
   "npm run dev -w apps/laudj" \
   "npm run serve -w apps/laudstudio"
