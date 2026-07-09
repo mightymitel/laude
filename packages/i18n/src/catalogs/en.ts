@@ -108,4 +108,8 @@ export const en: Record<MessageKey, string> = {
   'extract.link': 'Link to library',
   'extract.linking': 'Linking…',
   'extract.serviceDown': 'The LaudStudio service is not running (npm run poc starts it)',
+  'extract.auth.label': 'Studio account',
+  'extract.auth.signIn': 'Sign in',
+  'extract.auth.signOut': 'Sign out',
+  'extract.auth.password': 'Password',
 };

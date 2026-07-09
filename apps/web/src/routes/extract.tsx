@@ -56,6 +56,11 @@ interface LinkState {
   error?: string;
 }
 
+interface StudioAuth {
+  signed_in: boolean;
+  email?: string;
+}
+
 function ExtractPage() {
   const t = useT();
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -64,6 +69,53 @@ function ExtractPage() {
   const [serviceUp, setServiceUp] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [links, setLinks] = useState<Record<string, LinkState>>({});
+  // Durable Studio sign-in (WP-108): the STUDIO holds the account, not this
+  // page — we only show/set its standing state over the local service.
+  const [auth, setAuth] = useState<StudioAuth | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  const refreshAuth = async () => {
+    try {
+      const res = await fetch(`${SERVICE_URL}/auth`);
+      const data: unknown = await res.json();
+      if (typeof data === 'object' && data !== null && typeof (data as StudioAuth).signed_in === 'boolean') {
+        setAuth(data as StudioAuth);
+      }
+    } catch {
+      setAuth(null);
+    }
+  };
+
+  const studioSignIn = async () => {
+    setAuthError(null);
+    try {
+      const res = await fetch(`${SERVICE_URL}/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data: unknown = await res.json();
+      if (!res.ok) {
+        const record = typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
+        setAuthError(typeof record.error === 'string' ? record.error : `HTTP ${res.status}`);
+        return;
+      }
+      setPassword('');
+      await refreshAuth();
+    } catch {
+      setAuthError(t('extract.serviceDown'));
+    }
+  };
+
+  const studioSignOut = async () => {
+    try {
+      await fetch(`${SERVICE_URL}/auth/signout`, { method: 'POST' });
+    } finally {
+      await refreshAuth();
+    }
+  };
 
   // Mint-or-link bridge: the ONLY cloud touch of the personal domain, and a
   // deliberate one — extraction itself never writes to the library.
@@ -104,11 +156,13 @@ function ExtractPage() {
       }
     };
     void poll();
+    void refreshAuth();
     const timer = setInterval(poll, 2000);
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const submit = async () => {
@@ -139,6 +193,43 @@ function ExtractPage() {
     <main className="ld-page ld-vstack">
       <h1>{t('extract.title')}</h1>
       {!serviceUp && <Chip state="warn">{t('extract.serviceDown')}</Chip>}
+
+      <Card>
+        <div className="ld-hstack">
+          <span className="ld-label">{t('extract.auth.label')}</span>
+          {auth?.signed_in === true ? (
+            <>
+              <Chip state="current">{auth.email}</Chip>
+              <span className="ld-spacer" />
+              <Button onClick={() => void studioSignOut()}>{t('extract.auth.signOut')}</Button>
+            </>
+          ) : (
+            <>
+              <input
+                className="ld-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="demo@laude.local"
+              />
+              <input
+                className="ld-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('extract.auth.password')}
+              />
+              <Button
+                variant="primary"
+                disabled={!email.trim() || !password}
+                onClick={() => void studioSignIn()}
+              >
+                {t('extract.auth.signIn')}
+              </Button>
+              {authError !== null && <Chip state="warn">{authError}</Chip>}
+            </>
+          )}
+        </div>
+      </Card>
 
       <Card>
         <div className="ld-vstack">

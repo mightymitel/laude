@@ -117,6 +117,10 @@ export const ro = {
   'extract.link': 'Leagă în bibliotecă',
   'extract.linking': 'Se leagă…',
   'extract.serviceDown': 'Serviciul de extragere nu rulează (npm run poc îl pornește)',
+  'extract.auth.label': 'Cont Studio',
+  'extract.auth.signIn': 'Autentificare',
+  'extract.auth.signOut': 'Deconectare',
+  'extract.auth.password': 'Parola',
 } as const;
 
 export type MessageKey = keyof typeof ro;

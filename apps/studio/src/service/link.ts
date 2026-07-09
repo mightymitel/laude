@@ -18,8 +18,7 @@ import { COLLECTIONS } from '@laude/song-model';
 import { PROJECT_ID } from '../env';
 import type { Arrangement, PartType, SongPart } from '../laudasist-types';
 import type { LocalStore } from '../store';
-
-const DEMO_UID = 'demo-user';
+import { requireUid } from './auth';
 
 export interface LinkResult {
   ok: boolean;
@@ -79,6 +78,14 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
   if (song.global_song_id) return { ok: true, song_id: song.global_song_id, already: true };
   if (!song.chordpro.trim()) return { ok: false, error: 'song has no chart to publish' };
 
+  // The standing sign-in (WP-108) stamps ownership; linking never prompts.
+  let uid: string;
+  try {
+    uid = requireUid();
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
   const firestore = db();
 
   // STUB match: normalized-title equality (the real bridge fuzzy-matches and
@@ -118,11 +125,11 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
     arrangements,
     parts,
     libraryType: 'user',
-    ownerId: DEMO_UID,
+    ownerId: uid,
     visibility: 'private',
     createdAt: Timestamp.fromDate(now),
     updatedAt: Timestamp.fromDate(now),
-    createdBy: DEMO_UID,
+    createdBy: uid,
   });
   await firestore
     .collection(COLLECTIONS.song_lyrics)

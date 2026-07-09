@@ -13,6 +13,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { enqueueJob, listJobs, YOUTUBE_URL } from './service/jobs';
 import { catalogBody, performanceBody, resolveAudio, streamAudio } from './service/catalog';
+import { authState, signIn, signOut } from './service/auth';
 import { linkOrMint } from './service/link';
 import { LocalStore } from './store';
 
@@ -37,6 +38,29 @@ function readBody(req: IncomingMessage): Promise<string> {
     });
     req.on('end', () => resolve(body));
   });
+}
+
+async function handleSignIn(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(await readBody(req));
+  } catch {
+    json(res, 400, { error: 'invalid JSON' });
+    return;
+  }
+  const record =
+    typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
+  const email = typeof record.email === 'string' ? record.email.trim() : '';
+  const password = typeof record.password === 'string' ? record.password : '';
+  if (!email || !password) {
+    json(res, 400, { error: 'email and password are required' });
+    return;
+  }
+  try {
+    json(res, 200, await signIn(email, password));
+  } catch (err) {
+    json(res, 401, { error: err instanceof Error ? err.message : String(err) });
+  }
 }
 
 async function handleExtract(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -69,6 +93,20 @@ const server = createServer((req, res) => {
   }
   if (method === 'GET' && path === '/health') {
     json(res, 200, { ok: true });
+    return;
+  }
+  // Durable sign-in (WP-108): the standing account link/mint runs under.
+  if (method === 'GET' && path === '/auth') {
+    json(res, 200, authState());
+    return;
+  }
+  if (method === 'POST' && path === '/auth/signin') {
+    void handleSignIn(req, res);
+    return;
+  }
+  if (method === 'POST' && path === '/auth/signout') {
+    signOut();
+    json(res, 200, authState());
     return;
   }
   if (method === 'GET' && path === '/jobs') {
@@ -115,7 +153,10 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
+  // Silent reconnect on boot: the stored refresh token IS the session.
+  const auth = authState();
   console.log(
-    `LaudStudio service on http://127.0.0.1:${PORT} (extract/jobs · catalog/performances/audio · link)`,
+    `LaudStudio service on http://127.0.0.1:${PORT} (extract/jobs · catalog/performances/audio · link · auth)`,
   );
+  console.log(auth.signed_in ? `auth: signed in as ${auth.email}` : 'auth: signed out');
 });
