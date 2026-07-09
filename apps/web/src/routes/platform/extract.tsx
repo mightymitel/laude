@@ -49,6 +49,12 @@ function isJob(value: unknown): value is Job {
   return typeof value === 'object' && value !== null && 'id' in value && 'status' in value;
 }
 
+interface LinkState {
+  status: 'linking' | 'done' | 'error';
+  song_id?: string;
+  error?: string;
+}
+
 function ExtractPage() {
   const t = useT();
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -56,6 +62,28 @@ function ExtractPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [serviceUp, setServiceUp] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [links, setLinks] = useState<Record<string, LinkState>>({});
+
+  // Mint-or-link bridge: the ONLY cloud touch of the personal domain, and a
+  // deliberate one — extraction itself never writes to the library.
+  const linkSong = async (job: Job) => {
+    if (job.song_id === null) return;
+    setLinks((prev) => ({ ...prev, [job.id]: { status: 'linking' } }));
+    try {
+      const res = await fetch(`${SERVICE_URL}/link/${job.song_id}`, { method: 'POST' });
+      const data: unknown = await res.json();
+      const record =
+        typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {};
+      if (!res.ok || record.ok !== true || typeof record.song_id !== 'string') {
+        const message = typeof record.error === 'string' ? record.error : `HTTP ${res.status}`;
+        setLinks((prev) => ({ ...prev, [job.id]: { status: 'error', error: message } }));
+        return;
+      }
+      setLinks((prev) => ({ ...prev, [job.id]: { status: 'done', song_id: String(record.song_id) } }));
+    } catch {
+      setLinks((prev) => ({ ...prev, [job.id]: { status: 'error', error: t('extract.serviceDown') } }));
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -153,9 +181,24 @@ function ExtractPage() {
               <span style={{ overflowWrap: 'anywhere' }}>{job.youtube_url}</span>
               <span className="ld-spacer" />
               {job.status === 'done' && job.song_id !== null && (
-                <Link to="/platform/songs/$songId" params={{ songId: job.song_id }}>
-                  <Button variant="primary">{t('extract.openSong')}</Button>
-                </Link>
+                links[job.id]?.status === 'done' && links[job.id]?.song_id !== undefined ? (
+                  <Link to="/platform/songs/$songId" params={{ songId: links[job.id].song_id ?? '' }}>
+                    <Button variant="primary">{t('extract.openSong')}</Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Button
+                      variant="primary"
+                      disabled={links[job.id]?.status === 'linking'}
+                      onClick={() => void linkSong(job)}
+                    >
+                      {links[job.id]?.status === 'linking' ? t('extract.linking') : t('extract.link')}
+                    </Button>
+                    {links[job.id]?.status === 'error' && (
+                      <Chip state="warn">{links[job.id]?.error}</Chip>
+                    )}
+                  </>
+                )
               )}
             </div>
             <div className="ld-hstack">

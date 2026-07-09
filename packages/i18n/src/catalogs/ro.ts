@@ -205,6 +205,8 @@ export const ro = {
   'extract.stage.ingest': 'Ingest',
   'extract.stage.validation': 'Validare',
   'extract.openSong': 'Deschide cântarea',
+  'extract.link': 'Leagă în bibliotecă',
+  'extract.linking': 'Se leagă…',
   'extract.serviceDown': 'Serviciul de extragere nu rulează (npm run poc îl pornește)',
   'hub.extract': 'Extrage cântare',
   'hub.extract.desc': 'YouTube → versuri, acorduri, stem-uri',

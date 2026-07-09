@@ -196,6 +196,8 @@ export const en: Record<MessageKey, string> = {
   'extract.stage.ingest': 'Ingest',
   'extract.stage.validation': 'Validation',
   'extract.openSong': 'Open the song',
+  'extract.link': 'Link to library',
+  'extract.linking': 'Linking…',
   'extract.serviceDown': 'The LaudStudio service is not running (npm run poc starts it)',
   'hub.extract': 'Extract song',
   'hub.extract.desc': 'YouTube → lyrics, chords, stems',
