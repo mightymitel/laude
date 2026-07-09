@@ -1,7 +1,7 @@
 /**
- * Extractor UI: paste a YouTube link (+ optional melodia.ro reference), watch
+ * LaudStudio extraction UI: paste a YouTube link (+ optional melodia.ro reference), watch
  * the pipeline stages, open the song when it lands. Talks to the local
- * extractor service (apps/extractor src/server.ts, port 3002).
+ * LaudStudio service (apps/laudstudio src/server.ts, port 3002).
  */
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';

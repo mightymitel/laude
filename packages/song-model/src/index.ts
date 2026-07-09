@@ -1,5 +1,5 @@
 /**
- * @laude/song-model — the Firestore data contract shared by Extractor, Laudasist and LauDJ.
+ * @laude/song-model — the Firestore data contract shared by LaudStudio, Laudasist and LauDJ.
  * Mirrors "Firebase Data Model & Contract" (Notion). Song ID = the join key.
  *
  * Rules encoded here:

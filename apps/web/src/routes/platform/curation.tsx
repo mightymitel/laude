@@ -1,5 +1,5 @@
 /**
- * Extractor curation gate: performances grouped by song; "Promote" writes
+ * LaudStudio curation gate: performances grouped by song; "Promote" writes
  * preferred_performance_id onto the song doc (demo sign-in required by rules).
  */
 import { createFileRoute } from '@tanstack/react-router';

@@ -31,7 +31,7 @@ export const en: Record<MessageKey, string> = {
   'hub.stage.desc': 'Stage-readable lyrics + chords',
   'hub.karaoke': 'Karaoke',
   'hub.karaoke.desc': 'Synced lyrics (LRC)',
-  'hub.curation': 'Extractor curation',
+  'hub.curation': 'LaudStudio curation',
   'hub.curation.desc': 'Pick the best-sounding take',
   'hub.laudj': 'LauDJ panel',
   'hub.laudj.desc': 'Mixer, transport, pads (separate app)',
@@ -177,7 +177,7 @@ export const en: Record<MessageKey, string> = {
   'laudj.queue.nowPlaying': 'Playing',
   'laudj.queue.dragHint': 'Drag to reorder',
 
-  // --- extractor UI keys ---
+  // --- LaudStudio extraction UI keys ---
   'extract.title': 'Extract a song',
   'extract.youtube': 'YouTube link (song with on-screen lyrics)',
   'extract.reference': 'Reference chart link (optional, melodia.ro)',
@@ -197,7 +197,7 @@ export const en: Record<MessageKey, string> = {
   'extract.stage.ingest': 'Ingest',
   'extract.stage.validation': 'Validation',
   'extract.openSong': 'Open the song',
-  'extract.serviceDown': 'The extractor service is not running (npm run poc starts it)',
+  'extract.serviceDown': 'The LaudStudio service is not running (npm run poc starts it)',
   'hub.extract': 'Extract song',
   'hub.extract.desc': 'YouTube → lyrics, chords, stems',
 };

@@ -31,7 +31,7 @@ export const ro = {
   'hub.stage.desc': 'Versuri + acorduri pentru scenă',
   'hub.karaoke': 'Karaoke',
   'hub.karaoke.desc': 'Versuri sincronizate (LRC)',
-  'hub.curation': 'Curare Extractor',
+  'hub.curation': 'Curare LaudStudio',
   'hub.curation.desc': 'Alege cea mai bună interpretare',
   'hub.laudj': 'Panou LauDJ',
   'hub.laudj.desc': 'Mixer, transport, paduri (aplicație separată)',
@@ -184,7 +184,7 @@ export const ro = {
   'laudj.queue.nowPlaying': 'În redare',
   'laudj.queue.dragHint': 'Trage pentru a reordona',
 
-  // --- extractor UI keys ---
+  // --- LaudStudio extraction UI keys ---
   'extract.title': 'Extrage o cântare',
   'extract.youtube': 'Link YouTube (cântare cu versuri pe ecran)',
   'extract.reference': 'Link partitură de referință (opțional, melodia.ro)',
