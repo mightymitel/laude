@@ -1,11 +1,19 @@
 # Firebase App Hosting configuration
 # https://firebase.google.com/docs/app-hosting
+#
+# NOT WIRED YET: this repo is not connected to an App Hosting backend —
+# laudasist.ro still deploys from the frozen laudasist repo (WP-98). Kept
+# current so connecting it (post WP-96 audit) is a decision, not a rewrite.
 
-# Override build and run commands to disable Next.js framework adapter
-# and use Express.js instead
+runConfig:
+  # DELIBERATE (DEC-53): the relay holds authoritative session state in RAM —
+  # two instances would be two divergent sessions. Do not raise this without
+  # a shared-state adapter (Redis) or session-code sharding.
+  maxInstances: 1
+
 scripts:
-  buildCommand: cd apps/api && npm install --include=dev && npm run build
-  runCommand: node apps/api/dist/index.js
+  buildCommand: npm ci --include=dev && npm run apphosting:build
+  runCommand: npm start -w apps/api
 
 env:
   - variable: NODE_ENV

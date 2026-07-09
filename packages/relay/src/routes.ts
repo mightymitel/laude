@@ -10,7 +10,7 @@
  */
 import { Router, type Request, type Response } from 'express';
 import type { InitialSessionState, SessionPatch } from '@laude/session';
-import { ownerIdFromToken } from './firebase';
+import { resolveOwnerId, type RelayAdapters } from './adapters';
 import { SessionStore, viewerView } from './state';
 
 export interface RelayEvents {
@@ -39,13 +39,17 @@ function patchFromBody(body: unknown): SessionPatch {
   return patch;
 }
 
-async function requireOwner(req: Request, res: Response): Promise<string | null> {
+async function requireOwner(
+  adapters: RelayAdapters,
+  req: Request,
+  res: Response,
+): Promise<string | null> {
   const header = req.headers.authorization;
   if (!header?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Missing authorization header' });
     return null;
   }
-  const ownerId = await ownerIdFromToken(header.slice('Bearer '.length));
+  const ownerId = await resolveOwnerId(adapters, header.slice('Bearer '.length));
   if (!ownerId) {
     res.status(401).json({ error: 'Invalid token' });
     return null;
@@ -53,11 +57,15 @@ async function requireOwner(req: Request, res: Response): Promise<string | null>
   return ownerId;
 }
 
-export function sessionRoutes(store: SessionStore, events: RelayEvents): Router {
+export function sessionRoutes(
+  store: SessionStore,
+  events: RelayEvents,
+  adapters: RelayAdapters,
+): Router {
   const router = Router();
 
   router.post('/live', async (req, res) => {
-    const ownerId = await requireOwner(req, res);
+    const ownerId = await requireOwner(adapters, req, res);
     if (!ownerId) return;
     const body =
       typeof req.body === 'object' && req.body !== null ? (req.body as Record<string, unknown>) : {};
@@ -77,7 +85,7 @@ export function sessionRoutes(store: SessionStore, events: RelayEvents): Router 
   });
 
   router.delete('/live/:id', async (req, res) => {
-    const ownerId = await requireOwner(req, res);
+    const ownerId = await requireOwner(adapters, req, res);
     if (!ownerId) return;
     const session = store.byId(req.params.id ?? '');
     if (!session) {

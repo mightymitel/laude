@@ -16,6 +16,7 @@ import {
   type SessionState,
   type SnapshotPayload,
   type StateSync,
+  SESSION_PROTOCOL_VERSION,
 } from './types';
 import type { SessionChange, SessionIdentity, SessionTransport, Unsubscribe } from './transport';
 
@@ -98,6 +99,7 @@ export class SessionClient implements SessionTransport {
           code: options.code ?? null,
           auth: options.auth ?? null,
           member: options.member,
+          protocol: SESSION_PROTOCOL_VERSION,
         });
       });
       socket.on(EVENTS.snapshot, (payload: SnapshotPayload) => {

@@ -127,6 +127,16 @@ export interface SessionPatch {
   directives?: Record<string, Partial<ViewportDirectives>>;
 }
 
+/**
+ * Session socket protocol version (WP-99). LauDJ and LaudStudio are
+ * INSTALLED desktop apps updated on the user's schedule; Laudasist is a web
+ * app updated on deploy — the monorepo hides that asymmetry until it fails
+ * on a Sunday morning. The join handshake carries this number; the relay
+ * refuses incompatible clients with a message the user can act on. Bump it
+ * on ANY breaking change to the events or payload shapes below.
+ */
+export const SESSION_PROTOCOL_VERSION = 1;
+
 /** Socket event names — single source for client + relay. */
 export const EVENTS = {
   join: 'session:join',

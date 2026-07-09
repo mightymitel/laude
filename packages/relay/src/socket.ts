@@ -9,6 +9,7 @@ import type { Server, Socket } from 'socket.io';
 import type { PresenterKind } from '@laude/song-model';
 import {
   EVENTS,
+  SESSION_PROTOCOL_VERSION,
   type DjManifestEntry,
   type DjMode,
   type SessionMember,
@@ -16,9 +17,8 @@ import {
   type SessionRole,
   type SessionState,
 } from '@laude/session';
+import { resolveOwnerId, type RelayAdapters } from './adapters';
 import { SessionStore, viewerView } from './state';
-import { ownerIdFromToken } from './firebase';
-import { mirrorSession } from './mirror';
 
 interface SocketContext {
   sessionId: string;
@@ -47,12 +47,13 @@ function identityOf(v: unknown): { id: string; name: string; kind: PresenterKind
 }
 
 async function resolveJoin(
+  adapters: RelayAdapters,
   store: SessionStore,
   code: string | null,
   auth: string | null,
 ): Promise<{ session: SessionState; role: SessionRole } | null> {
   if (auth) {
-    const ownerId = await ownerIdFromToken(auth);
+    const ownerId = await resolveOwnerId(adapters, auth);
     if (ownerId) {
       const session = store.activeByOwner(ownerId);
       if (session) return { session, role: 'owner' };
@@ -62,10 +63,29 @@ async function resolveJoin(
   return null;
 }
 
-export function wireSockets(io: Server, store: SessionStore): void {
+export function wireSockets(
+  io: Server,
+  store: SessionStore,
+  adapters: RelayAdapters,
+  mirrorWrite: (session: SessionState) => void,
+): void {
   io.on('connection', (socket: Socket) => {
     socket.on(EVENTS.join, (payload: unknown) => {
       const p = typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {};
+      // Protocol handshake (WP-99): installed desktop clients (LauDJ,
+      // LaudStudio) update on the user's schedule; refuse an incompatible
+      // client EXPLICITLY, with a message the user can act on — never let a
+      // silent shape mismatch surface as a broken session mid-service.
+      const protocol = typeof p.protocol === 'number' ? p.protocol : 0;
+      if (protocol !== SESSION_PROTOCOL_VERSION) {
+        socket.emit(
+          'joinError',
+          protocol < SESSION_PROTOCOL_VERSION
+            ? `This app speaks session protocol v${protocol} but the server speaks v${SESSION_PROTOCOL_VERSION} — update the app (LauDJ/LaudStudio), then rejoin.`
+            : `This app speaks session protocol v${protocol} but the server only speaks v${SESSION_PROTOCOL_VERSION} — the server needs updating.`,
+        );
+        return;
+      }
       const code = typeof p.code === 'string' && p.code !== '' ? p.code : null;
       const auth = typeof p.auth === 'string' && p.auth !== '' ? p.auth : null;
       const identity = identityOf(p.member);
@@ -74,7 +94,7 @@ export function wireSockets(io: Server, store: SessionStore): void {
         return;
       }
 
-      void resolveJoin(store, code, auth).then((resolved) => {
+      void resolveJoin(adapters, store, code, auth).then((resolved) => {
         if (!resolved) {
           socket.emit('joinError', 'Session not found or ended');
           return;
@@ -109,7 +129,7 @@ export function wireSockets(io: Server, store: SessionStore): void {
         updated_by: updated.updated_by,
         updated_at: updated.updated_at,
       });
-      mirrorSession(updated);
+      mirrorWrite(updated);
     });
 
     socket.on(EVENTS.djManifest, (entries: DjManifestEntry[]) => {

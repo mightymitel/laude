@@ -2,7 +2,7 @@
   "name": "laude",
   "version": "0.1.0",
   "private": true,
-  "description": "Worship Platform monorepo — Laudasist (apps/web + apps/api, Firebase), the session relay (apps/relay), LauDJ (apps/laudj) and LaudStudio (apps/studio) over shared @laude/* packages.",
+  "description": "Worship Platform monorepo \u2014 Laudasist (apps/web + apps/api, Firebase), the session relay (apps/relay), LauDJ (apps/laudj) and LaudStudio (apps/studio) over shared @laude/* packages.",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -13,7 +13,6 @@
     "emulators": "firebase emulators:start --project demo-laude --import .emulator-data --export-on-exit .emulator-data",
     "dev:web": "npm run dev -w apps/web",
     "dev:api": "npm run dev -w apps/api",
-    "dev:relay": "npm run dev -w apps/relay",
     "dev:laudj": "npm run dev -w apps/laudj",
     "build": "npm run build --workspaces --if-present",
     "lint": "eslint . --ext .ts,.tsx",

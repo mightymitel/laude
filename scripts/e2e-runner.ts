@@ -61,12 +61,7 @@ async function run() {
         while (webPort === apiPort) {
             webPort = await getFreePort();
         }
-        let relayPort = await getFreePort();
-        while (relayPort === apiPort || relayPort === webPort) {
-            relayPort = await getFreePort();
-        }
-
-        console.log(`[E2E Setup] Ports - API: ${apiPort}, Web: ${webPort}, Relay: ${relayPort}`);
+        console.log(`[E2E Setup] Ports - API (REST + relay): ${apiPort}, Web: ${webPort}`);
 
         // --- Firebase emulator (auth 9099 + firestore 8080): reuse or start ---
         const emulatorUp = (await isPortOpen(8080)) && (await isPortOpen(9099));
@@ -107,9 +102,8 @@ async function run() {
             ...emulatorEnv,
             TEST_API_PORT: apiPort.toString(),
             TEST_WEB_PORT: webPort.toString(),
-            TEST_RELAY_PORT: relayPort.toString(),
             VITE_API_URL: `http://localhost:${apiPort}`,
-            VITE_RELAY_URL: `http://localhost:${relayPort}`,
+            VITE_RELAY_URL: `http://localhost:${apiPort}`,
             ...(chromium ? { PLAYWRIGHT_CHROMIUM_PATH: chromium } : {}),
             CI: process.env.CI || 'true',
         };

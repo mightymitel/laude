@@ -2,7 +2,6 @@ import { defineConfig, devices } from '@playwright/test';
 
 const API_PORT = process.env.TEST_API_PORT || '3001';
 const WEB_PORT = process.env.TEST_WEB_PORT || '5173';
-const RELAY_PORT = process.env.TEST_RELAY_PORT || '3003';
 
 // The whole stack runs against the Firebase EMULATOR (never real data);
 // scripts/e2e-runner.ts boots it, seeds fixtures and picks free ports.
@@ -42,13 +41,7 @@ export default defineConfig({
             timeout: 30000,
         },
         {
-            command: `${EMULATOR_ENV} RELAY_PORT=${RELAY_PORT} npm run dev -w apps/relay`,
-            url: `http://localhost:${RELAY_PORT}/health`,
-            reuseExistingServer: !process.env.CI,
-            timeout: 30000,
-        },
-        {
-            command: `VITE_API_URL=http://localhost:${API_PORT} VITE_RELAY_URL=http://localhost:${RELAY_PORT} npm run dev -w apps/web -- --port ${WEB_PORT} --strictPort`,
+            command: `VITE_API_URL=http://localhost:${API_PORT} VITE_RELAY_URL=http://localhost:${API_PORT} npm run dev -w apps/web -- --port ${WEB_PORT} --strictPort`,
             url: `http://localhost:${WEB_PORT}`,
             reuseExistingServer: !process.env.CI,
             timeout: 30000,

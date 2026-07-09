@@ -26,7 +26,7 @@ import { fetchCatalog } from './studio';
 export const RELAY_URL: string =
   typeof import.meta.env?.VITE_RELAY_URL === 'string'
     ? import.meta.env.VITE_RELAY_URL
-    : 'http://localhost:3003';
+    : 'http://localhost:3001'; // the relay is a module inside the api (DEC-52)
 
 const CODE_STORAGE_KEY = 'laudj.presenterCode';
 

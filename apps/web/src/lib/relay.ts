@@ -1,2 +1,4 @@
-/** Session relay base URL (apps/relay) — REST + socket.io on one port. */
-export const RELAY_URL: string = import.meta.env.VITE_RELAY_URL || 'http://localhost:3003'
+/** Session relay base URL — the relay is a module INSIDE the api (DEC-52):
+ * REST under /api/sessions + socket.io on the same origin. */
+export const RELAY_URL: string =
+  import.meta.env.VITE_RELAY_URL || import.meta.env.VITE_API_URL || 'http://localhost:3001'

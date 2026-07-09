@@ -4,16 +4,21 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
+import { createRelay } from '@laude/relay';
+import { Server as SocketServer } from 'socket.io';
 import { initializeFirebase } from './config/firebase.js';
+import { relayAdapters } from './relay/adapters.js';
 import { authMiddleware } from './middleware/auth.js';
 import usersRouter from './routes/users.js';
 import songsRouter from './routes/songs.js';
 import servicesRouter from './routes/services.js';
 import importRouter from './routes/import.js';
 
-// NOTE: live sessions moved OUT of this API — the stateful session relay
-// (apps/relay) owns session state, links, roster and the socket transport
-// (Session & Realtime Sync spec). This server is pure REST now.
+// The session relay is a MODULE mounted here (DEC-52/WP-95): one Express +
+// socket.io App Hosting backend, pinned to a single instance (RAM-
+// authoritative session state cannot scale horizontally — DEC-53). The
+// Firestore mirror + token verification are injected adapters, so a light
+// LAN build constructs the same relay with none.
 
 const app = express();
 const httpServer = createServer(app);
@@ -82,8 +87,20 @@ async function start() {
         // Initialize Firebase Admin
         initializeFirebase();
 
+        // Session relay: REST under /api/sessions + the socket fast path.
+        const relay = createRelay(relayAdapters());
+        app.use('/api/sessions', relay.router);
+        const io = new SocketServer(httpServer, { cors: { origin: true } });
+        relay.attach(io);
+        // Bounded: a slow mirror must never block the relay from serving.
+        const restored = await Promise.race([
+            relay.rehydrate(),
+            new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
+        ]);
+        if (restored > 0) console.log(`relay: rehydrated ${restored} active session(s) from the mirror`);
+
         httpServer.listen(PORT, () => {
-            console.log(`🚀 API server running on http://localhost:${PORT}`);
+            console.log(`🚀 API server running on http://localhost:${PORT} (REST + session relay)`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
