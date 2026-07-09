@@ -133,6 +133,9 @@ export const ro = {
   'laudj.pad.interlude': 'Interludiu',
   'laudj.followSession': 'Urmărește sesiunea',
   'laudj.session.none': 'Nicio sesiune activă',
+  'laudj.session.codePlaceholder': 'Cod',
+  'laudj.session.join': 'Intră în sesiune',
+  'laudj.session.leave': 'Ieși',
   'laudj.keyTempo': 'Tonalitate & tempo',
 
   // --- laudj extra keys ---

@@ -124,6 +124,9 @@ export const en: Record<MessageKey, string> = {
   'laudj.pad.interlude': 'Interlude',
   'laudj.followSession': 'Follow session',
   'laudj.session.none': 'No active session',
+  'laudj.session.codePlaceholder': 'Code',
+  'laudj.session.join': 'Join session',
+  'laudj.session.leave': 'Leave',
   'laudj.keyTempo': 'Key & tempo',
 
   // --- laudj extra keys ---
