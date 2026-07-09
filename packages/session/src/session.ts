@@ -35,6 +35,7 @@ export class WorshipSession {
   private transportUnsub: Unsubscribe;
   private listeners = new Set<(change: SessionChange) => void>();
   private liveId: string | null = null;
+  private disposed = false;
 
   constructor(readonly me: SessionIdentity) {
     this.transport = new LocalTransport(me);
@@ -61,6 +62,14 @@ export class WorshipSession {
   }
 
   subscribe(cb: (change: SessionChange) => void): Unsubscribe {
+    // Revive after dispose(): React StrictMode double-invokes effects, so a
+    // mount→cleanup→mount cycle disposes and immediately re-subscribes the
+    // SAME instance. Local transports re-attach losslessly; a live socket
+    // cannot be revived (real unmounts never resubscribe, so that's fine).
+    if (this.disposed) {
+      this.disposed = false;
+      this.transportUnsub = this.transport.subscribe((change) => this.forward(change));
+    }
     this.listeners.add(cb);
     const s = this.state;
     if (s) cb({ state: s, external: false, writerKind: null });
@@ -127,8 +136,9 @@ export class WorshipSession {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.transportUnsub();
-    this.transport.close();
+    if (this.transport.kind === 'relay') this.transport.close();
     this.listeners.clear();
   }
 

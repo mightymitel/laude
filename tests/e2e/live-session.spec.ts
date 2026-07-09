@@ -40,10 +40,12 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         const shareModal = page.locator('text=Share Session');
         await expect(shareModal).toBeVisible();
 
-        // Verify viewport selector buttons are present
-        await expect(page.locator('button:has-text("Audience")')).toBeVisible();
-        await expect(page.locator('button:has-text("Instrument")')).toBeVisible();
-        await expect(page.locator('button:has-text("Stage")')).toBeVisible();
+        // Verify viewport selector buttons are present (scoped to the modal —
+        // the session header's directives bar also has stage/instrument buttons)
+        const modal = page.locator('[class*="qrModal"]');
+        await expect(modal.locator('button:has-text("Audience")')).toBeVisible();
+        await expect(modal.locator('button:has-text("Instrument")')).toBeVisible();
+        await expect(modal.locator('button:has-text("Stage")')).toBeVisible();
 
         // Close modal
         await page.click('button:has-text("Close")', { force: true });
@@ -89,20 +91,24 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         const viewportDropdown = viewerPage.locator('[data-testid="viewport-select"]');
         await expect(viewportDropdown).toBeVisible({ timeout: 5000 });
 
-        // Verify dropdown has viewport options
+        // Verify dropdown has the viewport-contract preset classes
+        // (v1: 'audience' was renamed to 'main' — see docs/VIEWPORT_CONTRACT.md)
         const options = await viewportDropdown.locator('option').allTextContents();
-        expect(options.some(o => o.includes('Audience'))).toBeTruthy();
+        expect(options.some(o => o.includes('Main'))).toBeTruthy();
         expect(options.some(o => o.includes('Instrument'))).toBeTruthy();
         expect(options.some(o => o.includes('Stage'))).toBeTruthy();
+        expect(options.some(o => o.includes('Subtitles'))).toBeTruthy();
 
         // Chord style selector should be visible in stage mode
         const chordStyleDropdown = viewerPage.locator('[data-testid="chord-style-select"]');
         await expect(chordStyleDropdown).toBeVisible();
 
-        // Verify chord style options
+        // Verify chord notation options come from the @laude/chords registry
+        // (device-notation per DEC-42/45; replaces the fixed 4-style select)
         const chordOptions = await chordStyleDropdown.locator('option').allTextContents();
-        expect(chordOptions.some(o => o.includes('Letters'))).toBeTruthy();
+        expect(chordOptions.some(o => o.includes('English'))).toBeTruthy();
         expect(chordOptions.some(o => o.includes('Nashville'))).toBeTruthy();
+        expect(chordOptions.some(o => o.includes('Do Re Mi'))).toBeTruthy();
 
         // End session from presenter page
         await page.click('button:has-text("End Live")');
