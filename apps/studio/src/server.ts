@@ -10,6 +10,11 @@
  *   POST /link/:localSongId { song_id }                -> link to a confirmed global song
  *   POST /mint/:localSongId                            -> mint a new private global song
  *   POST /unlink/:localSongId                          -> drop the link (chart re-editable)
+ *   PUT  /songs/:id/chart { chordpro }                 -> edit the chart (ownership lock)
+ *   POST /songs/:id/rekey { key }                      -> rotate degrees (analysis key fix)
+ *   GET  /performances/:id/map                         -> mapping rows (review states)
+ *   POST /performances/:id/map { section_id, ... }     -> human review of one row
+ *   POST /performances/:id/edit { op }                 -> interpretation edit op
  *   GET  /health
  * Node stdlib only for HTTP; state lives in the SQLite store (src/store).
  */
@@ -17,6 +22,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { enqueueJob, listJobs, YOUTUBE_URL } from './service/jobs';
 import { catalogBody, performanceBody, resolveAudio, streamAudio } from './service/catalog';
 import { authState, signIn, signOut } from './service/auth';
+import { applyEdit, rekeySong, reviewMapRow, setChart, chartAccess, type EditOperation, type MapReviewAction } from './editor';
 import { bridgeCandidates, linkToSong, mintSong, unlinkLocalSong } from './service/link';
 import { LocalStore } from './store';
 
@@ -124,11 +130,103 @@ const server = createServer((req, res) => {
     json(res, 200, catalogBody(store));
     return;
   }
+  if (method === 'PUT' && path.startsWith('/songs/') && path.endsWith('/chart')) {
+    const id = decodeURIComponent(path.slice('/songs/'.length, -'/chart'.length));
+    void (async () => {
+      try {
+        const parsed: unknown = JSON.parse(await readBody(req));
+        const chordpro =
+          typeof parsed === 'object' && parsed !== null && typeof (parsed as { chordpro?: unknown }).chordpro === 'string'
+            ? (parsed as { chordpro: string }).chordpro
+            : null;
+        if (chordpro === null) {
+          json(res, 400, { error: 'chordpro is required' });
+          return;
+        }
+        const result = await setChart(store, id, chordpro);
+        json(res, result.ok ? 200 : 403, result);
+      } catch (err) {
+        json(res, 500, { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
+    return;
+  }
+  if (method === 'POST' && path.startsWith('/songs/') && path.endsWith('/rekey')) {
+    const id = decodeURIComponent(path.slice('/songs/'.length, -'/rekey'.length));
+    void (async () => {
+      try {
+        const parsed: unknown = JSON.parse(await readBody(req));
+        const key =
+          typeof parsed === 'object' && parsed !== null && typeof (parsed as { key?: unknown }).key === 'string'
+            ? (parsed as { key: string }).key
+            : null;
+        if (key === null) {
+          json(res, 400, { error: 'key is required' });
+          return;
+        }
+        const result = await rekeySong(store, id, key);
+        json(res, result.ok ? 200 : 403, result);
+      } catch (err) {
+        json(res, 500, { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
+    return;
+  }
+  if (method === 'GET' && path.startsWith('/songs/') && path.endsWith('/access')) {
+    const id = decodeURIComponent(path.slice('/songs/'.length, -'/access'.length));
+    const song = store.getLocalSong(id);
+    if (!song) {
+      json(res, 404, { error: 'unknown local song' });
+      return;
+    }
+    chartAccess(song).then(
+      (access) => json(res, 200, { access }),
+      (err: unknown) => json(res, 500, { error: err instanceof Error ? err.message : String(err) }),
+    );
+    return;
+  }
   if (method === 'GET' && path.startsWith('/songs/')) {
     const id = decodeURIComponent(path.slice('/songs/'.length));
     const body = store.getSongDetail(id);
     if (body === null) json(res, 404, { error: 'unknown local song' });
     else json(res, 200, body);
+    return;
+  }
+  if (method === 'GET' && path.startsWith('/performances/') && path.endsWith('/map')) {
+    const id = decodeURIComponent(path.slice('/performances/'.length, -'/map'.length));
+    json(res, 200, { rows: store.getSectionPartMap(id), sections: store.getSections(id) });
+    return;
+  }
+  if (method === 'POST' && path.startsWith('/performances/') && path.endsWith('/map')) {
+    const id = decodeURIComponent(path.slice('/performances/'.length, -'/map'.length));
+    void (async () => {
+      try {
+        const parsed = JSON.parse(await readBody(req)) as { section_id?: string } & MapReviewAction;
+        if (typeof parsed.section_id !== 'string') {
+          json(res, 400, { error: 'section_id is required' });
+          return;
+        }
+        reviewMapRow(store, id, parsed.section_id, parsed);
+        json(res, 200, { ok: true, rows: store.getSectionPartMap(id) });
+      } catch (err) {
+        json(res, 400, { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
+    return;
+  }
+  if (method === 'POST' && path.startsWith('/performances/') && path.endsWith('/edit')) {
+    void (async () => {
+      try {
+        const parsed = JSON.parse(await readBody(req)) as { op?: EditOperation };
+        if (!parsed.op || typeof parsed.op !== 'object') {
+          json(res, 400, { error: 'op is required' });
+          return;
+        }
+        json(res, 200, { ok: true, result: applyEdit(store, parsed.op) });
+      } catch (err) {
+        json(res, 400, { error: err instanceof Error ? err.message : String(err) });
+      }
+    })();
     return;
   }
   if (method === 'GET' && path.startsWith('/performances/')) {

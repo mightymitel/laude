@@ -11,7 +11,7 @@
     "extract": "bash extract.sh",
     "serve": "tsx src/server.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "tsx --test src/store/store.test.ts src/service/auth.test.ts src/service/bridge.test.ts"
+    "test": "tsx --test src/store/store.test.ts src/service/auth.test.ts src/service/bridge.test.ts src/editor/editor.test.ts"
   },
   "dependencies": {
     "@laude/chords": "file:../../packages/chords",

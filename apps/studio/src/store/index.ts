@@ -392,6 +392,46 @@ export class LocalStore {
     return rows;
   }
 
+  getBeatgrid(performanceId: string): { bpm: number; beats: number[]; downbeats: number[] } | null {
+    const r = this.db
+      .prepare('SELECT bpm, beats, downbeats FROM beatgrid WHERE performance_id = ?')
+      .get(performanceId) as { bpm: number; beats: string; downbeats: string } | undefined;
+    if (!r) return null;
+    return {
+      bpm: Number(r.bpm),
+      beats: JSON.parse(r.beats) as number[],
+      downbeats: JSON.parse(r.downbeats) as number[],
+    };
+  }
+
+  getChordEvents(performanceId: string): ChordEvent[] {
+    const r = this.db
+      .prepare('SELECT data FROM chord_events WHERE performance_id = ?')
+      .get(performanceId) as { data: string } | undefined;
+    return r ? (JSON.parse(r.data) as ChordEvent[]) : [];
+  }
+
+  /** Upsert a single mapping row (editor review — source human). */
+  setSectionPartMapRow(performanceId: string, row: SectionPartMapRow): void {
+    this.db
+      .prepare(
+        `INSERT INTO section_part_map (section_id, performance_id, part_label, part_ordinal, is_instrumental, accepted, confidence, source)
+         VALUES (@section_id, @performance_id, @part_label, @part_ordinal, @is_instrumental, @accepted, @confidence, @source)
+         ON CONFLICT(section_id) DO UPDATE SET part_label=@part_label, part_ordinal=@part_ordinal,
+           is_instrumental=@is_instrumental, accepted=@accepted, confidence=@confidence, source=@source`,
+      )
+      .run({
+        ...row,
+        performance_id: performanceId,
+        is_instrumental: row.is_instrumental ? 1 : 0,
+        accepted: row.accepted ? 1 : 0,
+      });
+  }
+
+  deleteSectionPartMapRow(sectionId: string): void {
+    this.db.prepare('DELETE FROM section_part_map WHERE section_id = ?').run(sectionId);
+  }
+
   getSectionPartMap(performanceId: string): SectionPartMapRow[] {
     const rows = this.db
       .prepare('SELECT * FROM section_part_map WHERE performance_id = ?')
