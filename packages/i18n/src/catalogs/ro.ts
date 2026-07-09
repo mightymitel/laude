@@ -59,6 +59,7 @@ export const ro = {
   'laudj.session.none': 'Nicio sesiune activă',
   'laudj.session.codePlaceholder': 'Cod',
   'laudj.session.join': 'Intră în sesiune',
+  'laudj.session.instrumental': 'Instrumental',
   'laudj.session.leave': 'Ieși',
   'laudj.mode.companion': 'Însoțitor',
   'laudj.mode.playback': 'Conduce',

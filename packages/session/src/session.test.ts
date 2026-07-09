@@ -103,3 +103,17 @@ test('portable playlist parse rejects junk and future versions', () => {
   const badSong = parsePortable({ format_version: 1, songs: [{ songId: 's', song: { id: 's' } }] });
   assert.equal(badSong.ok, false, 'malformed by-value payload fails the import honestly');
 });
+
+test("'instrumental' is a first-class current.part value (DEC-62)", () => {
+  const session = new WorshipSession(ME);
+  session.setCurrent({ song_id: 'song-1', section_index: 2 });
+  session.setCurrent({ section_index: 'instrumental' });
+  const s = session.state!;
+  assert.equal(s.current.section_index, 'instrumental');
+  assert.equal(s.current.song_id, 'song-1', 'the song holds; only the part is instrumental');
+  // It is STATE: the durable slice (late-join snapshot seed) carries it.
+  assert.equal(durableSlice(s).current.section_index, 'instrumental');
+  // And a later numeric announce replaces it cleanly.
+  session.setCurrent({ section_index: 0 });
+  assert.equal(session.state?.current.section_index, 0);
+});

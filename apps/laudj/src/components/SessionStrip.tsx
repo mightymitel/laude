@@ -72,11 +72,13 @@ export function SessionStrip({ state }: { state: EngineState }) {
     ? (songs.find((s) => s.song_id === current.song_id)?.title ?? current.song_id)
     : t('session.noSong');
   const sectionLabel =
-    current && state.transport.song_id === current.song_id
-      ? (state.transport.sections[current.section_index]?.label ?? `#${current.section_index + 1}`)
-      : current
-        ? `#${current.section_index + 1}`
-        : '—';
+    current === null
+      ? '—'
+      : current.section_index === 'instrumental'
+        ? t('laudj.session.instrumental')
+        : state.transport.song_id === current.song_id
+          ? (state.transport.sections[current.section_index]?.label ?? `#${current.section_index + 1}`)
+          : `#${current.section_index + 1}`;
 
   if (joinedCode === null) {
     return (

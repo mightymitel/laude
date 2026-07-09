@@ -39,7 +39,9 @@ export function useSessionSongState(playlistId: string | undefined) {
 
     // === DERIVED STATE (always from the session, solo or live) ===
     const currentSongId = state?.current.song_id ?? null
-    const currentPartIndex = state?.current.section_index ?? 0
+    // 'instrumental' (DEC-62) renders as no highlighted part on the owner surface.
+    const rawPartIndex = state?.current.section_index ?? 0
+    const currentPartIndex = typeof rawPartIndex === 'number' ? rawPartIndex : -1
     const displayKey = asKey(state?.current.key ?? null)
     const sessionPlaylist = useMemo(() => state?.sessionPlaylist ?? [], [state])
 

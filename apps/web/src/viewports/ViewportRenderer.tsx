@@ -20,7 +20,8 @@ export function directivesFor(state: SessionState, cls: ViewportClass): Viewport
 
 interface RenderSlice {
   song: NonNullable<SessionState['currentSong']>
-  partIndex: number
+  /** Part index, or 'instrumental' — a first-class value (DEC-62). */
+  partIndex: number | 'instrumental'
   displayKey: string
 }
 
@@ -47,7 +48,13 @@ export function ViewportRenderer({
 
   // FREEZE holds the last rendered slice; live updates keep flowing past us.
   const frozenRef = useRef<RenderSlice | null>(null)
+  // The last NUMERIC part, so instrumental can render "what's next" (stage)
+  // and hold the chords (instrument) — DEC-62 rendering rules.
+  const lastNumericPartRef = useRef(0)
   const liveSlice = sliceOf(state)
+  if (liveSlice && typeof liveSlice.partIndex === 'number') {
+    lastNumericPartRef.current = liveSlice.partIndex
+  }
   if (!directives.freeze) {
     frozenRef.current = liveSlice
   }
@@ -75,10 +82,44 @@ export function ViewportRenderer({
     )
   }
 
-  const { song, partIndex, displayKey } = slice
+  const { song, displayKey } = slice
+  const showChords = preset.shows.chords && options.showChords
+
+  // INSTRUMENTAL (DEC-62): each class renders it by its own rule —
+  // main goes dark · subtitles go empty · stage shows "instrumental · next" ·
+  // instrument keeps the chords of the last announced part.
+  if (slice.partIndex === 'instrumental') {
+    if (viewportClass === 'main') {
+      return <div className={`${styles.viewport} ${styles[options.background]} ${styles.blank}`} />
+    }
+    if (preset.shows.oneLine) {
+      return <div className={`${styles.viewport} ${styles[options.background]} ${styles.subtitles}`} />
+    }
+    const upNext = song.parts[lastNumericPartRef.current + 1]
+    if (viewportClass === 'stage') {
+      return (
+        <div className={`${styles.viewport} ${styles[options.background]}`}>
+          <main className={styles.body} style={{ fontSize: `${1.6 * options.fontScale}rem` }}>
+            <span className={styles.partLabel} data-testid="instrumental">instrumental</span>
+            {upNext && (
+              <div className={styles.nextPart}>
+                <span className={styles.nextLabel}>Next: {upNext.type}</span>
+                {upNext.lines.slice(0, 2).map((line, i) => (
+                  <div key={i}>{stripChordTokens(line.text)}</div>
+                ))}
+              </div>
+            )}
+          </main>
+        </div>
+      )
+    }
+    // instrument: hold the last part's chart through the instrumental break.
+  }
+
+  const partIndex =
+    typeof slice.partIndex === 'number' ? slice.partIndex : lastNumericPartRef.current
   const part = song.parts[partIndex]
   const next = song.parts[partIndex + 1]
-  const showChords = preset.shows.chords && options.showChords
 
   if (preset.shows.oneLine) {
     // Subtitles: minimal single-line output (authored renderer deferred).
@@ -101,7 +142,10 @@ export function ViewportRenderer({
       <main className={styles.body} style={{ fontSize: `${1.6 * options.fontScale}rem` }}>
         {part && (
           <>
-            <span className={styles.partLabel}>{part.type}</span>
+            <span className={styles.partLabel}>
+              {part.type}
+              {slice.partIndex === 'instrumental' ? ' · instrumental' : ''}
+            </span>
             {part.lines.map((line, i) => {
               const rendered = renderLine(line.text, displayKey, options.notation)
               return (

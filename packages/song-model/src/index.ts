@@ -235,10 +235,22 @@ export interface CompanionDirectives {
   interlude: boolean;
 }
 
+/**
+ * The current "part" a session points at (the spec's `current.part`,
+ * DEC-62): an index into the song's part order, or the explicit
+ * INSTRUMENTAL value — a first-class state for stretches of the recording
+ * with no work part (intro, instrumental break, outro). NOT a blank
+ * directive (those are per-target-class and owner-set) and NOT a held
+ * previous part (a stale slide through the outro). Late joiners inherit it
+ * because it is state. Each viewport class renders it by its own rule.
+ */
+export type SessionPartIndex = number | 'instrumental';
+export const INSTRUMENTAL_PART = 'instrumental';
+
 export interface SessionCurrent {
   song_id: SongId | null;
-  /** Index into the song's part/section order (arrangement). */
-  section_index: number;
+  /** Index into the song's part/section order, or 'instrumental' (DEC-62). */
+  section_index: SessionPartIndex;
   /** Display/performance key override; null = the song's own key. */
   key: string | null;
   /** Live tempo as percentage of the performance BPM (100 = as recorded). */

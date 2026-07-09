@@ -50,6 +50,7 @@ export const en: Record<MessageKey, string> = {
   'laudj.session.none': 'No active session',
   'laudj.session.codePlaceholder': 'Code',
   'laudj.session.join': 'Join session',
+  'laudj.session.instrumental': 'Instrumental',
   'laudj.session.leave': 'Leave',
   'laudj.mode.companion': 'Companion',
   'laudj.mode.playback': 'Driving',

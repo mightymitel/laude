@@ -73,7 +73,9 @@ function PresenterPage() {
   }, [client])
 
   const currentSong = session?.currentSong ?? null
-  const currentPartIndex = session?.current.section_index ?? 0
+  // 'instrumental' (DEC-62): no part highlighted; next/prev restart from 0.
+  const rawPartIndex = session?.current.section_index ?? 0
+  const currentPartIndex = typeof rawPartIndex === 'number' ? rawPartIndex : -1
   const displayKey = asKey(session?.current.key ?? currentSong?.defaultKey ?? null)
 
   const nextPart = useCallback(() => {

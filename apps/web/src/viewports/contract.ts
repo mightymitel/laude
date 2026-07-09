@@ -18,7 +18,7 @@
  * Directives (per class, STATE not events — late joiners inherit them):
  *   blank · freeze · message
  */
-export const VIEWPORT_CONTRACT_VERSION = 1;
+export const VIEWPORT_CONTRACT_VERSION = 2;
 
 /** The four preset classes. The directive map is open (string keys) so
  * authored templates can declare new classes without a contract bump. */

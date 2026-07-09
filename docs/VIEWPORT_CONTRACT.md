@@ -1,6 +1,19 @@
-# Viewport Rendering Contract — v1
+# Viewport Rendering Contract — v2
 
-**Version:** 1 (`VIEWPORT_CONTRACT_VERSION` in `apps/web/src/viewports/contract.ts`)
+**Version:** 2 (`VIEWPORT_CONTRACT_VERSION` in `apps/web/src/viewports/contract.ts`)
+
+**v2 (2026-07-09):** `current.section_index` may now be the explicit value
+`'instrumental'` (DEC-62) — a first-class state for stretches of a recording
+with no work part. It is session STATE (late joiners inherit it), not a blank
+directive and not a held previous part. Per-class rendering rules:
+
+| Class | Renders instrumental as |
+| --- | --- |
+| `main` | dark (same visual as blank; other classes stay live) |
+| `stage` | "instrumental" + the part after the last announced one as *Next* |
+| `instrument` | holds the last announced part's chords, labeled `· instrumental` |
+| `subtitles` | empty line |
+
 
 A viewport is an **ordinary viewer of the session**: someone opens the viewer
 link in a browser, picks a viewport, fullscreens it. No special client, no
@@ -21,7 +34,7 @@ holes.
 | `{{song_title}}` | `currentSong.title` | no current song |
 | `{{song_author}}` | `currentSong.author` | author unset |
 | `{{key}}` | `current.key ?? currentSong.originalKey` | no current song |
-| `{{section_name}}` | `currentSong.parts[current.section_index].type` | out of range |
+| `{{section_name}}` | `currentSong.parts[current.section_index].type` | out of range or `'instrumental'` |
 | `{{lyrics}}` | current part lines, chord tokens stripped | no current song |
 | `{{chords}}` | current part chord row | song has no chords / chords hidden |
 | `{{next_part}}` | the part after the current one | last part |

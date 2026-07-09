@@ -182,17 +182,17 @@ export class DjSessionController {
     if (s.transport.song_id === null || s.transport.song_id !== session.current.song_id) return;
 
     // Translate the engine section into a WORK part via the one-way mapping
-    // (ref → session part index at announce time — DEC-56); unmapped sections
-    // keep playing without an announcement (WP-107 upgrades this to an
-    // explicit instrumental announcement).
+    // (ref → session part index at announce time — DEC-56). A section with
+    // no accepted part announces the explicit INSTRUMENTAL value (DEC-62):
+    // never a stale previous part, never a silent hold.
     const section = s.transport.current_section;
     if (section === this.lastAnnounced) return;
     const ref = this.partMaps.get(s.transport.song_id)?.[section] ?? null;
     this.lastAnnounced = section;
-    if (ref === null) return;
-    const idx = partIndexFor(session.currentSong?.parts ?? [], ref);
-    if (idx === null || idx === session.current.section_index) return;
-    this.client.setCurrent({ section_index: idx });
+    const target =
+      ref === null ? 'instrumental' : partIndexFor(session.currentSong?.parts ?? [], ref);
+    if (target === null || target === session.current.section_index) return;
+    this.client.setCurrent({ section_index: target });
   }
 }
 
