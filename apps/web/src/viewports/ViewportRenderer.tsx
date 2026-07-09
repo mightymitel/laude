@@ -6,7 +6,7 @@
  */
 import { useRef } from 'react'
 import type { SessionState, ViewportDirectives } from '@laude/session'
-import { DEFAULT_VIEWPORT_DIRECTIVES } from '@laude/session'
+import { DEFAULT_VIEWPORT_DIRECTIVES, partIndexFor } from '@laude/session'
 import { asKey } from '@/lib/keys'
 import type { ViewportClass, ViewportStyleOptions } from './contract'
 import { VIEWPORT_PRESETS } from './presets'
@@ -95,7 +95,13 @@ export function ViewportRenderer({
     if (preset.shows.oneLine) {
       return <div className={`${styles.viewport} ${styles[options.background]} ${styles.subtitles}`} />
     }
-    const upNext = song.parts[lastNumericPartRef.current + 1]
+    // TRUTH over heuristic (WP-117): a driving DJ announces its actual next
+    // mapped part; only when absent fall back to "last announced + 1".
+    const nextRef = state.current.next_part
+    const truthIdx = nextRef ? partIndexFor(song.parts, nextRef) : null
+    const upNext =
+      (truthIdx !== null ? song.parts[truthIdx] : undefined) ??
+      song.parts[lastNumericPartRef.current + 1]
     if (viewportClass === 'stage') {
       return (
         <div className={`${styles.viewport} ${styles[options.background]}`}>

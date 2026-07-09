@@ -251,6 +251,11 @@ export interface SessionCurrent {
   song_id: SongId | null;
   /** Index into the song's part/section order, or 'instrumental' (DEC-62). */
   section_index: SessionPartIndex;
+  /** The driving DJ's actual NEXT mapped part (WP-117) — lets the stage
+   * viewport show truth during an instrumental instead of a last+1
+   * heuristic (which is wrong exactly on skips/repeats/jumps). Optional:
+   * absent when no driver knows it. */
+  next_part?: WorkPartRef | null;
   /** Display/performance key override; null = the song's own key. */
   key: string | null;
   /** Live tempo as percentage of the performance BPM (100 = as recorded). */

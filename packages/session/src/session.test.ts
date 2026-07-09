@@ -117,3 +117,35 @@ test("'instrumental' is a first-class current.part value (DEC-62)", () => {
   session.setCurrent({ section_index: 0 });
   assert.equal(session.state?.current.section_index, 0);
 });
+
+test('portable playlist v2: a v1 file naming originalKey is explicitly migrated (WP-116)', () => {
+  const v1File = {
+    format_version: 1,
+    name: 'Old export',
+    exported_at: '2026-07-09T00:00:00.000Z',
+    songs: [
+      {
+        id: 'p1',
+        songId: 'song-1',
+        song: {
+          id: 'song-1',
+          title: 'Vechea cântare',
+          originalKey: 'G', // pre-WP-111 field name
+          parts: [{ id: 'V1', type: 'verse', index: 0, lines: [{ text: '[1]la' }] }],
+        },
+      },
+    ],
+  };
+  const parsed = parsePortable(v1File);
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) {
+    assert.equal(parsed.items[0]?.song?.defaultKey, 'G', 'originalKey migrated to defaultKey');
+  }
+  // A modern export carries v2 and defaultKey; round-trips losslessly.
+  const modern = toPortable('New export', parsed.ok ? parsed.items : []);
+  assert.equal(modern.format_version, 2);
+  // A v2 file using the OLD field name is malformed — no silent alias.
+  const badV2 = { ...v1File, format_version: 2 };
+  const rejected = parsePortable(badV2);
+  assert.equal(rejected.ok, false);
+});

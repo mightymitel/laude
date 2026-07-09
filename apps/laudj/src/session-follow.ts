@@ -18,6 +18,7 @@
  */
 import { renderChordPro } from '@laude/chords';
 import type { EngineState } from '@laude/laudj-control-protocol';
+import { partIndexFor } from '@laude/session';
 import type { DjManifestEntry, DjMode, EmbeddedSong, EmbeddedSongPart, SessionChange, SessionClient, SessionState } from '@laude/session';
 import type { CompanionDirectives, LocalSongDetail, Presenter, WorkPartRef } from '@laude/song-model';
 import { engine, padEngine } from './engine';
@@ -57,31 +58,6 @@ export async function buildManifest(): Promise<DjManifestEntry[]> {
     bpm: song.bpm,
     has_stems: song.stems.length > 0,
   }));
-}
-
-/**
- * Resolve a work-part REF (label + ordinal, DEC-56) to an index into the
- * session song's embedded parts — the session contract still addresses parts
- * by index. Label classification mirrors Studio's ingest heuristic (RO + EN).
- */
-export function partIndexFor(parts: EmbeddedSongPart[], ref: WorkPartRef): number | null {
-  const classify = (label: string): { kind: string; n: number } | null => {
-    const lower = label.trim().toLowerCase();
-    const n = Number(/(\d+)/.exec(lower)?.[1] ?? ref.ordinal);
-    if (/(chorus|refren)/.test(lower)) return { kind: 'chorus', n };
-    if (/(bridge|punte)/.test(lower)) return { kind: 'bridge', n };
-    if (/(verse|strofa|vers)/.test(lower)) return { kind: 'verse', n };
-    return null;
-  };
-  const wanted = classify(ref.label);
-  if (!wanted) return null;
-  let occurrence = 0;
-  for (const [i, part] of parts.entries()) {
-    if (part.type !== wanted.kind) continue;
-    occurrence += 1;
-    if (occurrence === wanted.n) return i;
-  }
-  return null;
 }
 
 /** DJ-local chart → by-value session song (Flow 5: display AND audio come
@@ -254,12 +230,16 @@ export class DjSessionController {
     // never a stale previous part, never a silent hold.
     const section = s.transport.current_section;
     if (section === this.lastAnnounced) return;
-    const ref = this.partMaps.get(s.transport.song_id)?.[section] ?? null;
+    const map = this.partMaps.get(s.transport.song_id) ?? [];
+    const ref = map[section] ?? null;
     this.lastAnnounced = section;
+    // The DJ knows its ACTUAL next mapped part (WP-117): the first mapped
+    // section after the playhead — truth for the stage viewport's "next".
+    const nextRef = map.slice(section + 1).find((r) => r !== null) ?? null;
     const target =
       ref === null ? 'instrumental' : partIndexFor(session.currentSong?.parts ?? [], ref);
     if (target === null || target === session.current.section_index) return;
-    this.client.setCurrent({ section_index: target });
+    this.client.setCurrent({ section_index: target, next_part: nextRef });
   }
 }
 

@@ -91,6 +91,35 @@ export const DEFAULT_VIEWPORT_DIRECTIVES: ViewportDirectives = {
  * (string) so authored templates can declare new classes later. */
 export type DirectiveMap = Record<string, ViewportDirectives>;
 
+/**
+ * Resolve a work-part REF (label + ordinal, DEC-56) to an index into a
+ * session song's embedded parts — the session contract addresses parts by
+ * index. Label classification mirrors Studio's ingest heuristic (RO + EN).
+ * Shared by LauDJ (announce time) and the viewports (next_part display).
+ */
+export function partIndexFor(
+  parts: EmbeddedSongPart[],
+  ref: { label: string; ordinal: number },
+): number | null {
+  const classify = (label: string): { kind: string; n: number } | null => {
+    const lower = label.trim().toLowerCase();
+    const n = Number(/(\d+)/.exec(lower)?.[1] ?? ref.ordinal);
+    if (/(chorus|refren)/.test(lower)) return { kind: 'chorus', n };
+    if (/(bridge|punte)/.test(lower)) return { kind: 'bridge', n };
+    if (/(verse|strofa|vers)/.test(lower)) return { kind: 'verse', n };
+    return null;
+  };
+  const wanted = classify(ref.label);
+  if (!wanted) return null;
+  let occurrence = 0;
+  for (const [i, part] of parts.entries()) {
+    if (part.type !== wanted.kind) continue;
+    occurrence += 1;
+    if (occurrence === wanted.n) return i;
+  }
+  return null;
+}
+
 export interface SessionState {
   id: string;
   ownerId: string;

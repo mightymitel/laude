@@ -10,7 +10,7 @@ directive and not a held previous part. Per-class rendering rules:
 | Class | Renders instrumental as |
 | --- | --- |
 | `main` | dark (same visual as blank; other classes stay live) |
-| `stage` | "instrumental" + the part after the last announced one as *Next* |
+| `stage` | "instrumental" + *Next*: the driving DJ's announced `current.next_part` when present (truth), else the part after the last announced one (heuristic) |
 | `instrument` | holds the last announced part's chords, labeled `· instrumental` |
 | `subtitles` | empty line |
 
