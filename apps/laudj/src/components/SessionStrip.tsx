@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react';
 import { Button, Chip, StatusDot } from '@laude/design-system';
 import type { EngineState } from '@laude/laudj-control-protocol';
 import { useT } from '@laude/i18n/react';
-import { SessionClient, type SessionState } from '@laude/session';
+import { SessionClient, type DjMode, type SessionState } from '@laude/session';
 import { engine } from '../engine';
 import {
+  DjSessionController,
   LAUDJ_PRESENTER,
   RELAY_URL,
   buildManifest,
-  handleSessionChange,
   loadSavedCode,
   saveCode,
-  wireWriteBack,
 } from '../session-follow';
 import { useSongs } from '../hooks';
 
@@ -21,18 +20,18 @@ export function SessionStrip({ state }: { state: EngineState }) {
   const [code, setCode] = useState(loadSavedCode);
   const [joinedCode, setJoinedCode] = useState<string | null>(null);
   const [session, setSession] = useState<SessionState | null>(null);
+  const [mode, setMode] = useState<DjMode>('companion');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!joinedCode) return;
     let cancelled = false;
     let client: SessionClient | null = null;
+    let controller: DjSessionController | null = null;
     let unsubSession: (() => void) | undefined;
-    let unsubEngineState: (() => void) | undefined;
-    let unsubWriteBack: (() => void) | undefined;
-    let engineState: EngineState | null = null;
+    let unsubMode: (() => void) | undefined;
 
-    SessionClient.connect({ url: RELAY_URL, code: joinedCode, presenter: LAUDJ_PRESENTER })
+    SessionClient.connect({ url: RELAY_URL, code: joinedCode, member: LAUDJ_PRESENTER })
       .then((c) => {
         if (cancelled) {
           c.leave();
@@ -41,16 +40,10 @@ export function SessionStrip({ state }: { state: EngineState }) {
         client = c;
         setError(null);
         engine.setSessionConnected(true);
-        unsubEngineState = engine.subscribe((s) => {
-          engineState = s;
-        });
-        let prev: SessionState | null = null;
-        unsubSession = c.subscribe((change) => {
-          setSession(change.state);
-          handleSessionChange(change, () => engineState, prev);
-          prev = change.state;
-        });
-        unsubWriteBack = wireWriteBack(c);
+        unsubSession = c.subscribe((change) => setSession(change.state));
+        controller = new DjSessionController(c);
+        controller.start();
+        unsubMode = controller.onMode(setMode);
         // Advertise the local catalog (linked + local-only songs).
         buildManifest()
           .then((entries) => c.sendManifest(entries))
@@ -65,9 +58,9 @@ export function SessionStrip({ state }: { state: EngineState }) {
 
     return () => {
       cancelled = true;
-      unsubWriteBack?.();
+      unsubMode?.();
       unsubSession?.();
-      unsubEngineState?.();
+      controller?.stop();
       engine.setSessionConnected(false);
       setSession(null);
       client?.leave();
@@ -116,6 +109,9 @@ export function SessionStrip({ state }: { state: EngineState }) {
     <footer className="ld-topbar laudj-session">
       <StatusDot on={state.session_connected} />
       <span className="ld-label">{t('laudj.followSession')}</span>
+      <Chip state={mode === 'playback' ? 'current' : 'queued'}>
+        {mode === 'playback' ? t('laudj.mode.playback') : t('laudj.mode.companion')}
+      </Chip>
       {session === null || current === null ? (
         <span>{t('laudj.session.none')}</span>
       ) : (
@@ -132,6 +128,7 @@ export function SessionStrip({ state }: { state: EngineState }) {
           {session.presenters.map((p) => (
             <Chip key={p.id} state={p.kind === 'dj' ? 'current' : 'default'}>
               {p.name}
+              {p.mode !== undefined ? ` · ${p.mode}` : ''}
             </Chip>
           ))}
           <Button

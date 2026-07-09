@@ -1,16 +1,23 @@
 /**
- * LauDJ ↔ session glue (the "dj" presenter):
- *  - FOLLOW unconditionally: mirror the session's song + key into the engine/pads.
- *  - YIELD only when a HUMAN presenter changes musical intent (tier 1) — pauses
- *    LauDJ's own auto-advance, never its obedience.
- *  - OBEY companion directives (tier 2) as deltas, so local operator tweaks
- *    survive until the leader changes something.
- *  - WRITE BACK: when LauDJ's auto-advance crosses a section boundary, it
- *    writes section_index back to the session like any other presenter.
- *  - ADVERTISE the local catalog as the DJ capability manifest on join.
+ * LauDJ ↔ session glue (presenter role × dj type — DEC-43).
+ *
+ * MODE IS A CONSEQUENCE OF WHO ACTS, not a setting:
+ *  - COMPANION: pads/drones/interludes; reads the session key + companion
+ *    directives; IGNORES parts; works for any song.
+ *  - PLAYBACK (driving): the DJ advances its own sections, translates each
+ *    through the ONE-WAY section → work-part mapping (stored with the local
+ *    performance) and announces the part to the session as a presenter.
+ *
+ * Transitions:
+ *  - a HUMAN presenter changing musical intent DEMOTES a driving DJ to
+ *    companion — transport stops, the pad holds the new key;
+ *  - starting playback locally PROMOTES it to driving.
+ *  The DJ never FOLLOWS parts. Echo suppression: our own announcements come
+ *  back with `external === false` (writer id = ours), so a driving DJ never
+ *  observes its own writes and demotes itself.
  */
 import type { EngineState } from '@laude/laudj-control-protocol';
-import type { DjManifestEntry, SessionChange, SessionClient, SessionState } from '@laude/session';
+import type { DjManifestEntry, DjMode, SessionChange, SessionClient, SessionState } from '@laude/session';
 import type { CompanionDirectives, Presenter } from '@laude/song-model';
 import { engine, padEngine } from './engine';
 import { padsController, padStyleOf } from './pads-controller';
@@ -51,33 +58,112 @@ export async function buildManifest(): Promise<DjManifestEntry[]> {
   }));
 }
 
-export function handleSessionChange(
-  change: SessionChange,
-  getEngineState: () => EngineState | null,
-  prev: SessionState | null,
-): void {
-  const { state: session, external, writerKind } = change;
-  // Yield only on external changes to MUSICAL INTENT (tier 1, `current.*`).
-  // Companion directives (tier 2) are meant to be obeyed, not yielded to, and
-  // the first snapshot after joining is existing state, not a change.
-  const currentChanged =
-    prev !== null && JSON.stringify(prev.current) !== JSON.stringify(session.current);
-  if (external && currentChanged) {
-    // Unknown writers are treated as human — safer to yield than to fight.
-    const humanWriter = writerKind === null || writerKind === 'human' || writerKind === 'mic';
-    if (humanWriter) engine.externalPresenterActed();
+export class DjSessionController {
+  private mode: DjMode = 'companion';
+  private modeListeners = new Set<(mode: DjMode) => void>();
+  /** song_id → work-part index per engine-section index (from the catalog). */
+  private partMaps = new Map<string, (number | null)[]>();
+  private wasPlaying = false;
+  private lastAnnounced = -1;
+  private prevSession: SessionState | null = null;
+  private engineState: EngineState | null = null;
+  private unsubs: (() => void)[] = [];
+
+  constructor(private readonly client: SessionClient) {}
+
+  start(): void {
+    this.unsubs.push(this.client.subscribe((change) => this.onSessionChange(change)));
+    this.unsubs.push(engine.subscribe((s) => this.onEngineState(s)));
+    void fetchCatalog()
+      .then((catalog) => {
+        for (const song of catalog) {
+          this.partMaps.set(
+            song.song_id,
+            song.sections.map((sec) => sec.work_part_index),
+          );
+        }
+      })
+      .catch((err: unknown) => console.warn('LauDJ: catalog part maps unavailable', err));
   }
-  // FOLLOW is unconditional ("react" behaviour): the engine always mirrors
-  // the session's song/key. Yield only pauses LauDJ's own auto-advance —
-  // it never stops LauDJ from obeying the human presenter.
-  const now = getEngineState();
-  if (now) {
-    if (session.current.song_id && session.current.song_id !== now.transport.song_id) {
+
+  stop(): void {
+    this.unsubs.forEach((fn) => fn());
+    this.unsubs = [];
+  }
+
+  currentMode(): DjMode {
+    return this.mode;
+  }
+
+  onMode(listener: (mode: DjMode) => void): () => void {
+    this.modeListeners.add(listener);
+    listener(this.mode);
+    return () => this.modeListeners.delete(listener);
+  }
+
+  private setMode(mode: DjMode): void {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    this.client.sendMode(mode);
+    this.modeListeners.forEach((fn) => fn(mode));
+  }
+
+  // --- session → DJ ---------------------------------------------------------
+
+  private onSessionChange(change: SessionChange): void {
+    const { state: session, external, writerKind } = change;
+    const prev = this.prevSession;
+    this.prevSession = session;
+
+    const currentChanged =
+      prev !== null && JSON.stringify(prev.current) !== JSON.stringify(session.current);
+
+    // DEMOTION: a human (or mic, or unknown) presenter changed musical intent
+    // while we were driving → companion. Transport stops; the pad holds the
+    // NEW key (setKey below). Our own announcements arrive external=false.
+    if (external && currentChanged && this.mode === 'playback') {
+      const humanActed = writerKind === null || writerKind === 'human' || writerKind === 'mic';
+      if (humanActed) {
+        engine.send({ type: 'pause' });
+        this.setMode('companion');
+      }
+    }
+
+    // COMPANION duties for any mode: mirror song (prepares stems) + key to
+    // pads. The DJ never follows PARTS (section_index is ignored here).
+    const now = this.engineState;
+    if (now && session.current.song_id && session.current.song_id !== now.transport.song_id) {
       engine.send({ type: 'load_song', song_id: session.current.song_id });
     }
     padEngine.setKey(session.current.key);
+    applyCompanion(prev?.companion ?? null, session);
   }
-  applyCompanion(prev?.companion ?? null, session);
+
+  // --- DJ → session ----------------------------------------------------------
+
+  private onEngineState(s: EngineState): void {
+    this.engineState = s;
+    const session = this.client.snapshot();
+
+    // PROMOTION: starting playback is the act that makes the DJ the driver.
+    if (s.transport.playing && !this.wasPlaying) {
+      this.setMode('playback');
+      this.lastAnnounced = -1;
+    }
+    this.wasPlaying = s.transport.playing;
+
+    if (this.mode !== 'playback' || !s.transport.playing || !session) return;
+    if (s.transport.song_id === null || s.transport.song_id !== session.current.song_id) return;
+
+    // Translate the engine section into a WORK part via the one-way mapping;
+    // unmapped sections keep playing without an announcement.
+    const section = s.transport.current_section;
+    if (section === this.lastAnnounced) return;
+    const workPart = this.partMaps.get(s.transport.song_id)?.[section] ?? null;
+    this.lastAnnounced = section;
+    if (workPart === null || workPart === session.current.section_index) return;
+    this.client.setCurrent({ section_index: workPart });
+  }
 }
 
 function applyCompanion(prev: CompanionDirectives | null, session: SessionState): void {
@@ -92,23 +178,4 @@ function applyCompanion(prev: CompanionDirectives | null, session: SessionState)
   if ((prev?.interlude ?? false) !== next.interlude) {
     void padsController.setInterlude(next.interlude, session.current.song_id, key);
   }
-}
-
-/**
- * Write-back: watch the engine; when auto-advance moves the playhead into a
- * new section of the session's current song, write section_index to the
- * session (last-write-wins, like any presenter). Returns an unsubscribe.
- */
-export function wireWriteBack(client: SessionClient): () => void {
-  let lastWritten = -1;
-  return engine.subscribe((s: EngineState) => {
-    const session = client.snapshot;
-    if (!session) return;
-    if (!s.auto_advance || s.yielded || !s.transport.playing) return;
-    if (s.transport.song_id === null || s.transport.song_id !== session.current.song_id) return;
-    const section = s.transport.current_section;
-    if (section === session.current.section_index || section === lastWritten) return;
-    lastWritten = section;
-    client.setCurrent({ section_index: section });
-  });
 }

@@ -12,6 +12,15 @@
  *  - audio files are catalogued in `audio_files` with paths relative to the
  *    data dir; layout itself is an implementation detail (see paths.ts).
  */
+/** Additive migrations for pre-existing local DBs (checked per boot). */
+export const MIGRATIONS: { table: string; column: string; ddl: string }[] = [
+  {
+    table: 'sections',
+    column: 'work_part_index',
+    ddl: 'ALTER TABLE sections ADD COLUMN work_part_index INTEGER',
+  },
+];
+
 export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS local_songs (
   id TEXT PRIMARY KEY,
@@ -64,6 +73,7 @@ CREATE TABLE IF NOT EXISTS sections (
   end_s REAL NOT NULL,
   start_bar INTEGER NOT NULL DEFAULT 0,
   end_bar INTEGER NOT NULL DEFAULT 0,
+  work_part_index INTEGER,             -- one-way DJ section -> work part (DEC-43)
   PRIMARY KEY (performance_id, idx)
 );
 

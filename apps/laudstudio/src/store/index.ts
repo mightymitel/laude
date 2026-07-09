@@ -15,7 +15,7 @@ import type {
 } from '@laude/song-model';
 import { ALL_STEMS } from '@laude/song-model';
 import { DATA_DIR, DB_PATH, ensureDataDir } from './paths';
-import { SCHEMA } from './schema';
+import { MIGRATIONS, SCHEMA } from './schema';
 
 export interface LocalSongRow {
   id: string;
@@ -50,6 +50,8 @@ export interface SectionRow {
   end_s: number;
   start_bar: number;
   end_bar: number;
+  /** One-way DJ-section → work-part mapping (DEC-43); null = unmapped. */
+  work_part_index: number | null;
 }
 
 export interface ServiceRow {
@@ -82,6 +84,10 @@ export class LocalStore {
     this.db = new Database(dbPath);
     this.db.pragma('journal_mode = WAL');
     this.db.exec(SCHEMA);
+    for (const m of MIGRATIONS) {
+      const cols = this.db.prepare(`PRAGMA table_info(${m.table})`).all() as { name: string }[];
+      if (!cols.some((c) => c.name === m.column)) this.db.exec(m.ddl);
+    }
   }
 
   close(): void {
@@ -136,12 +142,14 @@ export class LocalStore {
   replaceSections(performanceId: string, rows: SectionRow[]): void {
     const del = this.db.prepare('DELETE FROM sections WHERE performance_id = ?');
     const ins = this.db.prepare(
-      `INSERT INTO sections (performance_id, idx, label, start_s, end_s, start_bar, end_bar)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO sections (performance_id, idx, label, start_s, end_s, start_bar, end_bar, work_part_index)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     this.db.transaction(() => {
       del.run(performanceId);
-      rows.forEach((r, i) => ins.run(performanceId, i, r.label, r.start_s, r.end_s, r.start_bar, r.end_bar));
+      rows.forEach((r, i) =>
+        ins.run(performanceId, i, r.label, r.start_s, r.end_s, r.start_bar, r.end_bar, r.work_part_index),
+      );
     })();
   }
 
@@ -207,7 +215,11 @@ export class LocalStore {
         duration_s: perf ? Math.max(0, perf.end_s - perf.start_s) : 0,
         performance_id: perf?.id ?? null,
         sections: perf
-          ? this.getSections(perf.id).map((s) => ({ label: s.label, start_s: s.start_s }))
+          ? this.getSections(perf.id).map((s) => ({
+              label: s.label,
+              start_s: s.start_s,
+              work_part_index: s.work_part_index,
+            }))
           : [],
         stems: inventory.stems,
         key_variants: inventory.key_variants,
@@ -247,7 +259,7 @@ export class LocalStore {
 
   getSections(performanceId: string): SectionRow[] {
     const rows = this.db
-      .prepare('SELECT label, start_s, end_s, start_bar, end_bar FROM sections WHERE performance_id = ? ORDER BY idx')
+      .prepare('SELECT label, start_s, end_s, start_bar, end_bar, work_part_index FROM sections WHERE performance_id = ? ORDER BY idx')
       .all(performanceId) as SectionRow[];
     return rows;
   }

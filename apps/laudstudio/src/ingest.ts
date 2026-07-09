@@ -13,6 +13,7 @@ import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { ALL_STEMS, type LrcLine, type StemName } from '@laude/song-model';
 import { LocalStore } from './store';
+import { mapSectionsToParts } from './store/partmap';
 import { audioPaths } from './store/paths';
 import { validateAgainstReference } from './validate';
 
@@ -125,7 +126,14 @@ export function ingestManifest(store: LocalStore, work: string, manifest: Manife
     verified: false,
     created_at: nowIso,
   });
-  store.replaceSections(perfId, manifest.sections);
+  const partMap = mapSectionsToParts(
+    manifest.sections.map((sec) => sec.label),
+    manifest.chordpro,
+  );
+  store.replaceSections(
+    perfId,
+    manifest.sections.map((sec, i) => ({ ...sec, work_part_index: partMap[i] ?? null })),
+  );
   store.setBeatgrid(perfId, manifest.bpm, manifest.beats, manifest.downbeat_indices);
   store.setChords(
     perfId,

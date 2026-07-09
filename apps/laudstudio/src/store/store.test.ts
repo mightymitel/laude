@@ -42,8 +42,8 @@ function seedSong(store: LocalStore, id = 'song-test'): void {
     created_at: NOW,
   });
   store.replaceSections('perf-1', [
-    { label: 'Verse 1', start_s: 0, end_s: 100, start_bar: 0, end_bar: 25 },
-    { label: 'Chorus', start_s: 100, end_s: 200, start_bar: 25, end_bar: 50 },
+    { label: 'Verse 1', start_s: 0, end_s: 100, start_bar: 0, end_bar: 25, work_part_index: 0 },
+    { label: 'Chorus', start_s: 100, end_s: 200, start_bar: 25, end_bar: 50, work_part_index: 1 },
   ]);
   store.setBeatgrid('perf-1', 82, [0, 0.7, 1.4], [0]);
   store.setChords('perf-1', [{ start_s: 0, chord: 'A' }, { start_s: 2, chord: 'D' }], false);
@@ -115,4 +115,13 @@ test('linkSong marks the song linked and swaps the catalog id', () => {
   assert.equal(entry.song_id, 'global-42');
   assert.equal(entry.local_song_id, 'song-test');
   store.close();
+});
+
+test('sections expose the one-way work-part mapping through the catalog', () => {
+  const store = freshStore();
+  seedSong(store);
+  const entry = store.listCatalog()[0];
+  assert.deepEqual(entry.sections.map((s) => s.work_part_index), [0, 1]);
+  const detail = store.getPerformanceDetail('perf-1');
+  assert.equal(detail?.sections[1]?.work_part_index, 1);
 });

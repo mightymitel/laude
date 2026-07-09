@@ -15,6 +15,7 @@ import { buildBeatGrid, buildChordEvents, buildLrc, buildSections, chordProgress
 import { SEED_SERVICES } from './content/services';
 import { SEED_SONGS, getSeedSong } from './content/songs';
 import { LocalStore, type SegmentRow } from './store';
+import { mapSectionsToParts } from './store/partmap';
 
 const NOW_ISO = '2026-07-07T09:00:00.000Z'; // fixed so reruns are byte-identical
 
@@ -86,12 +87,15 @@ function main(): void {
         performances += 1;
 
         if (perfDef.tier2) {
-          const sectionRows = buildSections(perfId, durationS, bpm).map((s) => ({
+          const built = buildSections(perfId, durationS, bpm);
+          const partMap = mapSectionsToParts(built.map((s) => s.label), buildChordPro(song));
+          const sectionRows = built.map((s, i) => ({
             label: s.label,
             start_s: s.start_s,
             end_s: s.end_s,
             start_bar: s.start_bar,
             end_bar: s.end_bar,
+            work_part_index: partMap[i] ?? null,
           }));
           store.replaceSections(perfId, sectionRows);
           sections += sectionRows.length;
