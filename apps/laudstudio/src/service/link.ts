@@ -132,6 +132,7 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
       lang: song.language,
       chordpro: perf.chordpro,
       lrc: perf.lrc,
+      visibility: 'private',
       verified: false,
     });
 

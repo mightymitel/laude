@@ -159,6 +159,7 @@ async function main(): Promise<void> {
       song_id: song.id,
       lang: song.language,
       chordpro,
+      visibility: 'public',
       verified: song.verified,
       ...(song.withLrc ? { lrc: buildLrc(song) } : {}),
     };
