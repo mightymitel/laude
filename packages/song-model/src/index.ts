@@ -248,3 +248,5 @@ export const storagePaths = {
 /** Local cache key mandated by the architecture: (song_id, stem, key_variant). */
 export const cacheKey = (songId: SongId, stem: StemName, keyVariant: number) =>
   `${songId}:${stem}:${keyVariant}`;
+
+export * from './local';
