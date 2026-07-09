@@ -29,7 +29,19 @@ export function useSessionSongState(playlistId: string | undefined) {
     const { data: allSongsData } = useSongs({})
     const { data: initialPlaylist } = usePlaylist(playlistId || '')
 
-    const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>([])
+    // Recently played persists per device (Flow 1) — never session state.
+    const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>(() => {
+        try {
+            const stored = localStorage.getItem('laudasist.recentlyPlayed')
+            const parsed: unknown = stored === null ? [] : JSON.parse(stored)
+            return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
+        } catch {
+            return []
+        }
+    })
+    useEffect(() => {
+        localStorage.setItem('laudasist.recentlyPlayed', JSON.stringify(recentlyPlayed))
+    }, [recentlyPlayed])
     const [useOriginalKey, setUseOriginalKey] = useState(true)
     const [playlistLoaded, setPlaylistLoaded] = useState(false)
 
@@ -155,7 +167,34 @@ export function useSessionSongState(playlistId: string | undefined) {
 
     const displaySongs = searchQuery ? searchResults?.data : orderedSongs
 
+    // === DJ CAPABILITY MANIFEST (Flow 5) ===
+    // Library songs the DJ can back with audio get a song-level marker; the
+    // DJ's LOCAL-ONLY songs surface as DJ-sourced results the leader can
+    // request (transmitted by-value, ephemeral).
+    const djManifest = useMemo(() => state?.dj_manifest ?? [], [state])
+    const djAudioSongIds = useMemo(
+        () => new Set(djManifest.flatMap((e) => (e.song_id === null ? [] : [e.song_id]))),
+        [djManifest],
+    )
+    const djLocalSongs = useMemo(() => {
+        const localOnly = djManifest.filter((e) => e.song_id === null)
+        if (!searchQuery) return localOnly
+        const q = searchQuery.toLowerCase()
+        return localOnly.filter((e) => e.title.toLowerCase().includes(q))
+    }, [djManifest, searchQuery])
+
+    const requestDjSong = useCallback(
+        (localSongId: string) => {
+            session.requestDjSong(localSongId)
+            setSearchQuery('')
+        },
+        [session],
+    )
+
     return {
+        djAudioSongIds,
+        djLocalSongs,
+        requestDjSong,
         live,
         searchQuery,
         setSearchQuery,

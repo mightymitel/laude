@@ -52,6 +52,9 @@ function Home() {
                             </Link>
                             <div className={styles.guestSection}>
                                 <span className={styles.divider}>or</span>
+                                <Link to="/tuner" className={styles.secondaryButton}>
+                                    🎸 Tuner
+                                </Link>
                                 <Link to="/session" search={{ guest: true, playlistId: undefined }} className={styles.guestButton}>
                                     🎵 Start Worshiping (Guest)
                                 </Link>

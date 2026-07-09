@@ -51,6 +51,9 @@ function SessionPageContent() {
         setSessionPlaylist,
         pickSong,
         embed,
+        djAudioSongIds,
+        djLocalSongs,
+        requestDjSong,
     } = useSessionSongState(playlistId)
 
     const { session, state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
@@ -111,6 +114,9 @@ function SessionPageContent() {
                         ))}
                     {error !== null && <span className={styles.guestIndicator}>⚠️ {error}</span>}
                     {isGuest && <span className={styles.guestIndicator}>👤 Guest Mode</span>}
+                    <Link to="/tuner" className={styles.shareBtn} title="Tune up (browser mic)">
+                        🎸 Tuner
+                    </Link>
                 </div>
             </header>
 
@@ -123,6 +129,9 @@ function SessionPageContent() {
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
                     songs={displaySongs}
+                    djAudioSongIds={djAudioSongIds}
+                    djLocalSongs={djLocalSongs}
+                    onRequestDjSong={requestDjSong}
                     currentSongId={currentSongId}
                     onPickSong={pickSong}
                     onAddToPlaylist={(song) =>

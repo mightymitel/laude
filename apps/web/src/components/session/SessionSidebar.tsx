@@ -1,4 +1,5 @@
 import type { Song } from '@laudasist/shared'
+import type { DjManifestEntry } from '@laude/session'
 import { PlaylistPanel, type SessionPlaylistItem } from '@/components/PlaylistPanel'
 import styles from '../../routes/session.module.css'
 
@@ -16,6 +17,11 @@ interface SessionSidebarProps {
     onPlaylistRemove: (itemId: string) => void
     onPlaylistUpdate: (itemId: string, updates: Partial<SessionPlaylistItem>) => void
     onPlaylistSelect: (songId: string, key?: string) => void
+    /** Library songs the connected DJ can back with audio (Flow 5). */
+    djAudioSongIds: Set<string>
+    /** The DJ's local-only songs — requestable, transmitted by-value. */
+    djLocalSongs: DjManifestEntry[]
+    onRequestDjSong: (localSongId: string) => void
 }
 
 /** Search + results + the session playlist (left panel of the session page). */
@@ -70,7 +76,12 @@ export function SessionSidebar(props: SessionSidebarProps) {
                                 }}
                             >
                                 <button className={styles.resultContent} onClick={() => props.onPickSong(song)}>
-                                    <span className={styles.resultTitle}>{song.title}</span>
+                                    <span className={styles.resultTitle}>
+                                        {song.title}
+                                        {props.djAudioSongIds.has(song.id) && (
+                                            <span title="The DJ can back this song with audio"> 🎛</span>
+                                        )}
+                                    </span>
                                     <span className={styles.resultKey}>{song.defaultKey}</span>
                                 </button>
                                 <div className={styles.resultMenu}>
@@ -94,7 +105,24 @@ export function SessionSidebar(props: SessionSidebarProps) {
                                 </div>
                             </div>
                         ))}
-                        {searchQuery && songs?.length === 0 && (
+                        {props.djLocalSongs.length > 0 && (
+                            <>
+                                <div className={styles.hint}>From the DJ (by-value)</div>
+                                {props.djLocalSongs.map((entry) => (
+                                    <div key={entry.local_song_id} className={styles.resultItem} data-testid="dj-local-song">
+                                        <button
+                                            className={styles.resultContent}
+                                            onClick={() => props.onRequestDjSong(entry.local_song_id)}
+                                            title="Ask the DJ to transmit this song (display + audio from the DJ)"
+                                        >
+                                            <span className={styles.resultTitle}>🎛 {entry.title}</span>
+                                            <span className={styles.resultKey}>{entry.key}</span>
+                                        </button>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+                        {searchQuery && songs?.length === 0 && props.djLocalSongs.length === 0 && (
                             <div className={styles.noResults}>No songs found</div>
                         )}
                         {!songs?.length && !searchQuery && (

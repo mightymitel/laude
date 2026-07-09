@@ -8,6 +8,7 @@ import {
   localApi,
   type LocalCatalogSong,
   type LocalPerformanceDetail,
+  type LocalSongDetail,
   type StemName,
 } from '@laude/song-model';
 
@@ -30,6 +31,12 @@ export async function fetchCatalog(): Promise<LocalCatalogSong[]> {
       : [];
   catalogCache = songs;
   return songs;
+}
+
+export async function fetchSongDetail(localSongId: string): Promise<LocalSongDetail | null> {
+  const res = await fetch(`${STUDIO_URL}${localApi.song(localSongId)}`);
+  if (!res.ok) return null;
+  return (await res.json()) as LocalSongDetail;
 }
 
 export async function fetchPerformance(performanceId: string): Promise<LocalPerformanceDetail | null> {

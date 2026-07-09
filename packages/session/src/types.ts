@@ -148,6 +148,9 @@ export const EVENTS = {
   djManifest: 'dj:manifest',
   djManifestChanged: 'dj:manifest:changed',
   djMode: 'dj:mode',
+  /** Leader → DJ: transmit a DJ-local song by-value (Flow 5). Additive —
+   * pre-request clients simply never emit or handle it. */
+  djRequest: 'dj:request',
   end: 'session:end',
 } as const;
 

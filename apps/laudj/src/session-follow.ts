@@ -16,12 +16,13 @@
  *  back with `external === false` (writer id = ours), so a driving DJ never
  *  observes its own writes and demotes itself.
  */
+import { renderChordPro } from '@laude/chords';
 import type { EngineState } from '@laude/laudj-control-protocol';
-import type { DjManifestEntry, DjMode, EmbeddedSongPart, SessionChange, SessionClient, SessionState } from '@laude/session';
-import type { CompanionDirectives, Presenter, WorkPartRef } from '@laude/song-model';
+import type { DjManifestEntry, DjMode, EmbeddedSong, EmbeddedSongPart, SessionChange, SessionClient, SessionState } from '@laude/session';
+import type { CompanionDirectives, LocalSongDetail, Presenter, WorkPartRef } from '@laude/song-model';
 import { engine, padEngine } from './engine';
 import { padsController, padStyleOf } from './pads-controller';
-import { fetchCatalog } from './studio';
+import { fetchCatalog, fetchSongDetail } from './studio';
 
 export const RELAY_URL: string =
   typeof import.meta.env?.VITE_RELAY_URL === 'string'
@@ -83,6 +84,35 @@ export function partIndexFor(parts: EmbeddedSongPart[], ref: WorkPartRef): numbe
   return null;
 }
 
+/** DJ-local chart → by-value session song (Flow 5: display AND audio come
+ * from the DJ). Parts keep degree tokens in brackets — the same shape the
+ * library's embedded parts carry. */
+export function chartToEmbedded(detail: LocalSongDetail): EmbeddedSong {
+  const rendered = renderChordPro(detail.chordpro, { notation: 'nashville' });
+  const counters = new Map<string, number>();
+  const parts: EmbeddedSongPart[] = rendered.sections.map((section, index) => {
+    const type = section.type === 'chorus' ? 'chorus' : section.type === 'bridge' ? 'bridge' : 'verse';
+    const n = (counters.get(type) ?? 0) + 1;
+    counters.set(type, n);
+    return {
+      id: `${type === 'chorus' ? 'C' : type === 'bridge' ? 'B' : 'V'}${n}`,
+      type,
+      index,
+      lines: section.lines.map((line) => ({
+        text: line.items
+          .map((item) => (item.chord ? `[${item.chord}]${item.lyrics}` : item.lyrics))
+          .join(''),
+      })),
+    };
+  });
+  return {
+    id: detail.local_song_id,
+    title: detail.title,
+    defaultKey: detail.analysis_key,
+    parts,
+  };
+}
+
 export class DjSessionController {
   private mode: DjMode = 'companion';
   private modeListeners = new Set<(mode: DjMode) => void>();
@@ -100,6 +130,7 @@ export class DjSessionController {
   start(): void {
     this.unsubs.push(this.client.subscribe((change) => this.onSessionChange(change)));
     this.unsubs.push(engine.subscribe((s) => this.onEngineState(s)));
+    this.unsubs.push(this.client.onDjRequest((localSongId) => void this.fulfillRequest(localSongId)));
     void fetchCatalog()
       .then((catalog) => {
         for (const song of catalog) {
@@ -132,6 +163,42 @@ export class DjSessionController {
     this.mode = mode;
     this.client.sendMode(mode);
     this.modeListeners.forEach((fn) => fn(mode));
+  }
+
+  /** Flow 5: the leader requested one of OUR local-only songs — transmit it
+   * by-value (ephemeral: it rides session state, never the library) and make
+   * it current. Display and audio both come from this laptop. */
+  private async fulfillRequest(localSongId: string): Promise<void> {
+    try {
+      const detail = await fetchSongDetail(localSongId);
+      if (!detail) return; // not our song (another DJ may hold it)
+      const catalog = await fetchCatalog();
+      const entry = catalog.find((s) => s.local_song_id === localSongId);
+      const songId = entry?.song_id ?? localSongId;
+      const embedded = { ...chartToEmbedded(detail), id: songId };
+      const session = this.client.snapshot();
+      const playlist = session?.sessionPlaylist ?? [];
+      const withSong = playlist.some((i) => i.songId === songId)
+        ? playlist
+        : [
+            ...playlist,
+            {
+              id: `dj-${localSongId}`,
+              songId,
+              key: entry?.key ?? detail.analysis_key,
+              song: embedded,
+              temporary: true,
+            },
+          ];
+      this.client.send({
+        current: { song_id: songId, section_index: 0, key: entry?.key ?? detail.analysis_key },
+        currentSong: embedded,
+        sessionPlaylist: withSong,
+      });
+      engine.send({ type: 'load_song', song_id: songId });
+    } catch (err) {
+      console.warn('LauDJ: by-value request failed', err);
+    }
   }
 
   // --- session → DJ ---------------------------------------------------------

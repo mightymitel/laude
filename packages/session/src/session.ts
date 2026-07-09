@@ -104,6 +104,14 @@ export class WorshipSession {
     this.send({ directives: { [targetClass]: partial } });
   }
 
+  /** Flow 5: ask the connected DJ to transmit one of its LOCAL songs
+   * by-value. Live sessions only — solo has no DJ to ask. */
+  requestDjSong(localSongId: string): void {
+    if (this.transport instanceof SessionClient) {
+      this.transport.requestDjSong(localSongId);
+    }
+  }
+
   /**
    * Swap local → relay: push the local state as the relay's initial snapshot,
    * mint fresh links (repeatable — a prior live session of this owner is

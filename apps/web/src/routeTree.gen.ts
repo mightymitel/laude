@@ -18,7 +18,6 @@ import { Route as ExtractRouteImport } from './routes/extract'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
-import { Route as PlaylistsIdRouteImport } from './routes/playlists.$id'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as DebugSongEditorRouteImport } from './routes/debug/song-editor'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
@@ -71,11 +70,6 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlaylistsIdRoute = PlaylistsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PlaylistsRoute,
-} as any)
 const LibraryNewRoute = LibraryNewRouteImport.update({
   id: '/library/new',
   path: '/library/new',
@@ -112,13 +106,12 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/extract': typeof ExtractRoute
   '/login': typeof LoginRoute
-  '/playlists': typeof PlaylistsRouteWithChildren
+  '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/playlists/$id': typeof PlaylistsIdRoute
   '/library/': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id/': typeof LibraryIdIndexRoute
@@ -130,13 +123,12 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/extract': typeof ExtractRoute
   '/login': typeof LoginRoute
-  '/playlists': typeof PlaylistsRouteWithChildren
+  '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/playlists/$id': typeof PlaylistsIdRoute
   '/library': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id': typeof LibraryIdIndexRoute
@@ -149,13 +141,12 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/extract': typeof ExtractRoute
   '/login': typeof LoginRoute
-  '/playlists': typeof PlaylistsRouteWithChildren
+  '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/playlists/$id': typeof PlaylistsIdRoute
   '/library/': typeof LibraryIndexRoute
   '/library/$id/edit': typeof LibraryIdEditRoute
   '/library/$id/': typeof LibraryIdIndexRoute
@@ -175,7 +166,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/playlists/$id'
     | '/library/'
     | '/library/$id/edit'
     | '/library/$id/'
@@ -193,7 +183,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/playlists/$id'
     | '/library'
     | '/library/$id/edit'
     | '/library/$id'
@@ -211,7 +200,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/playlists/$id'
     | '/library/'
     | '/library/$id/edit'
     | '/library/$id/'
@@ -224,7 +212,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ExtractRoute: typeof ExtractRoute
   LoginRoute: typeof LoginRoute
-  PlaylistsRoute: typeof PlaylistsRouteWithChildren
+  PlaylistsRoute: typeof PlaylistsRoute
   SessionRoute: typeof SessionRoute
   StudioRoute: typeof StudioRoute
   TunerRoute: typeof TunerRoute
@@ -302,13 +290,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/playlists/$id': {
-      id: '/playlists/$id'
-      path: '/$id'
-      fullPath: '/playlists/$id'
-      preLoaderRoute: typeof PlaylistsIdRouteImport
-      parentRoute: typeof PlaylistsRoute
-    }
     '/library/new': {
       id: '/library/new'
       path: '/library/new'
@@ -354,24 +335,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface PlaylistsRouteChildren {
-  PlaylistsIdRoute: typeof PlaylistsIdRoute
-}
-
-const PlaylistsRouteChildren: PlaylistsRouteChildren = {
-  PlaylistsIdRoute: PlaylistsIdRoute,
-}
-
-const PlaylistsRouteWithChildren = PlaylistsRoute._addFileChildren(
-  PlaylistsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   ExtractRoute: ExtractRoute,
   LoginRoute: LoginRoute,
-  PlaylistsRoute: PlaylistsRouteWithChildren,
+  PlaylistsRoute: PlaylistsRoute,
   SessionRoute: SessionRoute,
   StudioRoute: StudioRoute,
   TunerRoute: TunerRoute,

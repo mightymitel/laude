@@ -132,6 +132,14 @@ export function wireSockets(
       mirrorWrite(updated);
     });
 
+    socket.on(EVENTS.djRequest, (payload: unknown) => {
+      // Leader → DJ by-value request (Flow 5): writers only; fan out to the
+      // room — non-DJ clients ignore the event.
+      const ctx = bySocket.get(socket.id);
+      if (!ctx || ctx.member.role === 'viewer') return;
+      socket.to(room(ctx.sessionId)).emit(EVENTS.djRequest, payload);
+    });
+
     socket.on(EVENTS.djManifest, (entries: DjManifestEntry[]) => {
       const ctx = bySocket.get(socket.id);
       if (ctx?.member.kind !== 'dj') return;

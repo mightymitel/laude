@@ -86,7 +86,13 @@ export class SessionClient implements SessionTransport {
   /** Connect + join; resolves after the first snapshot arrives. */
   static connect(options: ConnectOptions): Promise<SessionClient> {
     return new Promise((resolve, reject) => {
-      const socket = io(options.url, { transports: ['websocket', 'polling'] });
+      // POLLING FIRST, upgrade to websocket when possible (socket.io's
+      // default path). The WP-96 audit measured production App Hosting:
+      // the websocket upgrade FAILS there, and engine.io-client does NOT
+      // retry the next transport on an initial failure — websocket-first
+      // would never connect in production. Long-polling connected and held
+      // 90s+ stable; sessions ride it until the platform supports WS.
+      const socket = io(options.url, { transports: ['polling', 'websocket'] });
       const client = new SessionClient(options, socket);
 
       const timer = setTimeout(() => {
@@ -183,6 +189,22 @@ export class SessionClient implements SessionTransport {
   }
 
   /** DJ capability manifest (kind 'dj'). */
+  /** Leader asks the connected DJ to transmit one of its LOCAL songs
+   * by-value (Flow 5): display and audio both come from the DJ. */
+  requestDjSong(localSongId: string): void {
+    this.socket?.emit(EVENTS.djRequest, { local_song_id: localSongId });
+  }
+
+  /** DJ side: react to a leader's by-value request. */
+  onDjRequest(cb: (localSongId: string) => void): Unsubscribe {
+    const handler = (payload: unknown) => {
+      const p = typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {};
+      if (typeof p.local_song_id === 'string') cb(p.local_song_id);
+    };
+    this.socket?.on(EVENTS.djRequest, handler);
+    return () => this.socket?.off(EVENTS.djRequest, handler);
+  }
+
   sendManifest(entries: DjManifestEntry[]): void {
     this.socket.emit(EVENTS.djManifest, entries);
   }

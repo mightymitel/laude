@@ -118,3 +118,42 @@ test('a newer client than the server is told the SERVER needs updating', async (
   socket.disconnect();
   assert.match(message, /server needs updating/i);
 });
+
+test('dj:request fans out to the room from writers; viewer emits are dropped', async () => {
+  const session = await goLive();
+  const joinAs = (code: string, id: string, kind: string): Promise<ClientSocket> =>
+    new Promise((resolve, reject) => {
+      const socket = connect();
+      socket.on('connect', () => {
+        socket.emit(EVENTS.join, {
+          code,
+          member: { id, name: id, kind },
+          protocol: SESSION_PROTOCOL_VERSION,
+        });
+      });
+      socket.on(EVENTS.snapshot, () => resolve(socket));
+      socket.on('joinError', (m: string) => reject(new Error(m)));
+      setTimeout(() => reject(new Error('join timeout')), 4000);
+    });
+
+  const dj = await joinAs(session.presenterCode, 'dj-1', 'dj');
+  const presenter = await joinAs(session.presenterCode, 'p-1', 'human');
+  const viewer = await joinAs(session.accessCode, 'v-1', 'human');
+
+  const received = new Promise<string>((resolve) => {
+    dj.on(EVENTS.djRequest, (payload: { local_song_id: string }) =>
+      resolve(payload.local_song_id),
+    );
+  });
+  // A viewer's request must be dropped server-side…
+  viewer.emit(EVENTS.djRequest, { local_song_id: 'from-viewer' });
+  await new Promise((r) => setTimeout(r, 300));
+  // …a presenter's goes through.
+  presenter.emit(EVENTS.djRequest, { local_song_id: 'song-local-x' });
+  const got = await received;
+  assert.equal(got, 'song-local-x');
+
+  dj.disconnect();
+  presenter.disconnect();
+  viewer.disconnect();
+});
