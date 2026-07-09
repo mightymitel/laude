@@ -13,7 +13,7 @@
 import '../env';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, type Firestore } from 'firebase-admin/firestore';
-import { renderChordPro } from '@laude/chords';
+import { convertChordPro, renderChordPro } from '@laude/chords';
 import { COLLECTIONS } from '@laude/song-model';
 import { PROJECT_ID } from '../env';
 import type { Arrangement, PartType, SongPart } from '../laudasist-types';
@@ -99,9 +99,12 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
     return { ok: true, song_id: match.id, minted: false };
   }
 
-  // Mint a PRIVATE global song owned by the demo user.
+  // Mint a PRIVATE global song owned by the demo user. Only the WORK crosses
+  // (DEC-44/45): lyrics + chords as Nashville degrees with the detected key as
+  // reference. LRC/grid/sections/stems stay local to LaudStudio.
   const now = new Date();
-  const { parts, defaultArrangement, arrangements } = buildLaudasistParts(perf.chordpro, perf.key);
+  const degreeChart = convertChordPro(perf.chordpro, { toNotation: 'nashville', key: perf.key });
+  const { parts, defaultArrangement, arrangements } = buildLaudasistParts(degreeChart, perf.key);
   await firestore.collection(COLLECTIONS.songs).doc(localSongId).set({
     id: localSongId,
     canonical_title: song.title,
@@ -130,8 +133,7 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
     .set({
       song_id: localSongId,
       lang: song.language,
-      chordpro: perf.chordpro,
-      lrc: perf.lrc,
+      chordpro: degreeChart,
       visibility: 'private',
       verified: false,
     });

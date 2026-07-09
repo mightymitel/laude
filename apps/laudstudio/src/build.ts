@@ -1,10 +1,11 @@
 /**
  * Derivation helpers: each seed song is authored once (ChordPro-style lines
- * with English chords) and everything else — canonical ChordPro, Laudasist
- * parts with bracketed Nashville chords, LRC timing, Tier-2 annotations —
- * is derived from that single definition.
+ * with English chords) and everything else — degree ChordPro (the GLOBAL
+ * storage format per DEC-45: Nashville degrees + a {key:} reference), the
+ * Laudasist parts with bracketed Nashville chords, LRC timing, Tier-2
+ * annotations — is derived from that single definition.
  */
-import { renderChordSymbol } from '@laude/chords';
+import { convertChordPro, renderChordSymbol } from '@laude/chords';
 import type { BeatGrid, ChordEvent, LrcLine, SectionAnnotation } from '@laude/song-model';
 import type { Arrangement, PartType, SongPart } from './laudasist-types';
 import type { SeedSongDef } from './content/songs';
@@ -12,7 +13,7 @@ import type { SeedSongDef } from './content/songs';
 const CHORD_TOKEN = /\[([^\]]+)\]/g;
 
 // ---------------------------------------------------------------------------
-// ChordPro (canonical storage format, English chords)
+// ChordPro (global storage format: Nashville degrees + reference key)
 // ---------------------------------------------------------------------------
 
 const SECTION_DIRECTIVES: Partial<Record<PartType, 'verse' | 'chorus' | 'bridge'>> = {
@@ -29,7 +30,8 @@ export function buildChordPro(song: SeedSongDef): string {
     out.push(...section.lines);
     out.push(`{end_of_${directive}}`, '');
   }
-  return out.join('\n');
+  // Seed definitions are authored with letter chords; storage holds degrees.
+  return convertChordPro(out.join('\n'), { toNotation: 'nashville', key: song.key });
 }
 
 // ---------------------------------------------------------------------------

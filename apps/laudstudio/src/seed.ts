@@ -19,7 +19,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { renderChordPro } from '@laude/chords';
 import { COLLECTIONS, type SongId, type SongLyrics } from '@laude/song-model';
 
-import { buildChordPro, buildLrc, buildParts } from './build';
+import { buildChordPro, buildParts } from './build';
 import { SEED_SONGS, getSeedSong, type SeedSongDef } from './content/songs';
 import { SEED_SETLISTS, SEED_SETLIST_ITEMS, buildDemoPlaylist } from './content/setlists';
 import type { LaudasistUserDoc } from './laudasist-types';
@@ -155,13 +155,14 @@ async function main(): Promise<void> {
 
     const chordpro = buildChordPro(song);
     chordproBySong.set(song.id, chordpro);
+    // DEC-44: LRC is a property of a performance, never of the work — the
+    // global song_lyrics carries lyrics + degree chords only.
     const lyrics: SongLyrics = {
       song_id: song.id,
       lang: song.language,
       chordpro,
       visibility: 'public',
       verified: song.verified,
-      ...(song.withLrc ? { lrc: buildLrc(song) } : {}),
     };
     await write(COLLECTIONS.song_lyrics, `${song.id}-${song.language}`, lyrics);
 
