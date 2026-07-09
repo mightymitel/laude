@@ -11,6 +11,6 @@ export default defineConfig({
     // The @laude/* packages are file-linked from ./laudasist, which carries its
     // own node_modules — without dedupe Vite would bundle two React/Firebase
     // copies (breaking hooks and Firestore instanceof checks).
-    dedupe: ['react', 'react-dom', 'firebase', '@firebase/firestore', '@firebase/app'],
+    dedupe: ['react', 'react-dom', 'socket.io-client'],
   },
 });

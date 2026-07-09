@@ -1,121 +1,78 @@
-import { useEffect, useRef, useState } from 'react';
-import { Chip, StatusDot } from '@laude/design-system';
+import { useEffect, useState } from 'react';
+import { Button, Chip, StatusDot } from '@laude/design-system';
 import type { EngineState } from '@laude/laudj-control-protocol';
 import { useT } from '@laude/i18n/react';
-import { DEFAULT_SESSION_ID, SessionClient, type SessionChange } from '@laude/session';
-import type { CompanionDirectives, LiveSession, Presenter } from '@laude/song-model';
-import { db } from '../firebase';
-import { engine, padEngine } from '../engine';
-import { padsController, padStyleOf } from '../pads-controller';
+import { SessionClient, type SessionState } from '@laude/session';
+import { engine } from '../engine';
+import {
+  LAUDJ_PRESENTER,
+  RELAY_URL,
+  buildManifest,
+  handleSessionChange,
+  loadSavedCode,
+  saveCode,
+  wireWriteBack,
+} from '../session-follow';
 import { useSongs } from '../hooks';
-
-/** Re-joins with fresh joined_at accumulate duplicate presenter entries in the
- * session doc (no heartbeat/TTL in the PoC) — render each id once. */
-function dedupeById(presenters: Presenter[]): Presenter[] {
-  const seen = new Set<string>();
-  return presenters.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
-}
-
-const LAUDJ_PRESENTER: Presenter = {
-  id: 'laudj-engine',
-  name: 'LauDJ',
-  kind: 'laudj',
-  joined_at: new Date().toISOString(),
-};
-
-/**
- * Yield rule + follow: a session write by a HUMAN presenter makes the engine
- * yield its auto-advance; while armed (auto-advance on, not yielded) LauDJ
- * follows the session — loads the session's song and mirrors its key to pads.
- */
-function handleSessionChange(
-  change: SessionChange,
-  getEngineState: () => EngineState | null,
-  prev: LiveSession | null,
-): void {
-  const { session, external } = change;
-  // Yield only on external changes to MUSICAL INTENT (tier 1, `current.*`).
-  // Companion directives (tier 2) are meant to be obeyed, not yielded to, and
-  // the first snapshot after joining is existing state, not a change.
-  const currentChanged =
-    prev !== null && JSON.stringify(prev.current) !== JSON.stringify(session.current);
-  if (external && currentChanged) {
-    const writer = session.presenters.find((p) => p.id === session.updated_by);
-    // Unknown writers are treated as human — safer to yield than to fight.
-    const humanWriter = writer ? writer.kind === 'human' : true;
-    if (humanWriter) engine.externalPresenterActed();
-  }
-  // FOLLOW is unconditional ("react" behaviour): the engine always mirrors
-  // the session's song/key. Yield only pauses LauDJ's own auto-advance —
-  // it never stops LauDJ from obeying the human presenter.
-  const now = getEngineState();
-  if (now) {
-    if (session.current.song_id && session.current.song_id !== now.transport.song_id) {
-      engine.send({ type: 'load_song', song_id: session.current.song_id });
-    }
-    padEngine.setKey(session.current.key);
-  }
-  applyCompanion(prev?.companion ?? null, session);
-}
-
-/**
- * Companion mode (tier 2): the worship leader drives the pads from the
- * Laudasist session — pads on/off for song parts, style, volume, and the
- * instrumental interlude. Only deltas are applied, so local operator tweaks
- * survive until the leader changes something.
- */
-function applyCompanion(prev: CompanionDirectives | null, session: LiveSession): void {
-  const next = session.companion;
-  const key = session.current.key;
-  if (next.pad_style !== prev?.pad_style) padsController.setStyle(padStyleOf(next.pad_style));
-  if (next.pad_volume !== prev?.pad_volume) padsController.setVolume(next.pad_volume);
-  if ((prev?.pads_on ?? false) !== (next.pads_on ?? false)) {
-    if (next.pads_on) padsController.start(key);
-    else padsController.stop();
-  }
-  if ((prev?.interlude ?? false) !== next.interlude) {
-    void padsController.setInterlude(next.interlude, session.current.song_id, key);
-  }
-}
 
 export function SessionStrip({ state }: { state: EngineState }) {
   const t = useT();
   const songs = useSongs();
-  const [session, setSession] = useState<LiveSession | null>(null);
-  const engineStateRef = useRef<EngineState | null>(null);
+  const [code, setCode] = useState(loadSavedCode);
+  const [joinedCode, setJoinedCode] = useState<string | null>(null);
+  const [session, setSession] = useState<SessionState | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubEngine = engine.subscribe((s) => {
-      engineStateRef.current = s;
-    });
-    const client = new SessionClient(db, DEFAULT_SESSION_ID, LAUDJ_PRESENTER);
-    let unsubSession: (() => void) | undefined;
+    if (!joinedCode) return;
     let cancelled = false;
-    client
-      .join()
-      .then(() => {
-        if (cancelled) return;
+    let client: SessionClient | null = null;
+    let unsubSession: (() => void) | undefined;
+    let unsubEngineState: (() => void) | undefined;
+    let unsubWriteBack: (() => void) | undefined;
+    let engineState: EngineState | null = null;
+
+    SessionClient.connect({ url: RELAY_URL, code: joinedCode, presenter: LAUDJ_PRESENTER })
+      .then((c) => {
+        if (cancelled) {
+          c.leave();
+          return;
+        }
+        client = c;
+        setError(null);
         engine.setSessionConnected(true);
-        let prev: LiveSession | null = null;
-        unsubSession = client.subscribe((change) => {
-          setSession(change.session);
-          handleSessionChange(change, () => engineStateRef.current, prev);
-          prev = change.session;
+        unsubEngineState = engine.subscribe((s) => {
+          engineState = s;
         });
+        let prev: SessionState | null = null;
+        unsubSession = c.subscribe((change) => {
+          setSession(change.state);
+          handleSessionChange(change, () => engineState, prev);
+          prev = change.state;
+        });
+        unsubWriteBack = wireWriteBack(c);
+        // Advertise the local catalog (linked + local-only songs).
+        buildManifest()
+          .then((entries) => c.sendManifest(entries))
+          .catch((err: unknown) => console.warn('LauDJ: manifest build failed', err));
       })
       .catch((err: unknown) => {
-        console.error('LauDJ: joining sessions/main failed', err);
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+          setJoinedCode(null);
+        }
       });
+
     return () => {
       cancelled = true;
+      unsubWriteBack?.();
       unsubSession?.();
-      unsubEngine();
+      unsubEngineState?.();
       engine.setSessionConnected(false);
-      client.leave().catch((err: unknown) => {
-        console.error('LauDJ: leaving the session failed', err);
-      });
+      setSession(null);
+      client?.leave();
     };
-  }, []);
+  }, [joinedCode]);
 
   const current = session?.current ?? null;
   const currentTitle = current?.song_id
@@ -127,6 +84,33 @@ export function SessionStrip({ state }: { state: EngineState }) {
       : current
         ? `#${current.section_index + 1}`
         : '—';
+
+  if (joinedCode === null) {
+    return (
+      <footer className="ld-topbar laudj-session">
+        <StatusDot on={false} />
+        <span className="ld-label">{t('laudj.followSession')}</span>
+        <input
+          className="ld-input"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          placeholder={t('laudj.session.codePlaceholder')}
+          style={{ width: 110 }}
+        />
+        <Button
+          variant="primary"
+          disabled={code.length < 6}
+          onClick={() => {
+            saveCode(code);
+            setJoinedCode(code);
+          }}
+        >
+          {t('laudj.session.join')}
+        </Button>
+        {error !== null && <Chip state="warn">{error}</Chip>}
+      </footer>
+    );
+  }
 
   return (
     <footer className="ld-topbar laudj-session">
@@ -145,11 +129,18 @@ export function SessionStrip({ state }: { state: EngineState }) {
           <span>{current.tempo_pct}%</span>
           <span className="ld-spacer" />
           <span className="ld-label">{t('session.presenters')}</span>
-          {dedupeById(session.presenters).map((p) => (
-            <Chip key={p.id} state={p.kind === 'laudj' ? 'current' : 'default'}>
+          {session.presenters.map((p) => (
+            <Chip key={p.id} state={p.kind === 'dj' ? 'current' : 'default'}>
               {p.name}
             </Chip>
           ))}
+          <Button
+            onClick={() => {
+              setJoinedCode(null);
+            }}
+          >
+            {t('laudj.session.leave')}
+          </Button>
         </>
       )}
     </footer>
