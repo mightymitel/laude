@@ -6,7 +6,7 @@
  * annotations — is derived from that single definition.
  */
 import { convertChordPro, renderChordSymbol } from '@laude/chords';
-import type { BeatGrid, ChordEvent, LrcLine, SectionAnnotation } from '@laude/song-model';
+import type { BeatGrid, ChordEvent, LrcLine, PerformanceSection } from '@laude/song-model';
 import type { Arrangement, PartType, SongPart } from './laudasist-types';
 import type { SeedSongDef } from './content/songs';
 
@@ -141,19 +141,24 @@ export function buildSections(
   performanceId: string,
   durationS: number,
   bpm: number,
-): SectionAnnotation[] {
+): PerformanceSection[] {
   const secondsPerBar = (4 * 60) / bpm;
+  const labelCounts = new Map<string, number>();
   return SECTION_TEMPLATE.map((tpl, i) => {
     const start = Math.round(tpl.from * durationS * 10) / 10;
     const end = Math.round(tpl.to * durationS * 10) / 10;
+    const ordinal = (labelCounts.get(tpl.label) ?? 0) + 1;
+    labelCounts.set(tpl.label, ordinal);
     return {
       id: `sec-${performanceId}-${i + 1}`,
       performance_id: performanceId,
       label: tpl.label,
+      ordinal,
       start_s: start,
       end_s: end,
       start_bar: Math.floor(start / secondsPerBar),
       end_bar: Math.floor(end / secondsPerBar),
+      variation_of: null,
     };
   });
 }

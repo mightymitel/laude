@@ -64,6 +64,32 @@ export interface SongLink {
 }
 
 // ---------------------------------------------------------------------------
+// Work parts — the GLOBAL half of the part/section split (WP-100).
+// A part of the WORK: what has lyrics. Lives in a chart (parsed from the
+// chordpro blob); knows nothing about time, bars or recordings.
+// ---------------------------------------------------------------------------
+
+export interface WorkPart {
+  /** Verse / Chorus / Bridge — free label; RO labels allowed too. */
+  label: string;
+  /** 1-based occurrence among parts sharing this label ("Verse" 2 of 3). */
+  ordinal: number;
+  /** Lyric lines with inline degree brackets, e.g. "[1]Amazing [4]grace". */
+  lines: { text: string }[];
+}
+
+/**
+ * How anything outside a chart points at a work part: by (label, ordinal),
+ * never by id — the global chart is a ChordPro blob with no stable part IDs,
+ * and forcing IDs onto it would make the community song editor responsible
+ * for ID stability at national scale (DEC-56).
+ */
+export interface WorkPartRef {
+  label: string;
+  ordinal: number;
+}
+
+// ---------------------------------------------------------------------------
 // Services (source videos) & segments (Tier-1 output)
 // PERSONAL DOMAIN: stored in LaudStudio's local store, never in Firestore.
 // ---------------------------------------------------------------------------
@@ -111,15 +137,29 @@ export interface Performance {
 export type StemName = 'vocals' | 'bass' | 'drums' | 'other';
 export const ALL_STEMS: StemName[] = ['vocals', 'bass', 'drums', 'other'];
 
-export interface SectionAnnotation {
+/**
+ * The LOCAL half of the part/section split (WP-100, Studio Editor spec):
+ * a stretch of one RECORDING — timing, bars, and how it varies. Lives on a
+ * performance, never in a chart, never in Firestore.
+ *
+ * Its counterpart is `WorkPart` (global, lives in a chart). The two are
+ * joined only by the one-way, DJ-local mapping
+ * `PerformanceSection → WorkPartRef` (DEC-56) — needed for driving, nothing
+ * else.
+ */
+export interface PerformanceSection {
   id: string;
   performance_id: PerformanceId;
   /** Verse / Chorus / Bridge / Intro / Outro / Tag — RO labels allowed too. */
   label: string;
+  /** 1-based occurrence among sections sharing this label ("Chorus, 2nd time"). */
+  ordinal: number;
   start_s: number;
   end_s: number;
   start_bar: number;
   end_bar: number;
+  /** Section id this one is a variation of ("verse 2 sung differently"); null otherwise. */
+  variation_of: string | null;
 }
 
 export interface BeatGrid {
