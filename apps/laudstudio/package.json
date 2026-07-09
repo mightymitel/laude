@@ -10,7 +10,8 @@
     "ingest": "tsx src/ingest.ts",
     "extract": "bash extract.sh",
     "serve": "tsx src/server.ts",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "tsx --test src/store/store.test.ts"
   },
   "dependencies": {
     "@laude/chords": "file:../../laudasist/packages/chords",
