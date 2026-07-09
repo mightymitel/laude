@@ -251,7 +251,7 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
     this.prefetched.delete(songId);
     let real: RealAudio;
     try {
-      real = warmed ? await warmed : await RealAudio.load(songId, perfId);
+      real = warmed ? await warmed : await RealAudio.load(perfId);
     } catch (err) {
       if (token === this.loadToken) {
         console.warn(`LauDJ: stems for "${songId}" are not playable audio — simulated playback`, err);
@@ -345,7 +345,7 @@ export class LaudjEngine extends EngineStateStore implements EngineConnection {
     if (!songId || this.prefetched.has(songId)) return;
     const perf = this.songs.get(songId)?.performance;
     if (!perf || !ALL_STEMS.every((stem) => perf.stems.includes(stem))) return;
-    const loading = RealAudio.load(songId, perf.id);
+    const loading = RealAudio.load(perf.id);
     // A failed prefetch is dropped; the normal load path retries and falls back.
     loading.catch(() => this.prefetched.delete(songId));
     this.prefetched.set(songId, loading);

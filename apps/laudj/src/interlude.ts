@@ -4,10 +4,9 @@
  * so the pads' instrumental interlude actually plays THIS song's harmony.
  * Falls back to the generic I–V–vi–IV table when no chord data exists.
  */
-import { collection, doc, getDoc, getDocs, limit, query, where } from 'firebase/firestore';
-import { COLLECTIONS } from '@laude/song-model';
+import type { ChordEvent } from '@laude/song-model';
 import { defaultInterlude } from '@laude/pad-engine';
-import { db } from './firebase';
+import { fetchPerformance, performanceIdFor } from './studio';
 
 const cache = new Map<string, string[]>();
 
@@ -30,16 +29,14 @@ export async function interludeProgression(songId: string | null, key: string): 
 async function fromPerformanceChords(songId: string): Promise<string[]> {
   const perfId = await performanceIdFor(songId);
   if (!perfId) return [];
-  const snap = await getDoc(doc(db, COLLECTIONS.chords, perfId));
-  const data = snap.data();
-  const events = Array.isArray(data?.data) ? data.data : [];
+  const detail = await fetchPerformance(perfId);
+  const events: ChordEvent[] = detail?.chords ?? [];
 
   const weights = new Map<string, number>();
   const firstSeen = new Map<string, number>();
   for (let i = 0; i < events.length; i += 1) {
-    const event = asChordEvent(events[i]);
-    if (!event) continue;
-    const next = asChordEvent(events[i + 1]);
+    const event = events[i];
+    const next = events[i + 1];
     const span = (next ? next.start_s : event.start_s + 4) - event.start_s;
     weights.set(event.chord, (weights.get(event.chord) ?? 0) + Math.max(0, span));
     if (!firstSeen.has(event.chord)) firstSeen.set(event.chord, event.start_s);
@@ -50,22 +47,4 @@ async function fromPerformanceChords(songId: string): Promise<string[]> {
     .slice(0, 4)
     .map(([chord]) => chord)
     .sort((a, b) => (firstSeen.get(a) ?? 0) - (firstSeen.get(b) ?? 0));
-}
-
-async function performanceIdFor(songId: string): Promise<string | null> {
-  const songSnap = await getDoc(doc(db, COLLECTIONS.songs, songId));
-  const preferred = songSnap.data()?.preferred_performance_id;
-  if (typeof preferred === 'string' && preferred.length > 0) return preferred;
-  const res = await getDocs(
-    query(collection(db, COLLECTIONS.performances), where('song_id', '==', songId), limit(1)),
-  );
-  return res.docs[0]?.id ?? null;
-}
-
-function asChordEvent(value: unknown): { start_s: number; chord: string } | null {
-  if (typeof value !== 'object' || value === null) return null;
-  const record = value as Record<string, unknown>; // safe: object narrowing above, reads are typeof-checked below
-  return typeof record.start_s === 'number' && typeof record.chord === 'string'
-    ? { start_s: record.start_s, chord: record.chord }
-    : null;
 }

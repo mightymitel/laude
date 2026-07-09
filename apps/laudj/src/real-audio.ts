@@ -1,7 +1,7 @@
 /**
  * RealAudio — one loaded performance's decoded stems + beatgrid + StemPlayer.
- * Created via RealAudio.load(), which rejects when the storage files aren't
- * decodable audio (mock-seeded placeholders) — the engine then falls back to
+ * Created via RealAudio.load(), which rejects when the LaudStudio service has
+ * no decodable audio for the performance — the engine then falls back to
  * simulated playback. Owns the key-variant buffer cache; the StemPlayer graph
  * is built lazily on the shared AudioContext at the first play.
  */
@@ -23,7 +23,6 @@ export class RealAudio {
   private readonly variantCache = new Map<string, AudioBuffer>();
 
   private constructor(
-    private readonly songId: string,
     private readonly performanceId: string,
     /** Pristine variant-0 buffers, so returning to the original key needs no refetch. */
     private readonly baseBuffers: StemBuffers,
@@ -34,10 +33,10 @@ export class RealAudio {
   }
 
   /** Fetch + decode all four stems (and the beatgrid); rejects when not real audio. */
-  static async load(songId: string, performanceId: string): Promise<RealAudio> {
+  static async load(performanceId: string): Promise<RealAudio> {
     const beatsPromise = loadBeatgrid(performanceId); // resolves null on failure (warned inside)
-    const buffers = await loadStemBuffers(songId, performanceId);
-    return new RealAudio(songId, performanceId, buffers, await beatsPromise);
+    const buffers = await loadStemBuffers(performanceId);
+    return new RealAudio(performanceId, buffers, await beatsPromise);
   }
 
   get duration(): number {
@@ -104,7 +103,7 @@ export class RealAudio {
         const key = `${stem}:${semitones}`;
         const cached = this.variantCache.get(key);
         if (cached) return [stem, cached];
-        const buffer = await loadVariantBuffer(this.songId, this.performanceId, stem, semitones);
+        const buffer = await loadVariantBuffer(this.performanceId, stem, semitones);
         this.variantCache.set(key, buffer);
         return [stem, buffer];
       }),

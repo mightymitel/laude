@@ -1,25 +1,16 @@
 /**
  * The one LaudjEngine + PadEngine pair the whole console talks to, plus the
- * song loader: Firestore (emulator) songs → EngineSong registrations, with a
- * hardcoded fallback when the emulator is empty/unreachable after 3s.
+ * song loader: LaudStudio's local catalog → EngineSong registrations, with a
+ * hardcoded fallback when the local service is empty/unreachable after 3s.
  *
  * LaudjEngine plays real stems via Web Audio when a performance has them
  * (falling back per-song to simulated playback); the pads ride the same
  * AudioContext, attached to the shared PadEngine on the first audible gesture.
  */
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  query,
-  where,
-} from 'firebase/firestore';
 import { PadEngine } from '@laude/pad-engine';
-import { ALL_STEMS, COLLECTIONS, type StemName } from '@laude/song-model';
+import type { LocalCatalogSong } from '@laude/song-model';
 import { LaudjEngine, type EngineSong } from './audio-engine';
-import { db } from './firebase';
+import { fetchCatalog } from './studio';
 
 /** Shared pad instrument: the UI drives its state; audio attaches on first gesture. */
 export const padEngine = new PadEngine();
@@ -103,121 +94,35 @@ const FALLBACK_SONGS: EngineSong[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Firestore → EngineSong mapping (narrowing helpers, no casts)
+// Catalog → EngineSong mapping
 // ---------------------------------------------------------------------------
 
-function asString(v: unknown): string | undefined {
-  return typeof v === 'string' && v.length > 0 ? v : undefined;
-}
-
-function asNumber(v: unknown): number | undefined {
-  return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
-}
-
-function asStemNames(v: unknown): StemName[] {
-  if (!Array.isArray(v)) return [];
-  return ALL_STEMS.filter((stem) => v.includes(stem));
-}
-
-function asNumberArray(v: unknown): number[] {
-  if (!Array.isArray(v)) return [];
-  return v.filter((n): n is number => typeof n === 'number' && Number.isFinite(n));
-}
-
-interface LoadedPerformance {
-  id: string;
-  start_s: number;
-  end_s: number;
-  key: string | undefined;
-  stems: StemName[];
-  key_variants: number[];
-}
-
-function toLoadedPerformance(id: string, data: Record<string, unknown>): LoadedPerformance {
+function toEngineSong(entry: LocalCatalogSong): EngineSong {
+  // Catalog section times are performance-relative (0-based) by contract.
   return {
-    id,
-    start_s: asNumber(data.start_s) ?? 0,
-    end_s: asNumber(data.end_s) ?? 0,
-    key: asString(data.key),
-    stems: asStemNames(data.stems),
-    key_variants: asNumberArray(data.key_variants),
+    song_id: entry.song_id,
+    title: entry.title,
+    key: entry.key,
+    duration_s: entry.duration_s > 0 ? entry.duration_s : 240,
+    sections: entry.sections,
+    performance:
+      entry.performance_id !== null && entry.stems.length > 0
+        ? { id: entry.performance_id, stems: entry.stems, key_variants: entry.key_variants }
+        : undefined,
   };
 }
 
-async function loadPerformance(
-  songId: string,
-  preferredId: string | undefined,
-): Promise<LoadedPerformance | null> {
-  if (preferredId) {
-    const snap = await getDoc(doc(db, COLLECTIONS.performances, preferredId));
-    if (snap.exists()) return toLoadedPerformance(snap.id, snap.data());
-  }
-  const res = await getDocs(
-    query(collection(db, COLLECTIONS.performances), where('song_id', '==', songId), limit(1)),
-  );
-  const first = res.docs[0];
-  if (!first) return null;
-  return toLoadedPerformance(first.id, first.data());
-}
-
-async function loadSections(
-  performanceId: string,
-  perfStart: number,
-): Promise<{ label: string; start_s: number }[]> {
-  const snap = await getDocs(
-    query(collection(db, COLLECTIONS.sections), where('performance_id', '==', performanceId)),
-  );
-  const rows = snap.docs.map((d) => {
-    const data: Record<string, unknown> = d.data();
-    return { label: asString(data.label) ?? '—', start_s: asNumber(data.start_s) ?? 0 };
-  });
-  if (rows.length === 0) return [];
-  rows.sort((a, b) => a.start_s - b.start_s);
-  // Section times may be absolute (within the source video) or already
-  // performance-relative; if every section starts at/after the performance
-  // start, treat them as absolute and rebase to 0.
-  const offset = perfStart > 0 && rows[0].start_s >= perfStart ? perfStart : 0;
-  return rows.map((r) => ({ label: r.label, start_s: r.start_s - offset }));
-}
-
-async function loadSongsFromFirestore(): Promise<EngineSong[]> {
-  // The Laudasist `songs` rules only allow unauthenticated reads on public
-  // docs, and an unconstrained collection query is denied outright — the
-  // where() clause is what makes the query pass.
-  const songsSnap = await getDocs(
-    query(collection(db, COLLECTIONS.songs), where('visibility', '==', 'public')),
-  );
-  const songs = await Promise.all(
-    songsSnap.docs.map(async (d): Promise<EngineSong> => {
-      const data: Record<string, unknown> = d.data();
-      const perf = await loadPerformance(d.id, asString(data.preferred_performance_id));
-      const duration = perf && perf.end_s - perf.start_s > 0 ? perf.end_s - perf.start_s : 240;
-      const sections = perf ? await loadSections(perf.id, perf.start_s) : [];
-      return {
-        song_id: d.id,
-        title: asString(data.canonical_title) ?? d.id,
-        key: perf?.key ?? asString(data.original_key) ?? 'C',
-        duration_s: duration,
-        sections,
-        performance:
-          perf && perf.stems.length > 0
-            ? { id: perf.id, stems: perf.stems, key_variants: perf.key_variants }
-            : undefined,
-      };
-    }),
-  );
-  return songs;
-}
-
 /**
- * Load emulator songs into the engine; fall back to mock songs when the
- * emulator is empty or hasn't answered within 3s (late results still register).
+ * Load the LaudStudio catalog into the engine; fall back to mock songs when
+ * the service is empty or hasn't answered within 3s (late results still register).
  */
 export async function initSongs(): Promise<void> {
-  const loading = loadSongsFromFirestore().catch((err: unknown) => {
-    console.error('LauDJ: failed to load songs from the Firestore emulator', err);
-    return [];
-  });
+  const loading = fetchCatalog()
+    .then((catalog) => catalog.map(toEngineSong))
+    .catch((err: unknown) => {
+      console.error('LauDJ: failed to load the LaudStudio catalog', err);
+      return [];
+    });
   const timeout = new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), 3000));
   const result = await Promise.race([loading, timeout]);
 
