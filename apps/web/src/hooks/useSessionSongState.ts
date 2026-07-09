@@ -67,10 +67,26 @@ export function useSessionSongState(playlistId: string | undefined) {
     // === UNIFIED STATE UPDATE HELPERS (local vs live routing) ===
     const setCurrentSongId = useCallback(
         (songId: string | null) => {
-            if (isLive) updateSession({ current: { song_id: songId, section_index: 0 } })
-            else setLocalSongId(songId)
+            if (isLive) {
+                // Presenters/viewers render the by-value currentSong — resolve the
+                // embed from the playlist item or the loaded library (the relay
+                // never resolves by-ref ids itself).
+                const fromPlaylist = songId !== null
+                    ? sessionPlaylist.find((i) => i.songId === songId)?.song
+                    : undefined
+                const fromLibrary = songId !== null
+                    ? allSongsData?.data?.find((s) => s.id === songId)
+                    : undefined
+                const embedded = fromPlaylist ?? (fromLibrary ? embed(fromLibrary) : null)
+                updateSession({
+                    current: { song_id: songId, section_index: 0 },
+                    currentSong: songId === null ? null : embedded,
+                })
+            } else {
+                setLocalSongId(songId)
+            }
         },
-        [isLive, updateSession],
+        [isLive, updateSession, sessionPlaylist, allSongsData],
     )
 
     const setCurrentPartIndex = useCallback(

@@ -53,15 +53,17 @@ test.describe('Song Editor', () => {
     const chordBadge = page.locator('[class*="chordBadge"]').first();
     await expect(chordBadge).toBeVisible();
 
-    // Start dragging using HTML5 drag event
-    await chordBadge.dispatchEvent('dragstart');
+    // Start dragging using HTML5 drag event. A real DataTransfer is required —
+    // React ignores synthetic drag events without one.
+    const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await chordBadge.dispatchEvent('dragstart', { dataTransfer });
 
     // Delete zone should appear (has 'visible' class when active)
     await expect(deleteZone).toBeVisible({ timeout: 2000 });
     await expect(deleteZone).toContainText('Drop here to delete');
 
     // Stop dragging
-    await chordBadge.dispatchEvent('dragend');
+    await chordBadge.dispatchEvent('dragend', { dataTransfer });
 
     // Delete zone should disappear
     await expect(deleteZone).not.toBeVisible();
@@ -169,8 +171,9 @@ test.describe('Song Editor', () => {
     const initialParts = await page.locator('[class*="partHeader"]').count();
     expect(initialParts).toBe(2); // Verse 1 and Chorus 1
 
-    // Click delete button on first part
-    const deleteButton = page.locator('[class*="partActionButton"]').first();
+    // Click the delete button on the first part (the part header also has
+    // approximate-chords and join buttons — target delete by its title).
+    const deleteButton = page.locator('[title="Remove part"]').first();
     await deleteButton.click();
 
     // Should have one less part

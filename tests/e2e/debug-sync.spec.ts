@@ -32,9 +32,10 @@ test('debug playlist sync', async ({ browser }) => {
     await expect(ownerPage.locator('[class*="resultItem"]').first()).toBeVisible();
 
     // Click menu
-    await ownerPage.locator('[class*="resultItem"]').first().hover();
-    await ownerPage.locator('[class*="menuBtn"]').click({ force: true });
-    await ownerPage.locator('button:has-text("Add to Playlist")').click({ force: true });
+    const firstResult = ownerPage.locator('[class*="resultItem"]').first();
+    await firstResult.hover();
+    await firstResult.locator('[class*="menuBtn"]').click({ force: true });
+    await firstResult.locator('button:has-text("Add to Playlist")').click({ force: true });
 
     // Verify in owner view
     await expect(ownerPage.locator('[class*="playlistItem"]')).toHaveCount(1);

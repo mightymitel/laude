@@ -25,7 +25,8 @@ async function addFirstSongToPlaylist(page: Page) {
     await expect(menuBtn).toBeVisible({ timeout: 2000 });
     await menuBtn.click();
 
-    const addBtn = page.locator('button:has-text("Add to Playlist")');
+    // Scope to the hovered item — every result row has its own (hidden) menu.
+    const addBtn = songResult.locator('button:has-text("Add to Playlist")');
     await expect(addBtn).toBeVisible({ timeout: 2000 });
     await addBtn.click();
 

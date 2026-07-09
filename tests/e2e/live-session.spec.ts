@@ -137,8 +137,8 @@ test.describe('Live Session QR Code and Viewport Features', () => {
             if (await menuBtn.isVisible({ timeout: 2000 })) {
                 await menuBtn.click();
 
-                // Click "Add to Playlist"
-                const addBtn = page.locator('button:has-text("Add to Playlist")');
+                // Click "Add to Playlist" (scoped: every result row has its own hidden menu)
+                const addBtn = songResult.locator('button:has-text("Add to Playlist")');
                 await expect(addBtn).toBeVisible({ timeout: 2000 });
                 await addBtn.click();
 

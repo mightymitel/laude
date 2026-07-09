@@ -4,7 +4,7 @@
  * The single write path is SessionClient.send — no REST mutation + socket
  * echo dance, no polling.
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     endLiveSession,
     startLiveSession,
@@ -47,6 +47,17 @@ export function useLiveSession() {
     const isLive = context !== null
     const session: SessionState | null = state ?? null
 
+    // Writes issued between "go live" (REST) and the socket join would land on
+    // a null client — queue them and flush once connected.
+    const pendingRef = useRef<SessionPatch[]>([])
+    useEffect(() => {
+        if (client && pendingRef.current.length > 0) {
+            const queued = pendingRef.current
+            pendingRef.current = []
+            queued.forEach((patch) => client.send(patch))
+        }
+    }, [client])
+
     const startLive = useCallback(async () => {
         setIsLoading(true)
         setError(null)
@@ -84,23 +95,24 @@ export function useLiveSession() {
 
     const updateSession = useCallback(
         (patch: SessionPatch) => {
-            client?.send(patch)
+            if (client) client.send(patch)
+            else pendingRef.current.push(patch)
         },
         [client],
     )
 
     const setPartIndex = useCallback(
         (index: number) => {
-            client?.setCurrent({ section_index: index })
+            updateSession({ current: { section_index: index } })
         },
-        [client],
+        [updateSession],
     )
 
     const setPlaylist = useCallback(
         (items: SessionPlaylistItem[]) => {
-            client?.setPlaylist(items)
+            updateSession({ sessionPlaylist: items })
         },
-        [client],
+        [updateSession],
     )
 
     const getShareUrl = useCallback(() => {

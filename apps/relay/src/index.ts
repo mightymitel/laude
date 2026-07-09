@@ -20,7 +20,12 @@ async function main(): Promise<void> {
   initFirebase();
 
   const store = new SessionStore();
-  const restored = await rehydrate(store);
+  // The mirror is optional — never let a slow/unreachable Firestore block
+  // the relay from serving (it is the authoritative store either way).
+  const restored = await Promise.race([
+    rehydrate(store),
+    new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
+  ]);
   if (restored > 0) console.log(`relay: rehydrated ${restored} active session(s) from the mirror`);
 
   const app = express();
