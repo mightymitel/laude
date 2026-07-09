@@ -54,6 +54,7 @@ export function useSessionSongState(playlistId: string | undefined) {
                     songId: item.songId,
                     key: item.key,
                     arrangement: item.arrangement,
+                    song: item.song,
                 })),
             )
             setPlaylistLoaded(true)

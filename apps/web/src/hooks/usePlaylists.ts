@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Key } from '@laudasist/shared';
+import type { EmbeddedSong } from '@laude/session';
 
 export interface PlaylistItem {
     id: string;
@@ -8,6 +9,9 @@ export interface PlaylistItem {
     key?: Key;
     arrangement?: string;
     order: number;
+    /** By-value payload (portable-playlist envelope, DEC-38); legacy saved
+     * playlists are by-ref and hydrate from the library on load. */
+    song?: EmbeddedSong;
 }
 
 export interface Playlist {
@@ -58,7 +62,7 @@ export function useUpdatePlaylist() {
         mutationFn: ({
             id,
             ...data
-        }: { id: string; name?: string; description?: string; items?: PlaylistItem[] }) =>
+        }: { id: string; name?: string; description?: string; items?: (Omit<PlaylistItem, 'key'> & { key?: string })[] }) =>
             api.put<Playlist>(`/api/playlists/${id}`, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['playlists'] });

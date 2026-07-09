@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { LocalTransport, createLocalState } from './transport';
 import { WorshipSession } from './session';
 import { applySessionPatch, durableSlice } from './types';
+import { parsePortable, toPortable, PLAYLIST_FORMAT_VERSION } from './playlist';
 
 const ME = { id: 'mike', name: 'Mike', kind: 'human' as const };
 
@@ -62,4 +63,43 @@ test('durableSlice carries exactly the go-live payload (no roster, no codes)', (
   ]);
   assert.equal(slice.current.song_id, 's');
   assert.equal(slice.directives.stage?.freeze, true);
+});
+
+test('portable playlist round-trips losslessly (by-value songs survive)', () => {
+  const items = [
+    {
+      id: 'p1',
+      songId: 'song-private',
+      key: 'Bb',
+      song: {
+        id: 'song-private',
+        title: 'Cantec Privat',
+        author: 'Mike',
+        originalKey: 'Bb',
+        parts: [
+          { id: 'V1', type: 'verse', index: 0, lines: [{ text: '[1]La [4]la' }] },
+          { id: 'C1', type: 'chorus', index: 1, lines: [{ text: '[5]Ref [1]ren' }] },
+        ],
+      },
+    },
+    { id: 'p2', songId: 'song-by-ref-legacy', arrangement: 'arr-default' },
+  ];
+  const envelope = toPortable('Duminica', items);
+  assert.equal(envelope.format_version, PLAYLIST_FORMAT_VERSION);
+
+  const roundTripped = parsePortable(JSON.parse(JSON.stringify(envelope)));
+  assert.equal(roundTripped.ok, true);
+  if (roundTripped.ok) {
+    assert.equal(roundTripped.name, 'Duminica');
+    assert.deepEqual(roundTripped.items, items, 'lossless round-trip');
+  }
+});
+
+test('portable playlist parse rejects junk and future versions', () => {
+  assert.equal(parsePortable('nope').ok, false);
+  assert.equal(parsePortable({}).ok, false);
+  assert.equal(parsePortable({ format_version: 99, songs: [] }).ok, false);
+  assert.equal(parsePortable({ format_version: 1, songs: [{ nope: true }] }).ok, false);
+  const badSong = parsePortable({ format_version: 1, songs: [{ songId: 's', song: { id: 's' } }] });
+  assert.equal(badSong.ok, false, 'malformed by-value payload fails the import honestly');
 });

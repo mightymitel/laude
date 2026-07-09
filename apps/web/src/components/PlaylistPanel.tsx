@@ -3,6 +3,7 @@ import { usePlaylists, type Playlist } from '@/hooks/usePlaylists';
 import { useSong } from '@/hooks/useSongs';
 import { POSSIBLE_KEYS } from '@/lib/keys';
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session';
+import { PlaylistPortability } from './session/PlaylistPortability';
 import styles from './PlaylistPanel.module.css';
 
 // Session content types now live in @laude/session (by-value path).
@@ -89,12 +90,15 @@ export function PlaylistPanel({
     const { data: userPlaylists } = usePlaylists();
 
     const handleLoadPlaylist = (playlist: Playlist) => {
+        // Clone-in (DEC-38): the session gets a COPY; by-value songs (new
+        // envelope) hydrate directly, legacy by-ref items load from the library.
         playlist.items.forEach((item) => {
             onAddSong({
                 id: `${Date.now()}-${item.songId}`,
                 songId: item.songId,
                 key: item.key,
                 arrangement: item.arrangement,
+                song: item.song,
             });
         });
         setShowLoadModal(false);
@@ -138,6 +142,11 @@ export function PlaylistPanel({
                     + Load
                 </button>
             </div>
+
+            <PlaylistPortability
+                items={sessionPlaylist}
+                onImport={(imported) => imported.forEach((item) => onAddSong(item))}
+            />
 
             {sessionPlaylist.length === 0 ? (
                 <div className={styles.empty}>

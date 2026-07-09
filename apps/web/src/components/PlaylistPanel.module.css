@@ -248,3 +248,17 @@
 .closeBtn:hover {
     background: var(--bg-secondary);
 }
+.portability {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+    flex-wrap: wrap;
+}
+
+.portabilityNotice {
+    font-size: 0.75rem;
+    opacity: 0.75;
+    cursor: pointer;
+}
