@@ -7,6 +7,7 @@ import styles from './session.module.css'
 import { Modal } from '@/components/Modal/Modal'
 import { Tuner } from '@/components/Tuner/Tuner'
 import { WorshipPad } from '@/components/WorshipPad'
+import { DirectivesBar } from '@/components/session/DirectivesBar'
 import { SessionSidebar } from '@/components/session/SessionSidebar'
 import { ShareModal } from '@/components/session/ShareModal'
 import { SongPartsView, type ChordDisplay } from '@/components/session/SongPartsView'
@@ -52,7 +53,7 @@ function SessionPageContent() {
         embed,
     } = useSessionSongState(playlistId)
 
-    const { state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
+    const { session, state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
 
     // Display preferences (always local)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
@@ -112,6 +113,8 @@ function SessionPageContent() {
                     {isGuest && <span className={styles.guestIndicator}>👤 Guest Mode</span>}
                 </div>
             </header>
+
+            {isLive && state && <DirectivesBar session={session} state={state} />}
 
             <div className={styles.layout}>
                 <SessionSidebar
