@@ -21,6 +21,7 @@ export function SongEditor({
     onSave,
     onCancel,
     variant = 'page',
+    keyLocked = false,
 }: SongEditorProps) {
     // Editing state
     const [editingSong, setEditingSong] = useState<Partial<Song>>(() =>
@@ -91,6 +92,7 @@ export function SongEditor({
                 titleError={titleError}
                 onTitleChange={handleTitleChange}
                 onAuthorChange={(author) => setEditingSong(prev => ({ ...prev, author }))}
+                keyLocked={keyLocked}
                 onKeyChange={(defaultKey) => setEditingSong(prev => ({ ...prev, defaultKey }))}
                 onChordStyleChange={setChordStyle}
                 onModeChange={setMode}

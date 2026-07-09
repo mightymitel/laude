@@ -22,6 +22,11 @@ export interface SongEditorProps {
 
     /** Container variant affects sizing/padding */
     variant?: 'page' | 'modal' | 'drawer';
+
+    /** Disable the key selector (WP-115/DEC-90): hosts whose key knob is
+     * RE-KEY (Studio charts) disable it explicitly instead of silently
+     * discarding the edit on save. */
+    keyLocked?: boolean;
 }
 
 export interface EditableSongPart extends SongPart {

@@ -12,6 +12,8 @@ interface SongEditorHeaderProps {
     onTitleChange: (title: string) => void;
     onAuthorChange: (author: string) => void;
     onKeyChange: (key: Key) => void;
+    /** Disabled with an explanatory tooltip (never silently ignored). */
+    keyLocked?: boolean;
     onChordStyleChange: (style: ChordStyle) => void;
     onModeChange: (mode: 'visual' | 'raw') => void;
 }
@@ -21,6 +23,7 @@ export function SongEditorHeader({
     title,
     author,
     defaultKey,
+    keyLocked = false,
     chordStyle,
     mode,
     titleError,
@@ -71,6 +74,8 @@ export function SongEditorHeader({
                 <select
                     className={styles.select}
                     value={defaultKey}
+                    disabled={keyLocked}
+                    title={keyLocked ? 'The key of a Studio chart is changed with Re-key (it rotates the degrees)' : undefined}
                     // Cast: the select's options are exactly KEYS, so the value is a Key.
                     onChange={(e) => onKeyChange(e.target.value as Key)}
                 >

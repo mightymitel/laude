@@ -11,13 +11,10 @@
  * There is no fork verb.
  */
 import { rekeyChordPro, validateDegreeChart } from '@laude/chords';
-import { COLLECTIONS } from '@laude/song-model';
-import { getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 import '../env';
-import { PROJECT_ID } from '../env';
 import { alignPerformance } from '../service/align';
 import { requireUid } from '../service/auth';
+import { getUserDoc, patchUserDoc } from '../service/firestoreRest';
 import { chartSnapshotParts } from '../service/snapshot';
 import type { LocalStore, LocalSongRow } from '../store';
 
@@ -30,7 +27,8 @@ export interface ChartUpdateResult {
   error?: string;
 }
 
-/** What the signed-in (or signed-out) user may do with this song's chart. */
+/** What the signed-in (or signed-out) user may do with this song's chart.
+ * Reads AS THE USER (WP-114) — an unreadable/foreign song is simply locked. */
 export async function chartAccess(song: LocalSongRow): Promise<ChartAccess> {
   if (song.link_state !== 'linked' || song.global_song_id === null) return 'editable';
   let uid: string;
@@ -39,12 +37,12 @@ export async function chartAccess(song: LocalSongRow): Promise<ChartAccess> {
   } catch {
     return 'locked';
   }
-  const app = getApps()[0] ?? initializeApp({ projectId: PROJECT_ID });
-  const doc = await getFirestore(app)
-    .collection(COLLECTIONS.songs)
-    .doc(song.global_song_id)
-    .get();
-  return doc.exists && doc.get('ownerId') === uid ? 'owner' : 'locked';
+  try {
+    const doc = await getUserDoc(`songs/${song.global_song_id}`);
+    return doc !== null && doc.ownerId === uid ? 'owner' : 'locked';
+  } catch {
+    return 'locked';
+  }
 }
 
 /** Persist an edited chart under the lock rules. First editor touch writes
@@ -69,16 +67,13 @@ export async function setChart(
   if (access === 'owner') {
     // Owner override: the edit pushes to Laudasist AND refreshes the local
     // snapshot — the global chart stays the single source for linked songs.
-    const app = getApps()[0] ?? initializeApp({ projectId: PROJECT_ID });
-    const firestore = getFirestore(app);
-    const lyricsSnap = await firestore
-      .collection(COLLECTIONS.song_lyrics)
-      .where('song_id', '==', song.global_song_id)
-      .limit(1)
-      .get();
-    const lyricsDoc = lyricsSnap.docs[0];
-    if (!lyricsDoc) return { ok: false, error: 'global song has no song_lyrics row to update' };
-    await lyricsDoc.ref.update({ chordpro });
+    // The push runs AS THE USER (WP-114): song_lyrics' songOwner rule is
+    // what authorizes it, not an admin credential.
+    try {
+      await patchUserDoc(`song_lyrics/${song.global_song_id}-${song.language}`, { chordpro });
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
     const snapshot = chartSnapshotParts(chordpro);
     store.upsertLocalSong({
       ...song,
@@ -106,11 +101,17 @@ export async function setChart(
   return { ok: true, access, pushed: false };
 }
 
-/** RE-KEY (DEC-59/60): the ANALYSIS key was wrong — an extraction-side knob.
- * Unlinked songs only: a linked song's chart is the global snapshot, and
- * rotating it locally (even as the owner) would silently diverge it from
- * the global chart. Fix a linked song's render key by transposing
- * default_key in Laudasist, or unlink first. */
+/**
+ * RE-KEY (DEC-59/60/90): a bad key detection produced a MISTAKEN CHART, and
+ * re-key is the edit that fixes it — so the ORDINARY chart-edit lock governs
+ * it (DEC-68), not a special rule:
+ *   unlinked                → rotate locally
+ *   linked, not owned       → locked (divergence risk the lock exists for)
+ *   linked, owned           → rotate locally AND push: the rotated chart to
+ *                             song_lyrics and the corrected key to
+ *                             songs.default_key/defaultKey. Nothing diverges
+ *                             because the user owns both sides.
+ */
 export async function rekeySong(
   store: LocalStore,
   localSongId: string,
@@ -118,10 +119,10 @@ export async function rekeySong(
 ): Promise<ChartUpdateResult> {
   const song = store.getLocalSong(localSongId);
   if (!song) return { ok: false, error: `unknown local song ${localSongId}` };
-  if (song.link_state === 'linked') {
-    return { ok: false, access: 'locked', error: 're-key is for unlinked songs — the chart is the global snapshot (transpose default_key in Laudasist, or unlink)' };
+  const access = await chartAccess(song);
+  if (access === 'locked') {
+    return { ok: false, access, error: 'chart is locked — unlink, or sign in as the owner' };
   }
-  const access: ChartAccess = 'editable';
   let rotated: string;
   try {
     rotated = rekeyChordPro(song.chordpro, newKey);
@@ -129,6 +130,36 @@ export async function rekeySong(
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
   const now = new Date().toISOString();
+
+  if (access === 'owner' && song.global_song_id !== null) {
+    try {
+      await patchUserDoc(`song_lyrics/${song.global_song_id}-${song.language}`, {
+        chordpro: rotated,
+      });
+      await patchUserDoc(`songs/${song.global_song_id}`, {
+        default_key: newKey,
+        defaultKey: newKey,
+      });
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+    const snapshot = chartSnapshotParts(rotated);
+    store.upsertLocalSong({
+      ...song,
+      chordpro: rotated,
+      analysis_key: newKey,
+      snapshot_parts: snapshot,
+      snapshot_taken_at: now,
+      derived_chordpro:
+        song.derived_chordpro === null ? null : rekeyChordPro(song.derived_chordpro, newKey),
+      updated_at: now,
+    });
+    for (const perf of store.listPerformances(localSongId)) {
+      alignPerformance(store, perf.id, snapshot.parts);
+    }
+    return { ok: true, access, pushed: true };
+  }
+
   store.upsertLocalSong({
     ...song,
     chordpro: rotated,

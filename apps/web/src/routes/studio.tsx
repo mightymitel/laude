@@ -253,6 +253,7 @@ function StudioPage() {
                 song={chartToSong(detail)}
                 chordStyle="nashville"
                 defaultMode="visual"
+                keyLocked
                 onSave={(song) => void saveChart(song)}
               />
             ) : (

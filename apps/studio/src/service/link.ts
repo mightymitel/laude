@@ -21,15 +21,12 @@
  * Runs against the Firebase EMULATOR in dev (see ../env).
  */
 import '../env';
-import { getApps, initializeApp } from 'firebase-admin/app';
-import { getFirestore, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { renderChordPro } from '@laude/chords';
-import { COLLECTIONS } from '@laude/song-model';
-import { PROJECT_ID } from '../env';
 import type { Arrangement, PartType, SongPart } from '../laudasist-types';
 import type { LocalStore, LocalSongRow } from '../store';
 import { alignPerformance } from './align';
 import { currentIdToken, requireUid } from './auth';
+import { createUserDoc, getUserDoc, queryUserDocs } from './firestoreRest';
 import { chartSnapshotParts, normalizeLyric } from './snapshot';
 
 const API_URL = process.env.LAUDASIST_API_URL ?? 'http://localhost:3001';
@@ -50,16 +47,42 @@ export interface BridgeCandidate {
   score: number;
 }
 
-let firestoreInstance: Firestore | null = null;
+/**
+ * The global chart for a song, read AS THE USER (WP-114). Direct doc read on
+ * the `{songId}-{language}` convention first (works for your own private
+ * songs); public-filtered query as the fallback — rules-checked queries must
+ * be provably readable, so the fallback constrains visibility=='public'.
+ */
+export async function findGlobalChart(
+  songId: string,
+  language: string,
+): Promise<string | null> {
+  const direct = await getUserDoc(`song_lyrics/${songId}-${language}`);
+  if (typeof direct?.chordpro === 'string' && direct.chordpro.trim()) {
+    return direct.chordpro;
+  }
+  const rows = await queryUserDocs('song_lyrics', 'song_id', songId, 3);
+  for (const row of rows) {
+    if (typeof row.data.chordpro === 'string' && row.data.chordpro.trim()) {
+      return row.data.chordpro;
+    }
+  }
+  return null;
+}
 
-function db(): Firestore {
-  // Memoized: settings() may only be called once per Firestore instance —
-  // a second bridge call in the same process must reuse the first.
-  if (firestoreInstance) return firestoreInstance;
-  const app = getApps()[0] ?? initializeApp({ projectId: PROJECT_ID });
-  firestoreInstance = getFirestore(app);
-  firestoreInstance.settings({ ignoreUndefinedProperties: true });
-  return firestoreInstance;
+/** Best-effort: tell the api its lyrics index is stale (mint bypasses the
+ * api's write routes — WP-114's related fix; a fresh mint must be searchable
+ * immediately or duplicate mints happen). */
+async function invalidateApiSearch(): Promise<void> {
+  try {
+    const token = await currentIdToken();
+    await fetch(`${API_URL}/api/search/reindex`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.warn('link: search reindex ping failed (index heals via TTL)', err);
+  }
 }
 
 /** Rebuild Laudasist parts (Nashville bracket lines) from canonical ChordPro. */
@@ -154,15 +177,10 @@ export async function linkToSong(
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 
-  const firestore = db();
-  const lyricsSnap = await firestore
-    .collection(COLLECTIONS.song_lyrics)
-    .where('song_id', '==', globalSongId)
-    .limit(1)
-    .get();
-  const globalChart = lyricsSnap.docs[0]?.get('chordpro');
-  if (typeof globalChart !== 'string' || !globalChart.trim()) {
-    return { ok: false, error: `global song ${globalSongId} has no chart` };
+  // Read AS THE USER (WP-114): rules decide what this account may link to.
+  const globalChart = await findGlobalChart(globalSongId, song.language);
+  if (globalChart === null) {
+    return { ok: false, error: `global song ${globalSongId} has no chart readable by this account` };
   }
 
   const now = new Date().toISOString();
@@ -195,57 +213,52 @@ export async function mintSong(store: LocalStore, localSongId: string): Promise<
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 
-  const firestore = db();
   const now = new Date();
   const degreeChart = song.chordpro; // straight copy — degrees since extraction (DEC-59)
   const { parts, defaultArrangement, arrangements } = buildLaudasistParts(
     degreeChart,
     song.analysis_key,
   );
-  // MINT means CREATE: never overwrite an existing global doc that happens
-  // to share the id — that would be a silent write to someone else's song.
-  const existing = await firestore.collection(COLLECTIONS.songs).doc(localSongId).get();
-  if (existing.exists) {
-    return {
-      ok: false,
-      error: `a global song with id ${localSongId} already exists — link to it instead`,
-    };
-  }
-  await firestore.collection(COLLECTIONS.songs).doc(localSongId).set({
-    id: localSongId,
-    canonical_title: song.title,
-    default_key: song.analysis_key,
-    language: song.language,
-    tags: ['laudstudio'],
-    verified: false,
-    created_at: now.toISOString(),
-    title: song.title,
-    author: song.author ?? 'Extras automat (UNVERIFIED)',
-    defaultKey: song.analysis_key,
-    defaultArrangement,
-    arrangements,
-    parts,
-    libraryType: 'user',
-    ownerId: uid,
-    visibility: 'private',
-    createdAt: Timestamp.fromDate(now),
-    updatedAt: Timestamp.fromDate(now),
-    createdBy: uid,
-  });
-  await firestore
-    .collection(COLLECTIONS.song_lyrics)
-    .doc(`${localSongId}-${song.language}`)
-    .set({
+  // Writes go AS THE USER (WP-114): security rules bind them, and CREATE
+  // fails with ALREADY_EXISTS rather than overwriting a doc that happens to
+  // share the id — mint means create.
+  try {
+    await createUserDoc('songs', localSongId, {
+      id: localSongId,
+      canonical_title: song.title,
+      default_key: song.analysis_key,
+      language: song.language,
+      tags: ['laudstudio'],
+      verified: false,
+      created_at: now.toISOString(),
+      title: song.title,
+      author: song.author ?? 'Extras automat (UNVERIFIED)',
+      defaultKey: song.analysis_key,
+      defaultArrangement,
+      arrangements,
+      parts,
+      libraryType: 'user',
+      ownerId: uid,
+      visibility: 'private',
+      createdAt: now,
+      updatedAt: now,
+      createdBy: uid,
+    });
+    await createUserDoc('song_lyrics', `${localSongId}-${song.language}`, {
       song_id: localSongId,
       lang: song.language,
       chordpro: degreeChart,
       visibility: 'private',
       verified: false,
     });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 
   store.linkSong(localSongId, localSongId);
   snapshotAndAlign(store, localSongId, degreeChart);
-  console.log(`link: minted private global song ${localSongId}`);
+  await invalidateApiSearch();
+  console.log(`link: minted private global song ${localSongId} (as ${uid})`);
   return { ok: true, song_id: localSongId, minted: true };
 }
 

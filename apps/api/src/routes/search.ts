@@ -7,9 +7,21 @@
  */
 import { Router, type Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth.js';
-import { searchLyrics } from '../search/lyricsIndex.js';
+import { invalidateLyricsIndex, searchLyrics } from '../search/lyricsIndex.js';
 
 const router = Router();
+
+/** Authed writers that bypass the api's song routes (Studio's mint writes
+ * Firestore directly as the user — WP-114) ping this so a fresh mint is
+ * searchable immediately instead of after the TTL. */
+router.post('/reindex', (req: AuthenticatedRequest, res: Response) => {
+    if (!req.userId) {
+        res.status(401).json({ error: 'Not authenticated' });
+        return;
+    }
+    invalidateLyricsIndex();
+    res.json({ ok: true });
+});
 
 router.get('/lyrics', async (req: AuthenticatedRequest, res: Response) => {
     const q = typeof req.query.q === 'string' ? req.query.q : '';
