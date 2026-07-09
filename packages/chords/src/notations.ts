@@ -172,6 +172,53 @@ export function isDegreeToken(token: string): boolean {
   return /^(b|#)?[1-7]/.test(token.trim());
 }
 
+/** A parsed degree chord symbol, still key-independent (storage domain). */
+export interface DegreeSymbol {
+  /** Semitone offset of the root from the reference-key root (0..11). */
+  rel: number;
+  /** Quality/extensions suffix as written: '', 'm', '7', 'sus4', … */
+  quality: string;
+  /** Semitone offset of a slash-bass degree, when present ("5/7"). */
+  bassRel?: number;
+}
+
+/** Parse a full degree chord symbol ("4m", "b7", "5/7") without a key. */
+export function parseDegreeSymbol(token: string): DegreeSymbol | null {
+  const [head, bassRaw] = splitBass(token.trim());
+  const parsed = parseDegree(head);
+  if (!parsed) return null;
+  if (bassRaw !== null) {
+    const parsedBass = parseDegree(bassRaw);
+    if (!parsedBass || parsedBass.rest !== '') return null;
+    return { rel: parsed.rel, quality: parsed.rest, bassRel: parsedBass.rel };
+  }
+  return { rel: parsed.rel, quality: parsed.rest };
+}
+
+/** Canonical degree spelling (flats: b2 b3 b5 b6 b7 — sharp aliases normalize). */
+export function formatDegreeSymbol(d: DegreeSymbol): string {
+  const bass = d.bassRel === undefined ? '' : `/${NASHVILLE_DEGREES[((d.bassRel % 12) + 12) % 12]}`;
+  return `${NASHVILLE_DEGREES[((d.rel % 12) + 12) % 12]}${d.quality}${bass}`;
+}
+
+/**
+ * Rotate a degree symbol by n semitones (the RE-KEY primitive, DEC-59):
+ * root and slash bass rotate together, quality rides along. Returns null for
+ * non-degree tokens (letters in a degree chart are the validator's business).
+ * Sharp aliases (#4) come back in canonical flat spelling (b5).
+ */
+export function rotateDegreeSymbol(token: string, semitones: number): string | null {
+  const parsed = parseDegreeSymbol(token);
+  if (!parsed) return null;
+  return formatDegreeSymbol({
+    rel: (((parsed.rel + semitones) % 12) + 12) % 12,
+    quality: parsed.quality,
+    ...(parsed.bassRel === undefined
+      ? {}
+      : { bassRel: (((parsed.bassRel + semitones) % 12) + 12) % 12 }),
+  });
+}
+
 export const nashvilleNotation: Notation = {
   id: 'nashville',
   label: 'Nashville (1 4 5)',

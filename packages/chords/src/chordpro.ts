@@ -12,6 +12,7 @@ import ChordSheetJS from 'chordsheetjs';
 
 const { ChordProParser } = ChordSheetJS;
 import { transposeChord, semitonesBetweenKeys } from './canonical';
+import { anchorKeyName, scanChartKeys, segmentChartByKey } from './degrees';
 import {
   NotationContext,
   getNotation,
@@ -36,6 +37,9 @@ export interface RenderedSection {
   type: string;
   label: string;
   lines: RenderedLine[];
+  /** The key this section renders in — differs from the song key after a
+   * mid-chart {key: <degree>} modulation anchor (DEC-71). */
+  key: string;
 }
 
 export interface RenderedSong {
@@ -56,15 +60,58 @@ export interface RenderOptions {
 /**
  * Parse canonical ChordPro and render to plain data: chords transposed by
  * `options.transpose` and formatted in `options.notation`.
+ *
+ * Mid-chart `{key: <degree>}` modulation anchors (DEC-71) re-anchor the
+ * degree frame relative to the head key. Because anchors are RELATIVE, a
+ * render key override (`options.key`) or a transpose moves every modulated
+ * section along with the head for free.
  */
 export function renderChordPro(chordpro: string, options: RenderOptions = {}): RenderedSong {
-  const parsed = new ChordProParser().parse(chordpro);
-  const sourceKey = (parsed.key ?? '').toString() || 'C';
-  const transpose = options.transpose ?? 0;
-  const targetKey = options.key ?? transposeKeyName(sourceKey, transpose);
-  const notation = getNotation(options.notation ?? 'english') ?? getNotation('english')!;
-  const ctx: NotationContext = { key: targetKey };
+  const scanned = scanChartKeys(chordpro);
+  if (scanned.anchors.length === 0) {
+    const parsed = new ChordProParser().parse(chordpro);
+    const sourceKey = (parsed.key ?? '').toString() || 'C';
+    const transpose = options.transpose ?? 0;
+    const targetKey = options.key ?? transposeKeyName(sourceKey, transpose);
+    return {
+      title: (parsed.title ?? '').toString(),
+      key: targetKey,
+      sections: renderSections(parsed, sourceKey, transpose, targetKey, options.notation),
+    };
+  }
 
+  const head = scanned.head ?? 'C';
+  const transpose = options.transpose ?? 0;
+  const targetHead = options.key ?? transposeKeyName(head, transpose);
+  // One interval covers every frame: anchors are pure offsets from the head.
+  const semitones = transposeAmount(head, targetHead);
+
+  let title = '';
+  const sections: RenderedSection[] = [];
+  for (const segment of segmentChartByKey(chordpro, head)) {
+    const segmentTarget =
+      segment.rel === 0 && !segment.minor
+        ? targetHead
+        : anchorKeyName(targetHead, segment.rel, segment.minor);
+    const parsed = new ChordProParser().parse(segment.text);
+    const parsedTitle = (parsed.title ?? '').toString();
+    if (parsedTitle) title = parsedTitle;
+    sections.push(...renderSections(parsed, segment.key, semitones, segmentTarget, options.notation));
+  }
+  return { title, key: targetHead, sections };
+}
+
+type ParsedSong = ReturnType<InstanceType<typeof ChordProParser>['parse']>;
+
+function renderSections(
+  parsed: ParsedSong,
+  sourceKey: string,
+  transpose: number,
+  targetKey: string,
+  notationId?: string,
+): RenderedSection[] {
+  const notation = getNotation(notationId ?? 'english') ?? getNotation('english')!;
+  const ctx: NotationContext = { key: targetKey };
   const sections: RenderedSection[] = [];
   for (const paragraph of parsed.paragraphs) {
     const lines: RenderedLine[] = [];
@@ -91,15 +138,11 @@ export function renderChordPro(chordpro: string, options: RenderOptions = {}): R
         type: paragraph.type ?? 'none',
         label: paragraph.label || defaultSectionLabel(paragraph.type ?? 'none'),
         lines,
+        key: targetKey,
       });
     }
   }
-
-  return {
-    title: (parsed.title ?? '').toString(),
-    key: targetKey,
-    sections,
-  };
+  return sections;
 }
 
 /**
