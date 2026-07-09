@@ -2,7 +2,7 @@
   "name": "@laude/session",
   "version": "0.0.1",
   "private": true,
-  "description": "Presenter-client SDK over Firestore: join / read / write part+key / subscribe. Multi-presenter peer model + yield-on-external-change.",
+  "description": "Presenter-client SDK for the unified session: socket.io + REST against the stateful relay (no Firestore transport).",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -10,9 +10,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@laude/song-model": "*"
-  },
-  "peerDependencies": {
-    "firebase": ">=10"
+    "@laude/song-model": "*",
+    "socket.io-client": "^4.8.3"
   }
 }

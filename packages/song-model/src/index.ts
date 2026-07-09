@@ -165,10 +165,13 @@ export interface SetlistItem {
 }
 
 // ---------------------------------------------------------------------------
-// Live session (multi-presenter peer model)
+// Live session (multi-presenter peer model) — base types only. The full
+// session state + transport (stateful relay, socket/REST) live in
+// @laude/session; the session is NOT a Firestore collection.
 // ---------------------------------------------------------------------------
 
-export type PresenterKind = 'human' | 'laudj' | 'mic';
+/** Self-declared presenter type — the roster shows who is connected and how. */
+export type PresenterKind = 'human' | 'dj' | 'mic';
 
 export interface Presenter {
   id: string;
@@ -189,24 +192,13 @@ export interface CompanionDirectives {
 
 export interface SessionCurrent {
   song_id: SongId | null;
-  /** Index into the song's section order (arrangement). */
+  /** Index into the song's part/section order (arrangement). */
   section_index: number;
+  /** Display/performance key override; null = the song's own key. */
   key: string | null;
   /** Live tempo as percentage of the performance BPM (100 = as recorded). */
   tempo_pct: number;
   blank: boolean;
-}
-
-export interface LiveSession {
-  id: SessionId;
-  title: string;
-  setlist_id?: string;
-  current: SessionCurrent;
-  presenters: Presenter[];
-  companion: CompanionDirectives;
-  /** Presenter id of the last writer — the yield rule keys off this. */
-  updated_by: string;
-  updated_at: string; // ISO
 }
 
 // ---------------------------------------------------------------------------
@@ -222,7 +214,6 @@ export const COLLECTIONS = {
   song_links: 'song_links',
   setlists: 'setlists',
   setlist_items: 'setlist_items',
-  sessions: 'sessions',
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
