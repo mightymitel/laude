@@ -1,37 +1,19 @@
 import { useState } from 'react';
 import { usePlaylists, type Playlist } from '@/hooks/usePlaylists';
 import { useSong } from '@/hooks/useSongs';
-import type { Key, SongPart } from '@laudasist/shared';
+import { POSSIBLE_KEYS } from '@/lib/keys';
+import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session';
 import styles from './PlaylistPanel.module.css';
 
-const POSSIBLE_KEYS: Key[] = [
-    'C', 'G', 'D', 'A', 'E', 'B', 'Gb', 'Db', 'Ab', 'Eb', 'Bb', 'F',
-];
-
-// Embedded song data for presenter access
-export interface EmbeddedSong {
-    id: string;
-    title: string;
-    author?: string;
-    originalKey: Key;
-    parts: SongPart[];
-}
-
-export interface SessionPlaylistItem {
-    id: string;
-    songId: string;
-    key?: Key;
-    arrangement?: string;
-    song?: EmbeddedSong;  // Full song data for presenter
-    temporary?: boolean;  // Auto-added when owner selects a song not in playlist
-}
+// Session content types now live in @laude/session (by-value path).
+export type { EmbeddedSong, SessionPlaylistItem };
 
 interface PlaylistPanelProps {
     sessionPlaylist: SessionPlaylistItem[];
     onAddSong: (item: SessionPlaylistItem) => void;
     onRemoveSong: (itemId: string) => void;
     onUpdateItem: (itemId: string, updates: Partial<SessionPlaylistItem>) => void;
-    onSelectSong: (songId: string, key?: Key) => void;
+    onSelectSong: (songId: string, key?: string) => void;
     currentSongId: string | null;
 }
 
@@ -46,7 +28,7 @@ function PlaylistItemRow({
     item: SessionPlaylistItem;
     onSelect: () => void;
     onRemove: () => void;
-    onUpdateKey: (key: Key) => void;
+    onUpdateKey: (key: string) => void;
     isActive: boolean;
 }) {
     // Use embedded song data if available, otherwise fetch
@@ -70,7 +52,7 @@ function PlaylistItemRow({
                     value={item.key || song?.originalKey || 'C'}
                     onChange={(e) => {
                         e.stopPropagation();
-                        onUpdateKey(e.target.value as Key);
+                        onUpdateKey(e.target.value);
                     }}
                     onClick={(e) => e.stopPropagation()}
                     title="Change key"

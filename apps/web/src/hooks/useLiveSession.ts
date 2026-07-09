@@ -1,164 +1,132 @@
-import { useState, useCallback, useMemo } from 'react';
-import { api } from '@/lib/api';
-import { useSessionState, type SessionState, type SessionPlaylistItem, type EmbeddedSong } from './useSessionState';
-import type { Key, ChordStyle } from '@laudasist/shared';
+/**
+ * Owner-side session controller: go live (relay mints viewer + presenter
+ * links), connect as a presenter over @laude/session, end the session.
+ * The single write path is SessionClient.send — no REST mutation + socket
+ * echo dance, no polling.
+ */
+import { useCallback, useMemo, useState } from 'react'
+import {
+    endLiveSession,
+    startLiveSession,
+    type SessionPatch,
+    type SessionPlaylistItem,
+    type SessionState,
+} from '@laude/session'
+import type { Presenter } from '@laude/song-model'
+import { auth } from '@/lib/firebase'
+import { RELAY_URL } from '@/lib/relay'
+import { useSessionConnection } from './useSessionConnection'
 
-// Full session context including secret presenter code
 interface LiveSessionContext {
-    id: string;
-    accessCode: string;
-    presenterCode: string;
+    id: string
+    accessCode: string
+    presenterCode: string
 }
 
-// Extended session type combining context + state
-export interface LiveSession extends Omit<SessionState, 'id' | 'accessCode'> {
-    id: string;
-    accessCode: string;
-    presenterCode: string;
+function ownerPresenter(): Presenter {
+    const user = auth.currentUser
+    return {
+        id: user ? `owner-${user.uid}` : `owner-${Math.random().toString(36).slice(2, 8)}`,
+        name: user?.displayName || 'Owner',
+        kind: 'human',
+        joined_at: new Date().toISOString(),
+    }
 }
 
 export function useLiveSession() {
-    // Static auth info (presenterCode is secret)
-    const [sessionContext, setSessionContext] = useState<LiveSessionContext | null>(null);
-    const [isLive, setIsLive] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [context, setContext] = useState<LiveSessionContext | null>(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
-    // TanStack Query sync - handles socket + polling
-    const { data: sessionState, updateSession, isUpdating, socketConnected, emitPartChange } = useSessionState(sessionContext?.accessCode || null);
+    const presenter = useMemo(ownerPresenter, [])
+    const { state, client, connected } = useSessionConnection(
+        context?.presenterCode ?? null,
+        presenter,
+    )
 
-    // Start a live session
+    const isLive = context !== null
+    const session: SessionState | null = state ?? null
+
     const startLive = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
+        setIsLoading(true)
+        setError(null)
         try {
-            const newSession = await api.post<LiveSessionContext>('/api/sessions/live', {});
-            setSessionContext({
-                id: newSession.id,
-                accessCode: newSession.accessCode,
-                presenterCode: newSession.presenterCode
-            });
-            setIsLive(true);
-            return newSession;
+            const user = auth.currentUser
+            if (!user) throw new Error('Sign in to go live')
+            const idToken = await user.getIdToken()
+            const created = await startLiveSession(RELAY_URL, idToken)
+            if (!created.presenterCode) throw new Error('Relay returned no presenter code')
+            setContext({
+                id: created.id,
+                accessCode: created.accessCode,
+                presenterCode: created.presenterCode,
+            })
+            return created
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to start session');
-            return null;
+            setError(err instanceof Error ? err.message : 'Failed to start session')
+            return null
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    }, []);
+    }, [])
 
-    // End the session
     const endLive = useCallback(async () => {
-        if (!sessionContext) return;
+        if (!context) return
         try {
-            await api.delete(`/api/sessions/live/${sessionContext.id}`);
-            setSessionContext(null);
-            setIsLive(false);
+            const user = auth.currentUser
+            if (!user) throw new Error('Sign in to end the session')
+            await endLiveSession(RELAY_URL, await user.getIdToken(), context.id)
+            setContext(null)
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to end session');
+            setError(err instanceof Error ? err.message : 'Failed to end session')
         }
-    }, [sessionContext]);
+    }, [context])
 
-    // Merged session object for consumers
-    const session = useMemo((): LiveSession | null => {
-        if (!sessionContext) return null;
+    const updateSession = useCallback(
+        (patch: SessionPatch) => {
+            client?.send(patch)
+        },
+        [client],
+    )
 
-        // Default state while loading
-        const defaults = {
-            status: 'active' as const,
-            currentSongId: null,
-            currentSong: null,
-            currentPartIndex: 0,
-            displayKey: 'C' as Key,
-            chordStyle: 'letters' as ChordStyle,
-            sessionPlaylist: [] as SessionPlaylistItem[]
-        };
+    const setPartIndex = useCallback(
+        (index: number) => {
+            client?.setCurrent({ section_index: index })
+        },
+        [client],
+    )
 
-        return {
-            ...sessionContext,
-            ...(sessionState || defaults)
-        };
-    }, [sessionContext, sessionState]);
+    const setPlaylist = useCallback(
+        (items: SessionPlaylistItem[]) => {
+            client?.setPlaylist(items)
+        },
+        [client],
+    )
 
-    // Simple update methods that call the mutation
-    const selectSong = useCallback((songId: string | null, song: EmbeddedSong | null, key?: Key) => {
-        updateSession({
-            currentSongId: songId,
-            currentSong: song,
-            currentPartIndex: 0,
-            ...(key && { displayKey: key })
-        });
-    }, [updateSession]);
-
-    const setPartIndex = useCallback((partIndex: number) => {
-        updateSession({ currentPartIndex: partIndex });
-    }, [updateSession]);
-
-    const setDisplayKey = useCallback((key: Key) => {
-        updateSession({ displayKey: key });
-    }, [updateSession]);
-
-    const setPlaylist = useCallback((playlist: SessionPlaylistItem[]) => {
-        updateSession({ sessionPlaylist: playlist });
-    }, [updateSession]);
-
-    // Legacy API for backward compatibility
-    const broadcastUpdate = useCallback((update: { songId: string | null; partIndex: number; key: Key }) => {
-        updateSession({
-            currentSongId: update.songId,
-            currentPartIndex: update.partIndex,
-            displayKey: update.key
-        });
-    }, [updateSession]);
-
-    const syncPlaylist = useCallback((playlist: SessionPlaylistItem[]) => {
-        updateSession({ sessionPlaylist: playlist });
-    }, [updateSession]);
-
-    // URLs
     const getShareUrl = useCallback(() => {
-        if (!sessionContext) return '';
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${baseUrl}/view/${sessionContext.accessCode}`;
-    }, [sessionContext]);
+        if (!context) return ''
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+        return `${baseUrl}/view/${context.accessCode}`
+    }, [context])
 
     const getPresenterUrl = useCallback(() => {
-        if (!sessionContext) return '';
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        return `${baseUrl}/present/${sessionContext.presenterCode}`;
-    }, [sessionContext]);
-
-    // No-ops for legacy compatibility
-    const setOnRemoteUpdate = useCallback(() => { }, []);
-    const broadcastSongChange = useCallback(() => { }, []);
-    const broadcastPartChange = useCallback(() => { }, []);
-    const broadcastKeyChange = useCallback(() => { }, []);
+        if (!context) return ''
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+        return `${baseUrl}/present/${context.presenterCode}`
+    }, [context])
 
     return {
         session,
         isLive,
         isLoading,
-        isUpdating,
         error,
-        socketConnected,
+        socketConnected: connected,
         startLive,
         endLive,
-        // New API
-        selectSong,
-        setPartIndex,
-        setDisplayKey,
-        setPlaylist,
         updateSession,
-        emitPartChange,
-        // Legacy API
-        broadcastUpdate,
-        syncPlaylist,
+        setPartIndex,
+        setPlaylist,
         getShareUrl,
         getPresenterUrl,
-        setOnRemoteUpdate,
-        broadcastSongChange,
-        broadcastPartChange,
-        broadcastKeyChange,
-    };
+    }
 }

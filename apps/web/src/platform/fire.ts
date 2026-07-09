@@ -7,7 +7,6 @@ import type { DocumentData } from 'firebase/firestore';
 import {
   type Lang,
   type LrcLine,
-  type SessionCurrent,
   type Song,
   type SongLink,
   type SongLyrics,
@@ -83,17 +82,5 @@ export function linkFromDoc(_id: string, d: DocumentData): SongLink {
     song_id: str(d.song_id),
     related_song_id: str(d.related_song_id),
     relation_type: rel === 'medley' || rel === 'alternate_arrangement' ? rel : 'translation',
-  };
-}
-
-/** The slice of a live-session doc the read-only views (stage) need. */
-export function sessionCurrentFromDoc(d: DocumentData): SessionCurrent {
-  const c: Record<string, unknown> = isRecord(d.current) ? d.current : {};
-  return {
-    song_id: typeof c.song_id === 'string' && c.song_id !== '' ? c.song_id : null,
-    section_index: num(c.section_index),
-    key: typeof c.key === 'string' && c.key !== '' ? c.key : null,
-    tempo_pct: num(c.tempo_pct, 100),
-    blank: bool(c.blank),
   };
 }

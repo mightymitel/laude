@@ -87,6 +87,15 @@ export const ro = {
   // Stage / presenter
   'stage.waiting': 'Se așteaptă sesiunea…',
   'stage.blank': '(ecran gol)',
+  'stage.title': 'Vedere scenă',
+  'stage.enterCode': 'Introdu codul de vizualizare afișat pe pagina sesiunii',
+  'stage.join': 'Intră',
+  'session.viewerCode': 'Cod vizualizare',
+  'session.presenterCode': 'Cod prezentator',
+  'session.openStage': 'Deschide vederea de scenă',
+  'session.djManifest': 'Piese DJ (manifest)',
+  'session.djLinked': 'DJ · legat',
+  'session.djLocal': 'DJ · doar local',
 
   // Curation
 
@@ -154,7 +163,7 @@ export const ro = {
   'pad.style.shimmer': 'Sclipitor',
   'pad.style.deep': 'Profund',
   'presenter.kind.human': 'Uman',
-  'presenter.kind.laudj': 'LauDJ',
+  'presenter.kind.dj': 'LauDJ',
   'presenter.kind.mic': 'Microfon',
 
   // --- laudj queue keys ---

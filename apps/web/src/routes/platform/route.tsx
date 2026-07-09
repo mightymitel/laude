@@ -38,7 +38,7 @@ function PlatformLayout() {
           <nav className="ld-hstack">
             <Link to="/platform/library">{t('hub.library')}</Link>
             <Link to="/platform/session">{t('hub.session')}</Link>
-            <Link to="/platform/stage">{t('hub.stage')}</Link>
+            <Link to="/platform/stage" search={{ code: undefined }}>{t('hub.stage')}</Link>
             <Link to="/platform/extract">{t('hub.extract')}</Link>
           </nav>
           <span className="ld-spacer" />

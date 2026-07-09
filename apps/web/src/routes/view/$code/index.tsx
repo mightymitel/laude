@@ -1,21 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { io } from 'socket.io-client'
-import { api } from '@/lib/api'
+import { useSessionConnection } from '@/hooks/useSessionConnection'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Key, ChordStyle } from '@laudasist/shared'
+import { asChordStyle, asKey } from '@/lib/keys'
 import styles from './view.module.css'
 
-interface LiveSessionState {
-    songId: string | null
-    partIndex: number
-    key: Key
-    status: 'active' | 'ended'
-}
-
 type ViewportType = 'audience' | 'stage' | 'instrument' | 'subtitles'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export const Route = createFileRoute('/view/$code/')({
     component: GuestViewPage,
@@ -31,10 +22,10 @@ function GuestViewPage() {
     const { type } = Route.useSearch()
     const navigate = useNavigate()
 
-    const [sessionState, setSessionState] = useState<LiveSessionState | null>(null)
-    const [error, setError] = useState<string | null>(null)
-    const [isConnected, setIsConnected] = useState(false)
-    const [socketConnected, setSocketConnected] = useState(false)
+    // One viewer connection: snapshot on join, pushed deltas afterwards — no
+    // polling loop, no manual socket management.
+    const { state: session, error } = useSessionConnection(code)
+
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
     const [showToolbar, setShowToolbar] = useState(true)
@@ -93,135 +84,15 @@ function GuestViewPage() {
         }
     }, [isFullscreen, handleUserActivity])
 
-    // Song state
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [song, setSong] = useState<any>(null)
-
-    // Fetch initial state, then poll for updates (WebSocket may not work on App Hosting)
-    useEffect(() => {
-        let mounted = true
-        let pollInterval: ReturnType<typeof setInterval> | null = null
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let socket: any = null
-
-        const fetchSessionState = async () => {
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const data = await api.get<any>(`/api/sessions/join/${code}`)
-                if (!mounted) return
-
-                setSessionState({
-                    songId: data.currentSongId,
-                    partIndex: data.currentPartIndex,
-                    key: data.displayKey,
-                    status: data.status,
-                })
-
-                // Mark as connected after first successful fetch
-                setIsConnected(true)
-
-                // Fetch song data if session has a song
-                if (data.currentSongId) {
-                    try {
-                        const songData = await api.get(`/api/sessions/song/${code}/${data.currentSongId}`)
-                        if (mounted) setSong(songData)
-                    } catch {
-                        // Song fetch failed, will retry on next poll
-                    }
-                }
-
-                return data.status
-            } catch (err) {
-                if (mounted) setError('Session not found or connection failed')
-                return null
-            }
-        }
-
-        const connect = async () => {
-            const status = await fetchSessionState()
-            if (!mounted || status === 'ended') return
-
-            // Try WebSocket for real-time updates (optional enhancement)
-            try {
-                socket = io(API_URL)
-
-                socket.on('connect', () => {
-                    if (!mounted) return
-                    console.log('[Socket] Connected', socket.id)
-                    setSocketConnected(true)
-                    socket.emit('session:join', code)
-                })
-
-                socket.on('disconnect', () => {
-                    if (!mounted) return
-                    console.log('[Socket] Disconnected')
-                    setSocketConnected(false)
-                })
-
-                socket.on('connect_error', (err) => {
-                    if (!mounted) return
-                    console.error('[Socket] Connection error:', err)
-                    setSocketConnected(false)
-                })
-
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                socket.on('session:update', (data: any) => {
-                    if (!mounted) return
-                    setSessionState((prev) => (prev ? { ...prev, ...data } : data))
-                    if (data.song) setSong(data.song)
-                })
-
-                // Direct state sync for fast part/key changes
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                socket.on('state:sync', (data: any) => {
-                    if (!mounted) return
-                    if (data.partIndex !== undefined) {
-                        setSessionState((prev) => prev ? { ...prev, partIndex: data.partIndex } : prev)
-                    }
-                    if (data.key !== undefined) {
-                        setSessionState((prev) => prev ? { ...prev, key: data.key } : prev)
-                    }
-                    if (data.songId !== undefined) {
-                        setSessionState((prev) => prev ? { ...prev, songId: data.songId } : prev)
-                        if (data.song) setSong(data.song)
-                    }
-                })
-
-                socket.on('session:end', () => {
-                    if (mounted) setSessionState((prev) => (prev ? { ...prev, status: 'ended' } : null))
-                })
-            } catch {
-                // WebSocket failed, rely on polling
-                setSocketConnected(false)
-            }
-
-            // Poll every 2 seconds as fallback (or primary if WebSocket fails)
-            pollInterval = setInterval(async () => {
-                const newStatus = await fetchSessionState()
-                if (newStatus === 'ended' && pollInterval) {
-                    clearInterval(pollInterval)
-                }
-            }, 2000)
-        }
-
-        connect()
-
-        return () => {
-            mounted = false
-            if (pollInterval) clearInterval(pollInterval)
-            if (socket) socket.disconnect()
-        }
-    }, [code])
-
     if (error) {
-        return <div className={styles.container}>{error}</div>
+        return <div className={styles.container}>Session not found or connection failed</div>
     }
 
-    if (!sessionState || !isConnected) {
+    if (!session) {
         return <div className={styles.container}>Connecting...</div>
     }
 
-    if (sessionState.status === 'ended') {
+    if (session.status === 'ended') {
         return (
             <div className={styles.container}>
                 <div className={styles.ended}>
@@ -232,7 +103,10 @@ function GuestViewPage() {
         )
     }
 
-    if (!sessionState.songId || !song) {
+    // Viewers render the by-value embedded song; a by-ref-only session (id
+    // without payload) shows the waiting state until the presenter pushes one.
+    const song = session.currentSong
+    if (!session.current.song_id || !song) {
         return (
             <div className={styles.container}>
                 <div className={styles.waiting}>
@@ -243,8 +117,10 @@ function GuestViewPage() {
         )
     }
 
-    const currentPart = song.parts[sessionState.partIndex]
-    const nextPart = song.parts[sessionState.partIndex + 1]
+    const partIndex = session.current.section_index
+    const displayKey = asKey(session.current.key ?? song.originalKey)
+    const currentPart = song.parts[partIndex]
+    const nextPart = song.parts[partIndex + 1]
 
     const containerClass = [
         styles.container,
@@ -261,16 +137,9 @@ function GuestViewPage() {
             <header className={styles.header}>
                 <div className={styles.songTitle} data-testid="song-title">{song.title}</div>
                 <div className={styles.songMeta}>
-                    {song.author} • Key: {sessionState.key}
+                    {song.author} • Key: {displayKey}
                 </div>
             </header>
-
-            {/* Socket Connection Warning */}
-            {!socketConnected && (
-                <div className={styles.connectionWarning}>
-                    ⚠️ Real-time updates unavailable. Using fallback mode (2s delay).
-                </div>
-            )}
 
             {/* Floating Toolbar - auto-hides in fullscreen */}
             <div className={`${styles.toolbar} ${showToolbar ? styles.toolbarVisible : styles.toolbarHidden}`}>
@@ -289,7 +158,7 @@ function GuestViewPage() {
                     <select
                         className={styles.select}
                         value={chordStyle}
-                        onChange={(e) => setChordStyle(e.target.value as ChordStyle)}
+                        onChange={(e) => setChordStyle(asChordStyle(e.target.value))}
                         data-testid="chord-style-select"
                     >
                         <option value="letters">Letters (Am)</option>
@@ -312,7 +181,7 @@ function GuestViewPage() {
                                 {type === 'stage' || type === 'instrument' ? (
                                     <StageLine
                                         text={line.text}
-                                        displayKey={sessionState.key}
+                                        displayKey={displayKey}
                                         chordStyle={chordStyle}
                                     />
                                 ) : (

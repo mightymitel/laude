@@ -76,7 +76,7 @@ function SongDetailPage() {
         >
           {t('song.openKaraoke')}
         </Button>
-        <Button onClick={() => navigate({ to: '/platform/stage' })}>{t('song.openStage')}</Button>
+        <Button onClick={() => navigate({ to: '/platform/stage', search: { code: undefined } })}>{t('song.openStage')}</Button>
       </div>
 
       {translationId !== undefined && (

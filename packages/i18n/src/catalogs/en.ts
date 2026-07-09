@@ -81,6 +81,15 @@ export const en: Record<MessageKey, string> = {
 
   'stage.waiting': 'Waiting for the session…',
   'stage.blank': '(blank)',
+  'stage.title': 'Stage view',
+  'stage.enterCode': 'Enter the viewer code shown on the session page',
+  'stage.join': 'Join',
+  'session.viewerCode': 'Viewer code',
+  'session.presenterCode': 'Presenter code',
+  'session.openStage': 'Open the stage view',
+  'session.djManifest': 'DJ songs (manifest)',
+  'session.djLinked': 'DJ · linked',
+  'session.djLocal': 'DJ · local only',
 
   'laudj.title': 'LauDJ — console',
   'laudj.connection': 'Connection',
@@ -145,7 +154,7 @@ export const en: Record<MessageKey, string> = {
   'pad.style.shimmer': 'Shimmer',
   'pad.style.deep': 'Deep',
   'presenter.kind.human': 'Human',
-  'presenter.kind.laudj': 'LauDJ',
+  'presenter.kind.dj': 'LauDJ',
   'presenter.kind.mic': 'Mic',
 
   // --- laudj queue keys ---

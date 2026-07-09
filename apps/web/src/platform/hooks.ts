@@ -12,9 +12,9 @@ import {
   where,
   type DocumentData,
 } from 'firebase/firestore';
-import { COLLECTIONS, type CollectionName, type SessionCurrent, type Song, type SongLyrics } from '@laude/song-model';
+import { COLLECTIONS, type CollectionName, type Song, type SongLyrics } from '@laude/song-model';
 import { db } from '@/lib/firebase';
-import { lyricsFromDoc, songFromDoc, sessionCurrentFromDoc } from './fire';
+import { lyricsFromDoc, songFromDoc } from './fire';
 
 export interface CollectionState<T> {
   docs: T[];
@@ -114,35 +114,5 @@ export function useSongDoc(songId: string | null): DocState<Song> {
       },
     );
   }, [songId]);
-  return state;
-}
-
-export interface SessionCurrentState {
-  /** null while the session doc does not exist yet. */
-  current: SessionCurrent | null;
-  loading: boolean;
-  error: string | null;
-}
-
-/** Read-only subscription to a live session's `current` pointer (stage view). */
-export function useSessionCurrent(sessionId: string): SessionCurrentState {
-  const [state, setState] = useState<SessionCurrentState>({ current: null, loading: true, error: null });
-  useEffect(() => {
-    return onSnapshot(
-      doc(db, COLLECTIONS.sessions, sessionId),
-      (snap) => {
-        const data = snap.data();
-        setState({
-          current: data === undefined ? null : sessionCurrentFromDoc(data),
-          loading: false,
-          error: null,
-        });
-      },
-      (err) => {
-        console.error(`[platform] session ${sessionId} subscription failed`, err);
-        setState({ current: null, loading: false, error: err.message });
-      },
-    );
-  }, [sessionId]);
   return state;
 }

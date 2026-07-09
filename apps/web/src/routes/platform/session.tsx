@@ -1,18 +1,18 @@
 /**
- * Live session control (presenter surface): joins sessions/main as a human
- * peer presenter, drives song/section/key/tempo/blank + companion directives.
+ * Live session control (presenter surface): the demo user goes live on the
+ * relay (mints viewer + presenter links), then drives song/section/key/tempo/
+ * blank + companion directives over @laude/session. The roster shows every
+ * connected presenter with its self-declared kind (human / dj / mic).
  */
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
-import { COLLECTIONS, type LiveSession, type PresenterKind } from '@laude/song-model';
-import { DEFAULT_SESSION_ID, SessionClient } from '@laude/session';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { PresenterKind } from '@laude/song-model';
 import { renderChordPro, transposeKeyName } from '@laude/chords';
 import { Button, Chip, EmptyState, StatusDot, Stepper, Toggle } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
-import { db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
+import { useLiveSession } from '@/hooks/useLiveSession';
 import { usePublicLyrics, usePublicSongs } from '@/platform/hooks';
-import { lyricsFromDoc } from '@/platform/fire';
-import { loadPresenter } from '@/platform/presenter';
 import { clamp } from '@/platform/utils';
 import { SongPicker } from '@/platform/components/SongPicker';
 import { CompanionPanel } from '@/platform/components/CompanionPanel';
@@ -27,18 +27,18 @@ const TEMPO_STEP = 5;
 
 function SessionPage() {
   const t = useT();
-  const client = useMemo(() => new SessionClient(db, DEFAULT_SESSION_ID, loadPresenter()), []);
-  const [session, setSession] = useState<LiveSession | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { session, isLive, isLoading, error, startLive, updateSession } = useLiveSession();
 
+  // Go live automatically once the demo sign-in (platform route layout) lands.
+  const autoStarted = useRef(false);
+  const [authReady, setAuthReady] = useState(auth.currentUser !== null);
+  useEffect(() => auth.onAuthStateChanged((user) => setAuthReady(user !== null)), []);
   useEffect(() => {
-    client.join().catch((err: unknown) => setError(String(err)));
-    return client.subscribe((change) => setSession(change.session));
-  }, [client]);
-
-  const run = (promise: Promise<void>) => {
-    promise.catch((err: unknown) => setError(String(err)));
-  };
+    if (authReady && !autoStarted.current && !isLive && !isLoading) {
+      autoStarted.current = true;
+      void startLive();
+    }
+  }, [authReady, isLive, isLoading, startLive]);
 
   const songs = usePublicSongs();
   const lyricsCol = usePublicLyrics();
@@ -64,7 +64,11 @@ function SessionPage() {
   }, [currentSong, lyricsCol.docs]);
 
   if (session === null) {
-    return <main className="ld-page"><EmptyState>{t('common.loading')}</EmptyState></main>;
+    return (
+      <main className="ld-page ld-vstack">
+        <EmptyState>{error ?? t('common.loading')}</EmptyState>
+      </main>
+    );
   }
 
   const sectionIndex = clamp(session.current.section_index, 0, Math.max(0, sections.length - 1));
@@ -74,7 +78,7 @@ function SessionPage() {
     session.presenters.find((p) => p.id === session.updated_by)?.name ?? session.updated_by;
   const kindLabels: Record<PresenterKind, string> = {
     human: t('presenter.kind.human'),
-    laudj: t('presenter.kind.laudj'),
+    dj: t('presenter.kind.dj'),
     mic: t('presenter.kind.mic'),
   };
 
@@ -82,6 +86,13 @@ function SessionPage() {
     <main className="ld-page ld-vstack">
       <div className="ld-hstack">
         <h1>{t('session.title')}</h1>
+        <Chip state="current">{t('session.viewerCode')}: {session.accessCode}</Chip>
+        {session.presenterCode !== undefined && (
+          <Chip>{t('session.presenterCode')}: {session.presenterCode}</Chip>
+        )}
+        <Link to="/platform/stage" search={{ code: session.accessCode }}>
+          {t('session.openStage')}
+        </Link>
         <span className="ld-spacer" />
         <span className="ld-label">
           {t('session.lastUpdatedBy')}: {lastBy}
@@ -98,7 +109,7 @@ function SessionPage() {
             songs={songs.docs}
             currentId={session.current.song_id}
             onPick={(song) =>
-              run(client.setCurrent({ song_id: song.id, section_index: 0, key: song.original_key }))
+              updateSession({ current: { song_id: song.id, section_index: 0, key: song.original_key } })
             }
           />
         </div>
@@ -113,7 +124,7 @@ function SessionPage() {
                 <Chip
                   key={i}
                   state={i === sectionIndex ? 'current' : 'default'}
-                  onClick={() => run(client.setCurrent({ section_index: i }))}
+                  onClick={() => updateSession({ current: { section_index: i } })}
                 >
                   {sec.label !== '' ? sec.label : String(i + 1)}
                 </Chip>
@@ -123,7 +134,7 @@ function SessionPage() {
           <div className="ld-hstack">
             <Button
               big
-              onClick={() => run(client.setCurrent({ section_index: Math.max(0, sectionIndex - 1) }))}
+              onClick={() => updateSession({ current: { section_index: Math.max(0, sectionIndex - 1) } })}
               disabled={sections.length === 0 || sectionIndex === 0}
             >
               ← {t('session.prevPart')}
@@ -131,7 +142,7 @@ function SessionPage() {
             <Button
               big
               onClick={() =>
-                run(client.setCurrent({ section_index: Math.min(sections.length - 1, sectionIndex + 1) }))
+                updateSession({ current: { section_index: Math.min(sections.length - 1, sectionIndex + 1) } })
               }
               disabled={sections.length === 0 || sectionIndex >= sections.length - 1}
             >
@@ -139,7 +150,7 @@ function SessionPage() {
             </Button>
             <Toggle
               on={session.current.blank}
-              onChange={(on) => run(client.setCurrent({ blank: on }))}
+              onChange={(on) => updateSession({ current: { blank: on } })}
               label={t('session.blank')}
             />
           </div>
@@ -148,20 +159,20 @@ function SessionPage() {
             <Stepper
               value={key ?? '—'}
               onDecrement={() => {
-                if (key !== null) run(client.setCurrent({ key: transposeKeyName(key, -1) }));
+                if (key !== null) updateSession({ current: { key: transposeKeyName(key, -1) } });
               }}
               onIncrement={() => {
-                if (key !== null) run(client.setCurrent({ key: transposeKeyName(key, 1) }));
+                if (key !== null) updateSession({ current: { key: transposeKeyName(key, 1) } });
               }}
             />
             <span className="ld-label">{t('session.tempo')}</span>
             <Stepper
               value={`${tempo}%`}
               onDecrement={() =>
-                run(client.setCurrent({ tempo_pct: clamp(tempo - TEMPO_STEP, TEMPO_MIN, TEMPO_MAX) }))
+                updateSession({ current: { tempo_pct: clamp(tempo - TEMPO_STEP, TEMPO_MIN, TEMPO_MAX) } })
               }
               onIncrement={() =>
-                run(client.setCurrent({ tempo_pct: clamp(tempo + TEMPO_STEP, TEMPO_MIN, TEMPO_MAX) }))
+                updateSession({ current: { tempo_pct: clamp(tempo + TEMPO_STEP, TEMPO_MIN, TEMPO_MAX) } })
               }
             />
           </div>
@@ -176,17 +187,31 @@ function SessionPage() {
               <div key={p.id} className="ld-hstack">
                 <StatusDot on={p.id === session.updated_by} />
                 <span>{p.name}</span>
-                <Chip state={p.kind === 'laudj' ? 'queued' : 'default'}>{kindLabels[p.kind]}</Chip>
+                <Chip state={p.kind === 'dj' ? 'queued' : 'default'}>{kindLabels[p.kind]}</Chip>
                 <span className="ld-label">{p.id}</span>
               </div>
             ))
+          )}
+          {session.dj_manifest.length > 0 && (
+            <>
+              <span className="ld-label">{t('session.djManifest')}</span>
+              {session.dj_manifest.map((entry) => (
+                <div key={entry.local_song_id} className="ld-hstack">
+                  <span>{entry.title}</span>
+                  <Chip state={entry.song_id !== null ? 'current' : 'queued'}>
+                    {entry.song_id !== null ? t('session.djLinked') : t('session.djLocal')}
+                  </Chip>
+                  {entry.has_stems && <span className="ld-label">{entry.key} · {entry.bpm} BPM</span>}
+                </div>
+              ))}
+            </>
           )}
         </div>
 
         <div className="ld-card">
           <CompanionPanel
             companion={session.companion}
-            onPatch={(patch) => run(client.setCompanion(patch))}
+            onPatch={(patch) => updateSession({ companion: patch })}
           />
         </div>
       </div>

@@ -1,41 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/api'
-import { useSessionState } from '@/hooks/useSessionState'
+import { useMemo, useState, useCallback } from 'react'
+import { useSessionConnection } from '@/hooks/useSessionConnection'
 import { useCommunitySongs } from '@/hooks/useCommunitySongs'
-import { formatChord, extractChordsFromLine } from '@laudasist/shared'
-import type { Key, SongPart } from '@laudasist/shared'
+import { loadPresenter } from '@/platform/presenter'
+import { extractChordsFromLine, formatChord } from '@laudasist/shared'
+import type { Song } from '@laudasist/shared'
+import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
+import { asKey } from '@/lib/keys'
 import styles from './present.module.css'
-
-// Embedded song data type matching API response
-interface EmbeddedSong {
-  id: string
-  title: string
-  author?: string
-  originalKey: Key
-  parts: SongPart[]
-}
-
-interface SessionPlaylistItem {
-  id: string
-  songId: string
-  key?: Key
-  song?: EmbeddedSong
-}
-
-// Response from /api/sessions/presenter/:code
-interface PresenterSessionInit {
-  id: string
-  accessCode: string
-  presenterCode: string
-  status: 'active' | 'ended'
-  currentSongId: string | null
-  currentSong?: EmbeddedSong
-  currentPartIndex: number
-  displayKey: Key
-  sessionPlaylist: SessionPlaylistItem[]
-}
 
 export const Route = createFileRoute('/present/$code/')({
   component: PresenterPage,
@@ -59,22 +31,23 @@ function PlaylistItemRow({ item, isActive, onClick }: {
   )
 }
 
+function embed(song: Song): EmbeddedSong {
+  return {
+    id: song.id,
+    title: song.title,
+    author: song.author,
+    originalKey: song.originalKey,
+    parts: song.parts,
+  }
+}
+
 function PresenterPage() {
   const { code } = Route.useParams()
 
-  // 1. Initial fetch to validate presenter code and get accessCode
-  const { data: initialSession, error: initError, isLoading: initLoading } = useQuery({
-    queryKey: ['presenter-init', code],
-    queryFn: () => api.get<PresenterSessionInit>(`/api/sessions/presenter/${code}`),
-    retry: false
-  })
-
-  // 2. Real-time sync hook using accessCode
-  // This handles socket invalidation and polling automatically
-  const { data: sessionState, updateSession, emitPartChange, socketConnected } = useSessionState(initialSession?.accessCode || null)
-
-  // Use the live state if available, otherwise initial state
-  const session = sessionState || initialSession
+  // One connection to the relay: join as a presenter with the code from the
+  // link; the snapshot arrives on join, deltas stream over state:sync.
+  const presenter = useMemo(() => loadPresenter(), [])
+  const { state: session, client, connected, error } = useSessionConnection(code, presenter)
 
   // Local state for UI (search)
   const [searchQuery, setSearchQuery] = useState('')
@@ -82,88 +55,66 @@ function PresenterPage() {
 
   // --- ACTIONS ---
 
-  // Select song from playlist
   const selectSong = useCallback((item: SessionPlaylistItem) => {
-    if (!item.song) return
-
-    updateSession({
-      currentSongId: item.song.id,
+    if (!item.song || !client) return
+    client.send({
+      current: {
+        song_id: item.song.id,
+        section_index: 0,
+        key: item.key || item.song.originalKey,
+      },
       currentSong: item.song,
-      currentPartIndex: 0,
-      displayKey: item.key || item.song.originalKey
     })
-  }, [updateSession])
+  }, [client])
 
-  // Navigate parts (fast direct socket)
   const goToPart = useCallback((index: number) => {
-    emitPartChange(index)
-  }, [emitPartChange])
+    client?.setCurrent({ section_index: index })
+  }, [client])
+
+  const currentSong = session?.currentSong ?? null
+  const currentPartIndex = session?.current.section_index ?? 0
+  const displayKey = asKey(session?.current.key ?? currentSong?.originalKey ?? null)
 
   const nextPart = useCallback(() => {
-    if (session?.currentSong && (session.currentPartIndex ?? 0) < session.currentSong.parts.length - 1) {
-      goToPart((session?.currentPartIndex ?? 0) + 1)
+    if (currentSong && currentPartIndex < currentSong.parts.length - 1) {
+      goToPart(currentPartIndex + 1)
     }
-  }, [session, goToPart])
+  }, [currentSong, currentPartIndex, goToPart])
 
   const prevPart = useCallback(() => {
-    if ((session?.currentPartIndex ?? 0) > 0) {
-      goToPart((session?.currentPartIndex ?? 0) - 1)
-    }
-  }, [session, goToPart])
+    if (currentPartIndex > 0) goToPart(currentPartIndex - 1)
+  }, [currentPartIndex, goToPart])
 
-  // Select community song
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const selectCommunitySong = (song: any) => {
-    const embedded: EmbeddedSong = {
-      id: song.id,
-      title: song.title,
-      author: song.author,
-      originalKey: song.originalKey,
-      parts: song.parts,
-    }
-
+  const selectCommunitySong = (song: Song) => {
     setSearchQuery('')
-    updateSession({
-      currentSongId: embedded.id,
-      currentSong: embedded,
-      currentPartIndex: 0,
-      displayKey: song.originalKey
+    client?.send({
+      current: { song_id: song.id, section_index: 0, key: song.originalKey },
+      currentSong: embed(song),
     })
-  }
-
-  // Render chord helper
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const renderChord = (chord: any) => {
-    return formatChord(chord, session?.displayKey || 'C', 'letters')
   }
 
   // --- RENDERING ---
 
-  if (initLoading) {
+  if (!session && !error) {
     return <div className={styles.container}><div className={styles.loading}>Connecting to session...</div></div>
   }
 
-  if (initError || !session) {
+  if (error || !session) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
           <h2>Session Not Found</h2>
-          <p>{(initError as Error)?.message || 'Invalid presenter code'}</p>
+          <p>{error || 'Invalid presenter code'}</p>
         </div>
       </div>
     )
   }
 
-  const currentSong = session.currentSong
-  const currentPartIndex = session.currentPartIndex ?? 0
-  const displayKey = session.displayKey || 'C'
-
   return (
     <div className={styles.container}>
-      {/* Socket Connection Warning */}
-      {!socketConnected && (
+      {!connected && (
         <div className={styles.connectionWarning}>
-          ⚠️ Real-time sync unavailable. Using fallback mode (5s delay).
+          ⚠️ Connection to the session relay lost — reconnecting…
         </div>
       )}
 
@@ -177,7 +128,6 @@ function PresenterPage() {
       <div className={styles.layout}>
         {/* Sidebar with Playlist and Search */}
         <aside className={styles.sidebar}>
-          {/* Search Panel */}
           <div className={styles.searchPanel}>
             <input
               type="text"
@@ -202,12 +152,11 @@ function PresenterPage() {
             )}
           </div>
 
-          {/* Playlist Panel */}
           <div className={styles.sidebarHeader}>
             <h3>📋 Session Playlist</h3>
           </div>
 
-          {(session.sessionPlaylist?.length ?? 0) > 0 ? (
+          {session.sessionPlaylist.length > 0 ? (
             <div className={styles.playlistList}>
               {session.sessionPlaylist.map((item) => (
                 <PlaylistItemRow
@@ -278,9 +227,8 @@ function PresenterPage() {
                       <div key={i} className={styles.line}>
                         {chords.length > 0 && (
                           <div className={styles.chords}>
-                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                            {chords.map((c: any, j: number) => (
-                              <span key={j}>{renderChord(c.chord)}</span>
+                            {chords.map((c, j) => (
+                              <span key={j}>{formatChord(c.chord, displayKey, 'letters')}</span>
                             ))}
                           </div>
                         )}
