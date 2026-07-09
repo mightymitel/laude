@@ -106,8 +106,11 @@ export async function setChart(
   return { ok: true, access, pushed: false };
 }
 
-/** RE-KEY (DEC-59/60): the detected key was wrong. Editable charts only —
- * rotating a community snapshot would diverge from the global chart. */
+/** RE-KEY (DEC-59/60): the ANALYSIS key was wrong — an extraction-side knob.
+ * Unlinked songs only: a linked song's chart is the global snapshot, and
+ * rotating it locally (even as the owner) would silently diverge it from
+ * the global chart. Fix a linked song's render key by transposing
+ * default_key in Laudasist, or unlink first. */
 export async function rekeySong(
   store: LocalStore,
   localSongId: string,
@@ -115,10 +118,10 @@ export async function rekeySong(
 ): Promise<ChartUpdateResult> {
   const song = store.getLocalSong(localSongId);
   if (!song) return { ok: false, error: `unknown local song ${localSongId}` };
-  const access = await chartAccess(song);
-  if (access === 'locked') {
-    return { ok: false, access, error: 'chart is locked — unlink, or sign in as the owner' };
+  if (song.link_state === 'linked') {
+    return { ok: false, access: 'locked', error: 're-key is for unlinked songs — the chart is the global snapshot (transpose default_key in Laudasist, or unlink)' };
   }
+  const access: ChartAccess = 'editable';
   let rotated: string;
   try {
     rotated = rekeyChordPro(song.chordpro, newKey);
