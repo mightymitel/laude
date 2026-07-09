@@ -17,7 +17,7 @@ function embed(song: Song): EmbeddedSong {
         id: song.id,
         title: song.title,
         author: song.author,
-        originalKey: song.originalKey,
+        defaultKey: song.defaultKey,
         parts: song.parts,
     }
 }
@@ -114,7 +114,7 @@ export function useSessionSongState(playlistId: string | undefined) {
                     {
                         id: `temp-${Date.now()}-${song.id}`,
                         songId: song.id,
-                        key: song.originalKey,
+                        key: song.defaultKey,
                         song: embed(song),
                         temporary: true,
                     },
@@ -124,7 +124,7 @@ export function useSessionSongState(playlistId: string | undefined) {
                 current: {
                     song_id: song.id,
                     section_index: 0,
-                    ...(useOriginalKey ? { key: song.originalKey } : {}),
+                    ...(useOriginalKey ? { key: song.defaultKey } : {}),
                 },
                 currentSong: embed(song),
             })

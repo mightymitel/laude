@@ -48,22 +48,22 @@ export const resursecrestineScraper: Scraper = {
         }
 
         // Detect key from all chords using music theory
-        let originalKey: Key = detectKeyFromChords(allChords);
+        let defaultKey: Key = detectKeyFromChords(allChords);
 
         // Override with capo info if present
         const capoMatch = stilAcorduriHtml.match(/Capo[^(]*\(([A-G][b#]?)/i);
         if (capoMatch) {
-            originalKey = capoMatch[1] as Key;
+            defaultKey = capoMatch[1] as Key;
         }
 
         // Parse the content - chords are in <a class="nice-acord"> tags or standalone
         // and lyrics are mixed with &nbsp; for spacing
-        const parts = parseResurseCrestineContent(stilAcorduriHtml, originalKey);
+        const parts = parseResurseCrestineContent(stilAcorduriHtml, defaultKey);
 
         return {
             title,
             author: author || undefined,
-            originalKey,
+            defaultKey,
             parts,
             sourceUrl: url,
         };

@@ -22,7 +22,7 @@ interface ManifestSubset {
 
 interface ReferenceSong {
   title: string;
-  originalKey: string;
+  defaultKey: string;
   lines: string[];
   chordCounts: Map<string, number>;
 }
@@ -56,20 +56,20 @@ export async function validateAgainstReference(
   const topExtracted = topKeys(extractedWeights, 5);
   const topReference = topKeys(reference.chordCounts, 5);
   const overlap = topExtracted.filter((c) => topReference.includes(c));
-  const keyMatch = normalizeKey(manifest.key) === normalizeKey(reference.originalKey);
+  const keyMatch = normalizeKey(manifest.key) === normalizeKey(reference.defaultKey);
 
   // Charts are often written in a different (singable) key than the recording;
   // the honest comparison is FUNCTIONAL: Nashville degrees relative to each
   // side's own key.
   const degExtracted = toDegrees(topExtracted, manifest.key);
-  const degReference = toDegrees(topReference, reference.originalKey);
+  const degReference = toDegrees(topReference, reference.defaultKey);
   const degOverlap = degExtracted.filter((d) => degReference.includes(d));
 
   const report = {
     reference_url: referenceUrl,
     reference_title: reference.title,
     extracted_title: manifest.title,
-    key: { extracted: manifest.key, reference: reference.originalKey, match: keyMatch },
+    key: { extracted: manifest.key, reference: reference.defaultKey, match: keyMatch },
     lyrics: {
       lines_compared: scores.length,
       average_similarity: Number(avg.toFixed(3)),
@@ -89,7 +89,7 @@ export async function validateAgainstReference(
 
   console.log('validation report ——————————————');
   console.log(`  title      extracted “${manifest.title}” vs reference “${reference.title}”`);
-  console.log(`  key        ${manifest.key} vs ${reference.originalKey} -> ${keyMatch ? 'MATCH' : 'DIFFERENT'}`);
+  console.log(`  key        ${manifest.key} vs ${reference.defaultKey} -> ${keyMatch ? 'MATCH' : 'DIFFERENT'}`);
   console.log(`  lyrics     avg similarity ${(avg * 100).toFixed(1)}%, ${good.length}/${scores.length} lines ≥60%`);
   console.log(`  chords     extracted top: ${topExtracted.join(' ')}  (degrees ${degExtracted.join(' ')})`);
   console.log(`             reference top: ${topReference.join(' ')}  (degrees ${degReference.join(' ')})`);
@@ -118,7 +118,7 @@ function parseReference(payload: unknown): ReferenceSong {
   // sane line only.
   const rawTitle = typeof song.title === 'string' ? song.title : '(unknown)';
   const title = rawTitle.split('\n')[0].trim().slice(0, 80) || '(unknown)';
-  const originalKey = typeof song.originalKey === 'string' ? song.originalKey : '?';
+  const defaultKey = typeof song.defaultKey === 'string' ? song.defaultKey : '?';
 
   const lines: string[] = [];
   const chordCounts = new Map<string, number>();
@@ -132,13 +132,13 @@ function parseReference(payload: unknown): ReferenceSong {
       const text = typeof line.text === 'string' ? line.text : '';
       lines.push(text.replace(/\[[^\]]*\]/g, ''));
       for (const m of text.matchAll(/\[([^\]]+)\]/g)) {
-        const canonical = nashville?.parse(m[1], { key: originalKey });
+        const canonical = nashville?.parse(m[1], { key: defaultKey });
         const name = canonical ? formatCanonical(canonical) : m[1];
         chordCounts.set(name, (chordCounts.get(name) ?? 0) + 1);
       }
     }
   }
-  return { title, originalKey, lines, chordCounts };
+  return { title, defaultKey, lines, chordCounts };
 }
 
 async function demoToken(): Promise<string> {

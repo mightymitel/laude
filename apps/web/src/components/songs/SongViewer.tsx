@@ -12,7 +12,7 @@ interface SongViewerProps {
 }
 
 export function SongViewer({ song }: SongViewerProps) {
-    const [transposeKey, setTransposeKey] = useState<Key>(song.originalKey);
+    const [transposeKey, setTransposeKey] = useState<Key>(song.defaultKey);
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters');
     const [chordPosition, setChordPosition] = useState<'above' | 'inline' | 'compact'>('above');
 

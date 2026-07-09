@@ -93,7 +93,7 @@ describe('Song Routes', () => {
         it('should create a new song', async () => {
             const newSongData = {
                 title: 'New Song',
-                originalKey: 'C',
+                defaultKey: 'C',
                 parts: []
             };
 

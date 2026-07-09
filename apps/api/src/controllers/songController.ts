@@ -59,7 +59,7 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
                 id: doc.id,
                 title: data.title,
                 author: data.author,
-                originalKey: data.originalKey,
+                defaultKey: data.defaultKey,
                 tags: data.tags,
                 libraryType: data.libraryType,
                 visibility: data.visibility,
@@ -144,7 +144,7 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
         const {
             title,
             author,
-            originalKey,
+            defaultKey,
             defaultArrangement,
             arrangements,
             parts,
@@ -152,15 +152,15 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
             visibility = 'private',
         } = req.body;
 
-        if (!title || !originalKey || !parts || !Array.isArray(parts)) {
-            res.status(400).json({ error: 'Missing required fields: title, originalKey, parts' });
+        if (!title || !defaultKey || !parts || !Array.isArray(parts)) {
+            res.status(400).json({ error: 'Missing required fields: title, defaultKey, parts' });
             return;
         }
 
         const newSong: SongDocument = {
             title,
             author,
-            originalKey,
+            defaultKey,
             defaultArrangement: defaultArrangement || [],
             arrangements: arrangements || [],
             parts,
@@ -179,7 +179,7 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
             id: docRef.id,
             title: newSong.title,
             author: newSong.author,
-            originalKey: newSong.originalKey,
+            defaultKey: newSong.defaultKey,
             libraryType: newSong.libraryType,
             createdAt: newSong.createdAt,
         });
@@ -209,7 +209,7 @@ export const updateSong = async (req: AuthenticatedRequest, res: Response) => {
         const {
             title,
             author,
-            originalKey,
+            defaultKey,
             defaultArrangement,
             arrangements,
             parts,
@@ -224,7 +224,7 @@ export const updateSong = async (req: AuthenticatedRequest, res: Response) => {
 
         if (title) updateData.title = title;
         if (author !== undefined) updateData.author = author;
-        if (originalKey) updateData.originalKey = originalKey;
+        if (defaultKey) updateData.defaultKey = defaultKey;
         if (defaultArrangement) updateData.defaultArrangement = defaultArrangement;
         if (arrangements) updateData.arrangements = arrangements;
         if (parts) updateData.parts = parts;

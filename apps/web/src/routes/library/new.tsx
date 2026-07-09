@@ -9,7 +9,7 @@ import styles from './new.module.css'
 interface ImportedSong {
     title: string
     author?: string
-    originalKey: Key
+    defaultKey: Key
     parts: SongPart[]
     sourceUrl: string
 }
@@ -121,7 +121,7 @@ function NewSongPage() {
                                     {importedSong.author && (
                                         <p className={styles.author}>by {importedSong.author}</p>
                                     )}
-                                    <p className={styles.key}>Key: {importedSong.originalKey}</p>
+                                    <p className={styles.key}>Key: {importedSong.defaultKey}</p>
                                     <p className={styles.parts}>
                                         {importedSong.parts.length} parts found
                                     </p>

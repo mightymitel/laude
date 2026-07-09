@@ -14,7 +14,7 @@ interface SongListParams {
 interface CreateSongData {
     title: string;
     author?: string;
-    originalKey: string;
+    defaultKey: string;
     parts: Song['parts'];
     defaultArrangement?: string[];
     arrangements?: Song['arrangements'];

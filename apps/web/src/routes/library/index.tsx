@@ -199,7 +199,7 @@ function LibraryPage() {
                                             borderRadius: '4px',
                                         }}
                                     >
-                                        {song.originalKey}
+                                        {song.defaultKey}
                                     </span>
                                 </div>
                                 <span>{new Date(song.createdAt).toLocaleDateString()}</span>

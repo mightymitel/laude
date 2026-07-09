@@ -104,7 +104,7 @@ router.get('/me/favorites', async (req: AuthenticatedRequest, res: Response) => 
                     id: doc.id,
                     title: data?.title,
                     author: data?.author,
-                    originalKey: data?.originalKey,
+                    defaultKey: data?.defaultKey,
                     tags: data?.tags,
                     libraryType: data?.libraryType,
                 };

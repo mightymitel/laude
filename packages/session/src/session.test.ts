@@ -75,7 +75,7 @@ test('portable playlist round-trips losslessly (by-value songs survive)', () => 
         id: 'song-private',
         title: 'Cantec Privat',
         author: 'Mike',
-        originalKey: 'Bb',
+        defaultKey: 'Bb',
         parts: [
           { id: 'V1', type: 'verse', index: 0, lines: [{ text: '[1]La [4]la' }] },
           { id: 'C1', type: 'chorus', index: 1, lines: [{ text: '[5]Ref [1]ren' }] },

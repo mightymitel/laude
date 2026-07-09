@@ -55,13 +55,13 @@ export function SessionSidebar(props: SessionSidebarProps) {
                                         'application/json',
                                         JSON.stringify({
                                             songId: song.id,
-                                            key: song.originalKey,
+                                            key: song.defaultKey,
                                             // Include song data for presenter access
                                             song: {
                                                 id: song.id,
                                                 title: song.title,
                                                 author: song.author,
-                                                originalKey: song.originalKey,
+                                                defaultKey: song.defaultKey,
                                                 parts: song.parts,
                                             },
                                         }),
@@ -71,7 +71,7 @@ export function SessionSidebar(props: SessionSidebarProps) {
                             >
                                 <button className={styles.resultContent} onClick={() => props.onPickSong(song)}>
                                     <span className={styles.resultTitle}>{song.title}</span>
-                                    <span className={styles.resultKey}>{song.originalKey}</span>
+                                    <span className={styles.resultKey}>{song.defaultKey}</span>
                                 </button>
                                 <div className={styles.resultMenu}>
                                     <button

@@ -50,12 +50,12 @@ export const melodiaScraper: Scraper = {
         });
 
         // Detect key from chords using music theory
-        let originalKey: Key = detectKeyFromChords(allChords);
+        let defaultKey: Key = detectKeyFromChords(allChords);
 
         // Override with selected key from dropdown if it looks reliable
         const selectedKey = $('select option[selected]').attr('value');
         if (selectedKey && /^[A-G][b#]?$/.test(selectedKey)) {
-            originalKey = selectedKey as Key;
+            defaultKey = selectedKey as Key;
         }
         const parts: SongPart[] = [];
         const partCounts: Record<PartType, number> = {
@@ -99,9 +99,9 @@ export const melodiaScraper: Scraper = {
             // Convert chord divs to Nashville bracket notation
             let processed = htmlContent
                 .replace(/<div class="chord[^"]*">([^<]+)<\/div>/g, (_, letterChord) => {
-                    const nashvilleChord = letterToNashville(letterChord, originalKey);
+                    const nashvilleChord = letterToNashville(letterChord, defaultKey);
                     if (nashvilleChord) {
-                        return `[${formatChord(nashvilleChord, originalKey, 'nashville')}]`;
+                        return `[${formatChord(nashvilleChord, defaultKey, 'nashville')}]`;
                     }
                     return `[${letterChord}]`; // Fallback to original
                 })
@@ -129,7 +129,7 @@ export const melodiaScraper: Scraper = {
         return {
             title: title || 'Untitled',
             author: author || undefined,
-            originalKey,
+            defaultKey,
             parts,
             sourceUrl: url,
         };

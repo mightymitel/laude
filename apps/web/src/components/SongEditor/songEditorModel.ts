@@ -8,7 +8,7 @@ export function createEmptySong(): Partial<Song> {
     return {
         title: '',
         author: '',
-        originalKey: 'C',
+        defaultKey: 'C',
         parts: [],
         tags: [],
         defaultArrangement: [],

@@ -50,7 +50,7 @@ function PlaylistItemRow({
             <div className={styles.itemActions}>
                 <select
                     className={styles.keySelect}
-                    value={item.key || song?.originalKey || 'C'}
+                    value={item.key || song?.defaultKey || 'C'}
                     onChange={(e) => {
                         e.stopPropagation();
                         onUpdateKey(e.target.value);

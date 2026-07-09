@@ -3,7 +3,7 @@ import type { SongPart, Key } from '../shared/index.js';
 export interface ScrapedSong {
     title: string;
     author?: string;
-    originalKey: Key;
+    defaultKey: Key;
     parts: SongPart[];
     sourceUrl: string;
 }

@@ -12,7 +12,7 @@ export interface EmbeddedSong {
   id: string;
   title: string;
   author?: string;
-  originalKey: string;
+  defaultKey: string;
   parts: EmbeddedSongPart[];
 }
 

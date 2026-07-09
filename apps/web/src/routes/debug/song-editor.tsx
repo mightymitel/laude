@@ -8,7 +8,7 @@ const MOCK_SONG: Song = {
     id: 'test-1',
     title: 'Test Song: Amazing Grace',
     author: 'John Newton',
-    originalKey: 'C',
+    defaultKey: 'C',
     defaultArrangement: ['V1', 'C1', 'V2', 'C1'],
     arrangements: [],
     parts: [

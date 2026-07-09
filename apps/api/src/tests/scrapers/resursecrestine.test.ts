@@ -62,7 +62,7 @@ describe('resursecrestineScraper', () => {
             const result = await resursecrestineScraper.scrape('https://www.resursecrestine.ro/acorduri/154992/el-este-domn');
 
             expect(result.title).toBe('El este Domn și în ceruri domnește');
-            expect(result.originalKey).toBe('E');
+            expect(result.defaultKey).toBe('E');
             expect(result.parts.length).toBeGreaterThan(0);
 
             // First part should be verse
@@ -114,7 +114,7 @@ describe('resursecrestineScraper', () => {
             const result = await resursecrestineScraper.scrape('https://www.resursecrestine.ro/acorduri/154992/el-este-domn');
 
             expect(result.title).toBe('El este Domn și în ceruri domnește');
-            expect(result.originalKey).toBe('E');
+            expect(result.defaultKey).toBe('E');
 
             // Should have at least verse(s) and chorus
             const verses = result.parts.filter(p => p.type === 'verse');

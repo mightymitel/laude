@@ -128,7 +128,7 @@ function SessionPageContent() {
                     onAddToPlaylist={(song) =>
                         setSessionPlaylist((prev) => [
                             ...prev,
-                            { id: `${Date.now()}-${song.id}`, songId: song.id, key: song.originalKey, song: embed(song) },
+                            { id: `${Date.now()}-${song.id}`, songId: song.id, key: song.defaultKey, song: embed(song) },
                         ])
                     }
                     sessionPlaylist={sessionPlaylist}

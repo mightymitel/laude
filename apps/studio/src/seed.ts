@@ -131,8 +131,7 @@ async function main(): Promise<void> {
       // Platform contract (@laude/song-model Song)
       id: song.id,
       canonical_title: song.title,
-      original_key: song.key,
-      default_bpm: song.bpm,
+      default_key: song.key,
       language: song.language,
       tags: song.tags,
       verified: song.verified,
@@ -140,7 +139,7 @@ async function main(): Promise<void> {
       // Laudasist fields (laudasist/packages/shared Song)
       title: song.title,
       author: song.author,
-      originalKey: song.key,
+      defaultKey: song.key,
       defaultArrangement,
       arrangements,
       parts,

@@ -29,7 +29,7 @@ function sliceOf(state: SessionState): RenderSlice | null {
   return {
     song: state.currentSong,
     partIndex: state.current.section_index,
-    displayKey: asKey(state.current.key ?? state.currentSong.originalKey),
+    displayKey: asKey(state.current.key ?? state.currentSong.defaultKey),
   }
 }
 

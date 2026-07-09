@@ -17,7 +17,7 @@ export function QuickEditModal({ song, onClose, onSave }: QuickEditModalProps) {
 
     const [title, setTitle] = useState(song.title);
     const [author, setAuthor] = useState(song.author || '');
-    const [key, setKey] = useState<Key>(song.originalKey);
+    const [key, setKey] = useState<Key>(song.defaultKey);
     const [content, setContent] = useState('');
     const [preview, setPreview] = useState<ParsedSong | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function QuickEditModal({ song, onClose, onSave }: QuickEditModalProps) {
             }));
 
             await updateSong.mutateAsync({
-                title, author, originalKey: key, parts: songParts
+                title, author, defaultKey: key, parts: songParts
             });
             onSave?.();
             onClose();

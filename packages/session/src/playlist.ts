@@ -39,7 +39,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 function songOf(v: unknown): EmbeddedSong | undefined {
   if (!isRecord(v)) return undefined;
   if (typeof v.id !== 'string' || typeof v.title !== 'string') return undefined;
-  if (typeof v.originalKey !== 'string' || !Array.isArray(v.parts)) return undefined;
+  if (typeof v.defaultKey !== 'string' || !Array.isArray(v.parts)) return undefined;
   const parts: EmbeddedSong['parts'] = [];
   for (const [index, part] of v.parts.entries()) {
     if (!isRecord(part) || !Array.isArray(part.lines)) return undefined;
@@ -56,7 +56,7 @@ function songOf(v: unknown): EmbeddedSong | undefined {
     id: v.id,
     title: v.title,
     ...(typeof v.author === 'string' ? { author: v.author } : {}),
-    originalKey: v.originalKey,
+    defaultKey: v.defaultKey,
     parts,
   };
 }

@@ -27,9 +27,11 @@ export type SessionId = string;
 export interface Song {
   id: SongId;
   canonical_title: string;
-  /** Original key as written, e.g. "G", "F#m" (canonical English notation). */
-  original_key: string;
-  default_bpm: number;
+  /** The key the chart renders in by default (canonical English, e.g. "G",
+   * "F#m"). A work has no inherent key (DEC-45/60): changing this TRANSPOSES
+   * the render; it says nothing about any recording. Independent from
+   * local_songs.analysis_key (re-key knob) and performances.detected_key. */
+  default_key: string;
   language: Lang;
   ccli_number?: string;
   tags: string[];
@@ -41,14 +43,17 @@ export interface Song {
 export interface SongLyrics {
   song_id: SongId;
   lang: Lang;
-  /** Canonical ChordPro source — the single source of truth for lyrics + inline chords. */
+  /** ChordPro container holding Nashville DEGREES + the {key:} reference —
+   * the single source of truth for lyrics + inline chords (DEC-45/46). */
   chordpro: string;
-  /** Karaoke timing (LRC-style, line-level with optional word-level). May be absent pre-Tier-2. */
-  lrc?: LrcLine[];
   /** Denormalized from the song so security rules stay statically queryable. */
   visibility: 'public' | 'private';
   verified: boolean;
 }
+// NOTE: song_lyrics deliberately has NO lrc (DEC-44 / WP-111): LRC is the
+// timing of ONE recording — two extractions would produce two contradictory
+// LRCs with no principled way to choose. It lives on the local performance.
+// The "optional per-performance global record" escape hatch stays unbuilt.
 
 export interface LrcLine {
   time_s: number;

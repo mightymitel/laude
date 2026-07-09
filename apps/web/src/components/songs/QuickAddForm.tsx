@@ -10,7 +10,7 @@ interface QuickAddFormProps {
     initialData?: {
         title: string;
         author: string;
-        originalKey: Key;
+        defaultKey: Key;
         content: string;
     };
 }
@@ -21,7 +21,7 @@ export function QuickAddForm({ initialData }: QuickAddFormProps) {
 
     const [title, setTitle] = useState(initialData?.title || '');
     const [author, setAuthor] = useState(initialData?.author || '');
-    const [key, setKey] = useState<Key>(initialData?.originalKey || 'C');
+    const [key, setKey] = useState<Key>(initialData?.defaultKey || 'C');
     const [content, setContent] = useState(initialData?.content || '');
 
     const [preview, setPreview] = useState<ParsedSong | null>(null);
@@ -32,7 +32,7 @@ export function QuickAddForm({ initialData }: QuickAddFormProps) {
         if (initialData) {
             setTitle(initialData.title);
             setAuthor(initialData.author);
-            setKey(initialData.originalKey);
+            setKey(initialData.defaultKey);
             setContent(initialData.content);
         }
     }, [initialData]);
@@ -71,7 +71,7 @@ export function QuickAddForm({ initialData }: QuickAddFormProps) {
             await createSong.mutateAsync({
                 title,
                 author,
-                originalKey: key,
+                defaultKey: key,
                 parts: songParts,
                 visibility: 'private',
             });

@@ -8,7 +8,7 @@
  * v1 placeholder vocabulary (resolved from session state, omit-if-empty):
  *   {{song_title}}   currentSong.title
  *   {{song_author}}  currentSong.author
- *   {{key}}          current.key ?? currentSong.originalKey
+ *   {{key}}          current.key ?? currentSong.defaultKey
  *   {{section_name}} currentSong.parts[current.section_index].type
  *   {{lyrics}}       current part lines, chords stripped
  *   {{chords}}       current part chord line, device notation

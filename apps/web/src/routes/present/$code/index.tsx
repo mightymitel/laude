@@ -26,7 +26,7 @@ function PlaylistItemRow({ item, isActive, onClick }: {
       onClick={onClick}
     >
       <span className={styles.songTitle}>{song?.title || 'Unknown Song'}</span>
-      <span className={styles.songKey}>{item.key || song?.originalKey || '?'}</span>
+      <span className={styles.songKey}>{item.key || song?.defaultKey || '?'}</span>
     </button>
   )
 }
@@ -36,7 +36,7 @@ function embed(song: Song): EmbeddedSong {
     id: song.id,
     title: song.title,
     author: song.author,
-    originalKey: song.originalKey,
+    defaultKey: song.defaultKey,
     parts: song.parts,
   }
 }
@@ -62,7 +62,7 @@ function PresenterPage() {
       current: {
         song_id: item.song.id,
         section_index: 0,
-        key: item.key || item.song.originalKey,
+        key: item.key || item.song.defaultKey,
       },
       currentSong: item.song,
     })
@@ -74,7 +74,7 @@ function PresenterPage() {
 
   const currentSong = session?.currentSong ?? null
   const currentPartIndex = session?.current.section_index ?? 0
-  const displayKey = asKey(session?.current.key ?? currentSong?.originalKey ?? null)
+  const displayKey = asKey(session?.current.key ?? currentSong?.defaultKey ?? null)
 
   const nextPart = useCallback(() => {
     if (currentSong && currentPartIndex < currentSong.parts.length - 1) {
@@ -89,7 +89,7 @@ function PresenterPage() {
   const selectCommunitySong = (song: Song) => {
     setSearchQuery('')
     client?.send({
-      current: { song_id: song.id, section_index: 0, key: song.originalKey },
+      current: { song_id: song.id, section_index: 0, key: song.defaultKey },
       currentSong: embed(song),
     })
   }
@@ -146,7 +146,7 @@ function PresenterPage() {
                     onClick={() => selectCommunitySong(song)}
                   >
                     <span>{song.title}</span>
-                    <span className={styles.songKey}>{song.originalKey}</span>
+                    <span className={styles.songKey}>{song.defaultKey}</span>
                   </button>
                 ))}
               </div>

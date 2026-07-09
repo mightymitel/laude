@@ -72,7 +72,7 @@ export interface Song {
     id: string;
     title: string;
     author?: string;
-    originalKey: Key;
+    defaultKey: Key;
     defaultArrangement: string[];
     arrangements: Arrangement[];
     parts: SongPart[];

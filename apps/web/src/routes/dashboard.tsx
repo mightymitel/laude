@@ -95,7 +95,7 @@ function DashboardPage() {
                                     <div>
                                         <div className={styles.songTitle}>{song.title}</div>
                                         <div className={styles.songMeta}>
-                                            {song.author} • Key: {song.originalKey}
+                                            {song.author} • Key: {song.defaultKey}
                                         </div>
                                     </div>
                                     <Link to="/library/$id" params={{ id: song.id }} className={styles.link}>

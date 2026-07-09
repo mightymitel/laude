@@ -5,7 +5,7 @@ import styles from './SongEditor.module.css';
 interface SongEditorHeaderProps {
     title: string;
     author: string;
-    originalKey: Key;
+    defaultKey: Key;
     chordStyle: ChordStyle;
     mode: 'visual' | 'raw';
     titleError: boolean;
@@ -20,7 +20,7 @@ interface SongEditorHeaderProps {
 export function SongEditorHeader({
     title,
     author,
-    originalKey,
+    defaultKey,
     chordStyle,
     mode,
     titleError,
@@ -70,7 +70,7 @@ export function SongEditorHeader({
 
                 <select
                     className={styles.select}
-                    value={originalKey}
+                    value={defaultKey}
                     // Cast: the select's options are exactly KEYS, so the value is a Key.
                     onChange={(e) => onKeyChange(e.target.value as Key)}
                 >

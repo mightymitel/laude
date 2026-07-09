@@ -41,7 +41,7 @@ export type Visibility = 'public' | 'private';
 export interface LaudasistSongFields {
   title: string;
   author?: string;
-  originalKey: Key;
+  defaultKey: Key;
   defaultArrangement: string[];
   arrangements: Arrangement[];
   parts: SongPart[];

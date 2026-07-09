@@ -34,7 +34,7 @@ export function SongEditor({
     const [titleError, setTitleError] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const currentKey = displayKey || editingSong.originalKey || 'C';
+    const currentKey = displayKey || editingSong.defaultKey || 'C';
 
     const chordDrag = useChordDrag({ currentKey, chordStyle, setEditingSong });
     const partEditing = usePartEditing(setEditingSong);
@@ -85,13 +85,13 @@ export function SongEditor({
             <SongEditorHeader
                 title={editingSong.title || ''}
                 author={editingSong.author || ''}
-                originalKey={editingSong.originalKey || 'C'}
+                defaultKey={editingSong.defaultKey || 'C'}
                 chordStyle={chordStyle}
                 mode={mode}
                 titleError={titleError}
                 onTitleChange={handleTitleChange}
                 onAuthorChange={(author) => setEditingSong(prev => ({ ...prev, author }))}
-                onKeyChange={(originalKey) => setEditingSong(prev => ({ ...prev, originalKey }))}
+                onKeyChange={(defaultKey) => setEditingSong(prev => ({ ...prev, defaultKey }))}
                 onChordStyleChange={setChordStyle}
                 onModeChange={setMode}
             />
