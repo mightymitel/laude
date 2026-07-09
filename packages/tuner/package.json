@@ -1,0 +1,22 @@
+{
+  "name": "@laude/tuner",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Framework-free pitch detection for tuners: pitchy (McLeod Pitch Method) behind a filtered Web Audio chain, with volume/clarity gates, median smoothing, note hysteresis and idle decay. Reused by web and LaudStudio.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/pitch-math.test.ts src/stabilizer.test.ts"
+  },
+  "dependencies": {
+    "pitchy": "^4.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

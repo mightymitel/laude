@@ -1,99 +1,126 @@
-.tunerContainer {
+.container,
+.containerMini {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 16px;
     padding: 24px;
-    background: var(--bg-card, #1e1e1e);
-    border-radius: 12px;
-    color: white;
     width: 100%;
+    color: var(--text-primary);
 }
 
-.tunerContainer.mini {
-    padding: 12px;
-    min-width: 300px;
+.containerMini {
+    gap: 12px;
+    padding: 8px;
 }
 
-.display {
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.noteDisplay {
-    font-size: 4rem;
-    font-weight: 700;
-    margin: 10px 0;
-    font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
-    color: var(--text-primary, #fff);
-}
-
-.frequency {
-    font-family: monospace;
-    color: var(--text-secondary, #888);
-    font-size: 1rem;
-}
-
-.canvas {
-    width: 100%;
-    height: 200px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    margin-top: 16px;
-}
-
-.tunerContainer.mini .canvas {
-    height: 100px;
+.title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .controls {
-    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
 }
 
-.startButton {
-    padding: 10px 24px;
-    font-size: 1.1rem;
-    font-weight: 500;
-    border-radius: 24px;
+.modeToggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.modeBtn,
+.modeBtnActive {
+    padding: 6px 14px;
+    font-size: 0.875rem;
     border: none;
-    background: var(--primary-color, #3b82f6);
-    color: white;
+    background: transparent;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
 }
 
-.startButton:hover {
-    background: var(--primary-hover, #2563eb);
+.modeBtnActive {
+    background: var(--primary);
+    color: #ffffff;
 }
 
-.startButton:active {
-    transform: scale(0.98);
+.notationSelect {
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.noteReadout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-height: 5.5rem;
+    transition: color 200ms ease;
+}
+
+.noteName {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.containerMini .noteName {
+    font-size: 3rem;
+}
+
+.octave {
+    font-size: 0.4em;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 0.15em;
+}
+
+.noteMeta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    min-height: 1.25rem;
+    white-space: pre;
+}
+
+.inTune .noteName,
+.inTune .octave {
+    color: var(--success);
+}
+
+.gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.centsLabel {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
 }
 
 .status {
-    margin-top: 8px;
-    font-size: 0.9rem;
-    color: var(--text-secondary, #aaa);
-}
-
-.cents {
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin-top: 4px;
-}
-
-.cents.inTune {
-    color: #22c55e;
-}
-
-.cents.flat {
-    color: #3b82f6;
-}
-
-.cents.sharp {
-    color: #ef4444;
+    max-width: 32rem;
+    margin: 24px 0;
+    text-align: center;
+    color: var(--text-secondary);
 }
