@@ -25,7 +25,6 @@ interface SongPartEditorProps {
     onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
     onChordDragStart: (chord: DraggedChord) => void;
     onChordDragEnd: () => void;
-    onCursorPositionChange?: (lineIndex: number, charIndex: number) => void;
     onApproximateChords?: (sourcePartIndex: number) => void;
 }
 
@@ -60,7 +59,6 @@ export function SongPartEditor({
     onChordDrop,
     onChordDragStart,
     onChordDragEnd,
-    onCursorPositionChange,
     onApproximateChords,
 }: SongPartEditorProps) {
     // Track last known drop position locally to handle race conditions
@@ -217,7 +215,6 @@ export function SongPartEditor({
                         onChordDrop={(dataTransfer) => handleChordDrop(lineIndex, dataTransfer)}
                         onChordDragStart={onChordDragStart}
                         onChordDragEnd={onChordDragEnd}
-                        onCursorPositionChange={onCursorPositionChange ? (charIndex) => onCursorPositionChange(lineIndex, charIndex) : undefined}
                     />
                 ))}
             </div>
