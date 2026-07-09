@@ -19,9 +19,11 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "test": "npm run check:boundaries && npm run test --workspaces --if-present",
     "test:e2e": "npx tsx scripts/e2e-runner.ts",
-    "apphosting:build": "npm run build -w @laudasist/shared && npm run build -w @laudasist/api"
+    "apphosting:build": "npm run build -w @laudasist/shared && npm run build -w @laudasist/api",
+    "test:rules": "npx tsx scripts/rules-test.ts"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
     "@playwright/test": "^1.57.0",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",

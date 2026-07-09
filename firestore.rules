@@ -60,10 +60,26 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
+    // The relay's durability mirror — written by the relay through the
+    // Admin SDK (bypasses rules). EXPLICIT deny (WP-121), not just
+    // fallthrough, so nobody "helpfully" opens it later: session state
+    // includes the presenter credential.
+    match /liveSessions/{sessionId} {
+      allow read, write: if false;
+    }
+
+    // Playlists are reached through the api (Admin SDK + verified token).
+    // Owner-scoped direct rules as defense in depth (WP-121): the owner id
+    // IS the Firebase uid (WP-113).
+    match /playlists/{playlistId} {
+      allow read, update, delete: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
     // NO client `sessions` collection: the live session is owned by the
     // session relay (authoritative in-memory state; socket/REST transport).
-    // Its optional Firestore mirror (`liveSessions`) is written by the relay
-    // through the Admin SDK, which bypasses rules — clients get default deny.
     //
     // NO personal-domain collections (performances, sections, beatgrid,
     // chords, recorded_services, segments): that data lives in LaudStudio's

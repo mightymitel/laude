@@ -41,15 +41,15 @@ export async function authMiddleware(
         req.firebaseUid = decodedToken.uid;
         req.userEmail = decodedToken.email;
 
+        // ONE canonical identity (WP-113): the Firebase uid. The users
+        // document's id IS the uid — no second identity namespace, so every
+        // ownership stamp (songs.ownerId, playlists.ownerId, createdBy)
+        // agrees with what security rules and Studio's mint see.
         const usersRef = getUsersCollection();
+        const userDoc = usersRef.doc(decodedToken.uid);
+        const snapshot = await userDoc.get();
 
-        // Find user by firebaseUid
-        const snapshot = await usersRef.where('firebaseUid', '==', decodedToken.uid).limit(1).get();
-
-        let userId: string;
-
-        if (snapshot.empty) {
-            // Create new user
+        if (!snapshot.exists) {
             const newUser: UserDocument = {
                 firebaseUid: decodedToken.uid,
                 email: decodedToken.email || '',
@@ -64,16 +64,10 @@ export async function authMiddleware(
                 createdAt: new Date(),
                 lastLoginAt: new Date(),
             };
-
-            const docRef = await usersRef.add(newUser);
-            userId = docRef.id;
-        } else {
-            // User exists
-            // We know docs[0] exists because empty was false, but TS needs help
-            userId = snapshot.docs[0]?.id || '';
+            await userDoc.set(newUser);
         }
 
-        req.userId = userId;
+        req.userId = decodedToken.uid;
         next();
     } catch (error) {
         console.error('Token verification failed:', error);

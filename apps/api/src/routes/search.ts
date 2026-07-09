@@ -20,11 +20,9 @@ router.get('/lyrics', async (req: AuthenticatedRequest, res: Response) => {
     const language = typeof req.query.language === 'string' ? req.query.language : undefined;
     const rawLimit = Number(req.query.limit);
     const limit = Number.isInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 25) : 10;
-    const viewerIds = [req.userId, req.firebaseUid].filter(
-        (v): v is string => typeof v === 'string',
-    );
     try {
-        const results = await searchLyrics(q, { language, viewerIds, limit });
+        // One identity namespace (WP-113): req.userId IS the Firebase uid.
+        const results = await searchLyrics(q, { language, viewerId: req.userId, limit });
         res.json({ results });
     } catch (error) {
         console.error('lyrics search failed:', error);

@@ -127,8 +127,8 @@ async function ensureFresh(): Promise<void> {
 
 export interface LyricsSearchOptions {
     language?: string;
-    /** Identities the caller may own private songs under (uid + user doc id). */
-    viewerIds?: string[];
+    /** The caller's Firebase uid — THE owner id namespace (WP-113). */
+    viewerId?: string;
     limit?: number;
 }
 
@@ -140,12 +140,11 @@ export async function searchLyrics(
     const tokens = normalize(query).split(' ').filter((t) => t.length >= 2);
     if (tokens.length === 0) return [];
     const phrase = tokens.join(' ');
-    const viewerIds = new Set(options.viewerIds ?? []);
     const limit = options.limit ?? 10;
 
     const results: LyricsSearchResult[] = [];
     for (const song of corpus) {
-        if (song.visibility === 'private' && (song.ownerId === null || !viewerIds.has(song.ownerId))) {
+        if (song.visibility === 'private' && (song.ownerId === null || song.ownerId !== options.viewerId)) {
             continue;
         }
         if (options.language !== undefined && song.language !== options.language) continue;

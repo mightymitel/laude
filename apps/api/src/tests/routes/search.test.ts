@@ -8,7 +8,12 @@ jest.mock('../../middleware/auth.js', () => ({
         next();
     },
     optionalAuthMiddleware: (req: Request, _res: Response, next: NextFunction) => {
-        if (req.headers.authorization) req.userId = 'owner-1';
+        // Test double mirrors WP-113: req.userId IS the (mock) uid carried by
+        // the bearer token.
+        const header = req.headers.authorization;
+        if (typeof header === 'string' && header.startsWith('Bearer ')) {
+            req.userId = header.slice('Bearer '.length);
+        }
         next();
     },
 }));
@@ -86,11 +91,19 @@ describe('GET /api/search/lyrics', () => {
     it('shows an authed caller their own private songs', async () => {
         const res = await request(app)
             .get('/api/search/lyrics?q=har uimitor')
-            .set('Authorization', 'Bearer whatever');
+            .set('Authorization', 'Bearer owner-1');
         expect(res.status).toBe(200);
         expect(res.body.results.map((r: { song_id: string }) => r.song_id)).toEqual([
             'song-private',
         ]);
+    });
+
+    it('a private song is INVISIBLE to a second authed account (WP-113)', async () => {
+        const res = await request(app)
+            .get('/api/search/lyrics?q=har uimitor')
+            .set('Authorization', 'Bearer owner-2');
+        expect(res.status).toBe(200);
+        expect(res.body.results).toHaveLength(0);
     });
 
     it('filters by language', async () => {

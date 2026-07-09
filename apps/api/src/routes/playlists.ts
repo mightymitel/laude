@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router, type Response } from 'express';
+import type { AuthenticatedRequest } from '../middleware/auth.js';
 import {
     createPlaylist,
     getPlaylistsByOwner,
@@ -12,11 +13,13 @@ import {
 const router = Router();
 
 // Get all playlists for current user
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        // Identity comes from the auth middleware (verified ID token) —
+        // NEVER from a client-supplied header (WP-122).
+        const userId = req.userId;
         if (!userId) {
-            return res.status(401).json({ error: 'User ID required' });
+            return res.status(401).json({ error: 'Not authenticated' });
         }
 
         const playlists = await getPlaylistsByOwner(userId);
@@ -28,11 +31,13 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Create a new playlist
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        // Identity comes from the auth middleware (verified ID token) —
+        // NEVER from a client-supplied header (WP-122).
+        const userId = req.userId;
         if (!userId) {
-            return res.status(401).json({ error: 'User ID required' });
+            return res.status(401).json({ error: 'Not authenticated' });
         }
 
         const { name, description } = req.body;
@@ -49,7 +54,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get a specific playlist
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
         if (!id) {
@@ -69,9 +74,12 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // Update a playlist
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
         const { id } = req.params;
         if (!id) {
             return res.status(400).json({ error: 'Playlist ID required' });
@@ -96,9 +104,12 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // Delete a playlist
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
         const { id } = req.params;
         if (!id) {
             return res.status(400).json({ error: 'Playlist ID required' });
@@ -122,9 +133,12 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 // Add a song to a playlist
-router.post('/:id/items', async (req: Request, res: Response) => {
+router.post('/:id/items', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
         const { id } = req.params;
         if (!id) {
             return res.status(400).json({ error: 'Playlist ID required' });
@@ -162,9 +176,12 @@ router.post('/:id/items', async (req: Request, res: Response) => {
 });
 
 // Remove a song from a playlist
-router.delete('/:id/items/:itemId', async (req: Request, res: Response) => {
+router.delete('/:id/items/:itemId', async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.headers['x-user-id'] as string;
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
         const { id, itemId } = req.params;
         if (!id || !itemId) {
             return res.status(400).json({ error: 'Playlist ID and Item ID required' });
