@@ -3,7 +3,7 @@
 ## What this is
 Turn our church's YouTube service recordings into a bilingual worship platform
 for small house-groups: a song library with karaoke lyrics + transposable chord
-charts (**Laudasist**), an offline extraction pipeline (**Extractor**), and live
+charts (**Laudasist**), an offline extraction pipeline (**LaudStudio**), and live
 multi-stem audio (**LauDJ**). Three apps over shared `@laude/*` packages, joined
 by the **song ID**. NOTION is the source of truth — read it via the Notion MCP
 (Worship Platform → Architecture + the per-app feature specs + Next Up).
@@ -15,7 +15,7 @@ anything heavy (ML pipeline, native audio DSP, real integrations). Breadth over
 depth. It's disposable; we refine section by section later.
 
 ## Architecture
-- **Extractor** (Python, offline batch) — real pipeline later; **for the PoC, a
+- **LaudStudio** (Python, offline batch) — real pipeline later; **for the PoC, a
   MOCK seeder** that writes realistic fake songs/lyrics/chords/time-annotations
   into the emulator. No yt-dlp/Demucs/ML yet.
 - **packages/** (TypeScript, shared): `@laude/chords` (real — ChordSheetJS +

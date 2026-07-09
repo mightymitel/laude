@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # End-to-end extraction: YouTube URL -> pipeline -> emulator ingest -> validation.
-#   npm run extract -w apps/extractor -- <youtube-url> [reference-chart-url]
+#   npm run extract -w apps/laudstudio -- <youtube-url> [reference-chart-url]
 # Requires the PoC stack running (npm run poc).
 set -euo pipefail
 cd "$(dirname "$0")"

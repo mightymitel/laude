@@ -1,5 +1,5 @@
 /**
- * Extractor service — a tiny local HTTP API the platform UI talks to:
+ * LaudStudio service — a tiny local HTTP API the platform UI talks to:
  *   POST /extract { youtube_url, reference_url? } -> 202 { id }
  *   GET  /jobs                                    -> job list (newest first)
  *   GET  /health
@@ -13,7 +13,7 @@ import { randomUUID } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PORT = Number(process.env.EXTRACTOR_PORT ?? 3002);
+const PORT = Number(process.env.LAUDSTUDIO_PORT ?? 3002);
 const APP_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MAX_LOG_LINES = 300;
 
@@ -166,5 +166,5 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`extractor service on http://127.0.0.1:${PORT} (POST /extract, GET /jobs)`);
+  console.log(`LaudStudio service on http://127.0.0.1:${PORT} (POST /extract, GET /jobs)`);
 });

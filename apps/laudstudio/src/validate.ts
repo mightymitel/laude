@@ -1,5 +1,5 @@
 /**
- * Validation: compare the extractor's output against a human-made reference
+ * Validation: compare LaudStudio's extraction output against a human-made reference
  * chart (melodia.ro), fetched through Laudasist's own scraper API
  * (POST /api/import/preview). Acceptance bar: APPROXIMATE agreement.
  */

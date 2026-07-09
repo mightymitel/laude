@@ -1,7 +1,7 @@
 # Worship Platform — PoC wireframe (YOLO)
 
 Clickable wireframe of the whole platform: **Laudasist** (library, song detail,
-karaoke, presenter/stage, live session, companion controls) · **Extractor**
+karaoke, presenter/stage, live session, companion controls) · **LaudStudio**
 (mock seeder standing in for the offline pipeline) · **LauDJ** (Tauri shell +
 web console: mixer, transport, section launcher, pads, session-follow).
 Everything runs on the **Firebase Emulator Suite** (`demo-laude`) with mock
@@ -31,7 +31,7 @@ views sign in automatically.
   Also hosts the shared packages: `laudasist/packages/{song-model, chords, i18n,
   design-system, auth, session, pad-engine, laudj-control-protocol}` (`@laude/*`)
   so the deployable app owns everything it needs.
-- `apps/extractor/` — mock seeder (`npm run seed`). The real Python pipeline
+- `apps/laudstudio/` — mock seeder (`npm run seed`). The real Python pipeline
   replaces it behind the same data contract.
 - `apps/laudj/` — LauDJ Vite panel + `src-tauri/` shell. Audio engine is a stub
   (`MockEngine` + `PadEngine`); the native Rust engine lands behind the same

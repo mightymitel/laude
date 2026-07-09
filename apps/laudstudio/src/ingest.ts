@@ -3,7 +3,7 @@
  * then validate the extraction against a reference chart (melodia.ro) via
  * Laudasist's own import scraper API.
  *
- *   npm run ingest -w apps/extractor -- --work ../../.work/SG0m_hTsMu4 \
+ *   npm run ingest -w apps/laudstudio -- --work ../../.work/SG0m_hTsMu4 \
  *     --reference https://staging.melodia.ro/cantari/Isus-e-Rege
  *
  * Everything OCR/audio-derived is written verified:false (UNVERIFIED).
@@ -141,7 +141,7 @@ async function main(): Promise<void> {
     original_key: manifest.key,
     default_bpm: manifest.bpm,
     language: manifest.language,
-    tags: ['extractor'],
+    tags: ['laudstudio'],
     preferred_performance_id: perfId,
     verified: false,
     created_at: now.toISOString(),

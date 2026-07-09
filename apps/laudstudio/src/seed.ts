@@ -1,10 +1,10 @@
 /**
- * Extractor MOCK seeder — stands in for the offline Python pipeline during the
+ * LaudStudio MOCK seeder — stands in for the offline Python pipeline during the
  * wireframe PoC. Writes realistic fake songs / lyrics / services / performances
  * / time-annotations into the Firebase EMULATOR (never a real project).
  *
  * Idempotent: deterministic document ids + plain set() overwrites.
- * Run from the workspace root:  npm run seed -w apps/extractor
+ * Run from the workspace root:  npm run seed -w apps/laudstudio
  */
 import { FIRESTORE_HOST, PROJECT_ID, STORAGE_BUCKET } from './env';
 

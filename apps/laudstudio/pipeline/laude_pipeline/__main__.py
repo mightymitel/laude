@@ -1,4 +1,4 @@
-"""Extractor pipeline CLI.
+"""LaudStudio pipeline CLI.
 
     uv run python -m laude_pipeline <youtube-url> [--stages download,ocr,stems,analysis,assemble]
                                      [--work DIR] [--force]

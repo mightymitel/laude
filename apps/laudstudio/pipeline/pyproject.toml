@@ -1,7 +1,7 @@
 [project]
 name = "laude-pipeline"
 version = "0.0.1"
-description = "Extractor pipeline (real): YouTube video -> lyrics (OCR), chords (audio), stems, beat grid, LRC. Writes a manifest consumed by the TS ingest step."
+description = "LaudStudio pipeline (real): YouTube video -> lyrics (OCR), chords (audio), stems, beat grid, LRC. Writes a manifest consumed by the TS ingest step."
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "yt-dlp>=2025.1.1",
