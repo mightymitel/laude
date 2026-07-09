@@ -14,8 +14,7 @@ import { renderChordSymbol, transposeAmount } from '@laude/chords';
 import { buildBeatGrid, buildChordEvents, buildLrc, buildSections, chordProgression, buildChordPro } from './build';
 import { SEED_SERVICES } from './content/services';
 import { SEED_SONGS, getSeedSong } from './content/songs';
-import { LocalStore, type SegmentRow } from './store';
-import { mapSectionsToParts } from './store/partmap';
+import { LocalStore, autoSectionPartMap, toDegreeChart, type SegmentRow } from './store';
 
 const NOW_ISO = '2026-07-07T09:00:00.000Z'; // fixed so reruns are byte-identical
 
@@ -30,13 +29,21 @@ function main(): void {
       store.upsertLocalSong({
         id: song.id,
         global_song_id: song.id, // seeded songs exist globally too → linked
+        link_state: 'linked',
         title: song.title,
+        author: null,
         language: song.language,
-        original_key: song.key,
-        default_bpm: song.bpm,
+        // Linked seeds: the chart is the global chart snapshot (degrees).
+        chordpro: toDegreeChart(buildChordPro(song), song.key),
+        chart_source: 'snapshot',
+        analysis_key: song.key,
+        derived_chordpro: null,
+        snapshot_parts: null,
+        snapshot_taken_at: NOW_ISO,
         preferred_performance_id: null, // set after the performance loop
         verified: song.verified,
         created_at: NOW_ISO,
+        updated_at: NOW_ISO,
       });
     }
 
@@ -45,7 +52,7 @@ function main(): void {
         id: service.id,
         date: service.date,
         title: service.title,
-        youtube_id: service.youtube_id,
+        source_uri: service.youtube_id,
       });
 
       const segmentRows: SegmentRow[] = [];
@@ -74,12 +81,12 @@ function main(): void {
           id: perfId,
           local_song_id: song.id,
           service_id: service.id,
-          youtube_id: service.youtube_id,
+          segment_id: segmentId,
+          source_uri: service.youtube_id,
           start_s: segDef.start_s,
           end_s: segDef.end_s,
-          key,
+          detected_key: key,
           bpm,
-          chordpro: buildChordPro(song),
           lrc: song.withLrc ? buildLrc(song) : [],
           verified: perfDef.verified,
           created_at: NOW_ISO,
@@ -88,16 +95,21 @@ function main(): void {
 
         if (perfDef.tier2) {
           const built = buildSections(perfId, durationS, bpm);
-          const partMap = mapSectionsToParts(built.map((s) => s.label), buildChordPro(song));
-          const sectionRows = built.map((s, i) => ({
+          const sectionRows = built.map((s) => ({
+            id: s.id,
             label: s.label,
+            ordinal: s.ordinal,
             start_s: s.start_s,
             end_s: s.end_s,
             start_bar: s.start_bar,
             end_bar: s.end_bar,
-            work_part_index: partMap[i] ?? null,
+            variation_of: s.variation_of,
           }));
           store.replaceSections(perfId, sectionRows);
+          store.replaceSectionPartMap(
+            perfId,
+            autoSectionPartMap(sectionRows, toDegreeChart(buildChordPro(song), song.key)),
+          );
           sections += sectionRows.length;
 
           const grid = buildBeatGrid(perfId, durationS, bpm);
@@ -107,7 +119,7 @@ function main(): void {
           const progression = chordProgression(song).map((symbol) =>
             renderChordSymbol(symbol, semitones, 'english', { key }),
           );
-          store.setChords(perfId, buildChordEvents(progression, durationS, bpm), perfDef.verified);
+          store.setChordEvents(perfId, buildChordEvents(progression, durationS, bpm), perfDef.verified);
         }
 
         if (perfDef.promoted && !preferredBySong.has(song.id)) {

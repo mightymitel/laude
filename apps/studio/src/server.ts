@@ -3,7 +3,8 @@
  *   POST /extract { youtube_url, reference_url? }      -> 202 { id }
  *   GET  /jobs                                         -> extraction job list
  *   GET  /catalog                                      -> playable songs (LauDJ)
- *   GET  /performances/:id                             -> grid/chords/sections/LRC
+ *   GET  /songs/:localSongId                           -> work-level detail (the chart)
+ *   GET  /performances/:id                             -> grid/chord events/sections/LRC
  *   GET  /audio/:perfId/(stem/:stem|variant/:stem/:n|mixdown) -> audio files
  *   POST /link/:localSongId                            -> mint-or-link bridge (STUB)
  *   GET  /health
@@ -80,6 +81,13 @@ const server = createServer((req, res) => {
   }
   if (method === 'GET' && path === '/catalog') {
     json(res, 200, catalogBody(store));
+    return;
+  }
+  if (method === 'GET' && path.startsWith('/songs/')) {
+    const id = decodeURIComponent(path.slice('/songs/'.length));
+    const body = store.getSongDetail(id);
+    if (body === null) json(res, 404, { error: 'unknown local song' });
+    else json(res, 200, body);
     return;
   }
   if (method === 'GET' && path.startsWith('/performances/')) {

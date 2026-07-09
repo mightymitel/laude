@@ -17,8 +17,8 @@
  *  observes its own writes and demotes itself.
  */
 import type { EngineState } from '@laude/laudj-control-protocol';
-import type { DjManifestEntry, DjMode, SessionChange, SessionClient, SessionState } from '@laude/session';
-import type { CompanionDirectives, Presenter } from '@laude/song-model';
+import type { DjManifestEntry, DjMode, EmbeddedSongPart, SessionChange, SessionClient, SessionState } from '@laude/session';
+import type { CompanionDirectives, Presenter, WorkPartRef } from '@laude/song-model';
 import { engine, padEngine } from './engine';
 import { padsController, padStyleOf } from './pads-controller';
 import { fetchCatalog } from './studio';
@@ -58,11 +58,37 @@ export async function buildManifest(): Promise<DjManifestEntry[]> {
   }));
 }
 
+/**
+ * Resolve a work-part REF (label + ordinal, DEC-56) to an index into the
+ * session song's embedded parts — the session contract still addresses parts
+ * by index. Label classification mirrors Studio's ingest heuristic (RO + EN).
+ */
+export function partIndexFor(parts: EmbeddedSongPart[], ref: WorkPartRef): number | null {
+  const classify = (label: string): { kind: string; n: number } | null => {
+    const lower = label.trim().toLowerCase();
+    const n = Number(/(\d+)/.exec(lower)?.[1] ?? ref.ordinal);
+    if (/(chorus|refren)/.test(lower)) return { kind: 'chorus', n };
+    if (/(bridge|punte)/.test(lower)) return { kind: 'bridge', n };
+    if (/(verse|strofa|vers)/.test(lower)) return { kind: 'verse', n };
+    return null;
+  };
+  const wanted = classify(ref.label);
+  if (!wanted) return null;
+  let occurrence = 0;
+  for (const [i, part] of parts.entries()) {
+    if (part.type !== wanted.kind) continue;
+    occurrence += 1;
+    if (occurrence === wanted.n) return i;
+  }
+  return null;
+}
+
 export class DjSessionController {
   private mode: DjMode = 'companion';
   private modeListeners = new Set<(mode: DjMode) => void>();
-  /** song_id → work-part index per engine-section index (from the catalog). */
-  private partMaps = new Map<string, (number | null)[]>();
+  /** song_id → work-part REF per engine-section index (from the catalog);
+   * null = unaligned/proposed/instrumental → announce INSTRUMENTAL (DEC-62). */
+  private partMaps = new Map<string, (WorkPartRef | null)[]>();
   private wasPlaying = false;
   private lastAnnounced = -1;
   private prevSession: SessionState | null = null;
@@ -79,7 +105,7 @@ export class DjSessionController {
         for (const song of catalog) {
           this.partMaps.set(
             song.song_id,
-            song.sections.map((sec) => sec.work_part_index),
+            song.sections.map((sec) => sec.part),
           );
         }
       })
@@ -155,14 +181,18 @@ export class DjSessionController {
     if (this.mode !== 'playback' || !s.transport.playing || !session) return;
     if (s.transport.song_id === null || s.transport.song_id !== session.current.song_id) return;
 
-    // Translate the engine section into a WORK part via the one-way mapping;
-    // unmapped sections keep playing without an announcement.
+    // Translate the engine section into a WORK part via the one-way mapping
+    // (ref → session part index at announce time — DEC-56); unmapped sections
+    // keep playing without an announcement (WP-107 upgrades this to an
+    // explicit instrumental announcement).
     const section = s.transport.current_section;
     if (section === this.lastAnnounced) return;
-    const workPart = this.partMaps.get(s.transport.song_id)?.[section] ?? null;
+    const ref = this.partMaps.get(s.transport.song_id)?.[section] ?? null;
     this.lastAnnounced = section;
-    if (workPart === null || workPart === session.current.section_index) return;
-    this.client.setCurrent({ section_index: workPart });
+    if (ref === null) return;
+    const idx = partIndexFor(session.currentSong?.parts ?? [], ref);
+    if (idx === null || idx === session.current.section_index) return;
+    this.client.setCurrent({ section_index: idx });
   }
 }
 

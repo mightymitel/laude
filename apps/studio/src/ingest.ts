@@ -12,8 +12,7 @@
 import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { ALL_STEMS, type LrcLine, type StemName } from '@laude/song-model';
-import { LocalStore } from './store';
-import { mapSectionsToParts } from './store/partmap';
+import { LocalStore, autoSectionPartMap, toDegreeChart, type SectionRow } from './store';
 import { audioPaths } from './store/paths';
 import { validateAgainstReference } from './validate';
 
@@ -83,27 +82,42 @@ export function ingestManifest(store: LocalStore, work: string, manifest: Manife
   const serviceId = `svc-${manifest.youtube_id}`;
   const nowIso = new Date().toISOString();
 
+  const existing = store.getLocalSong(localSongId);
+  // Degrees are computed at EXTRACTION against the detected key (DEC-59);
+  // the chart is a work-level artifact and lives on the SONG (DEC-58).
+  const degreeChart = toDegreeChart(manifest.chordpro, manifest.key);
   store.upsertLocalSong({
     id: localSongId,
-    global_song_id: store.getLocalSong(localSongId)?.global_song_id ?? null,
+    global_song_id: existing?.global_song_id ?? null,
+    link_state: existing?.link_state ?? 'local',
     title: manifest.title,
+    author: existing?.author ?? null,
     language: manifest.language,
-    original_key: manifest.key,
-    default_bpm: manifest.bpm,
+    // A linked song keeps its snapshot chart — a re-extraction produces new
+    // EVIDENCE (chord_events, LRC), not a second chart (DEC-58/61).
+    chordpro: existing?.link_state === 'linked' ? existing.chordpro : degreeChart,
+    chart_source: existing?.link_state === 'linked' ? existing.chart_source : 'derived',
+    analysis_key: existing?.link_state === 'linked' ? existing.analysis_key : manifest.key,
+    derived_chordpro: existing?.derived_chordpro ?? null,
+    snapshot_parts: existing?.snapshot_parts ?? null,
+    snapshot_taken_at: existing?.snapshot_taken_at ?? null,
     preferred_performance_id: perfId,
     verified: false,
-    created_at: nowIso,
+    created_at: existing?.created_at ?? nowIso,
+    updated_at: nowIso,
   });
 
+  // Song-first ingest (DEC-67): a degenerate one-segment service per import.
+  const segmentId = `${serviceId}-song-1`;
   store.upsertService({
     id: serviceId,
     date: nowIso.slice(0, 10),
     title: `Sursă YouTube — ${manifest.title}`,
-    youtube_id: manifest.youtube_id,
+    source_uri: manifest.source_url,
   });
   store.replaceSegments(serviceId, [
     {
-      id: `${serviceId}-song-1`,
+      id: segmentId,
       service_id: serviceId,
       type: 'song',
       start_s: 0,
@@ -116,26 +130,35 @@ export function ingestManifest(store: LocalStore, work: string, manifest: Manife
     id: perfId,
     local_song_id: localSongId,
     service_id: serviceId,
-    youtube_id: manifest.youtube_id,
+    segment_id: segmentId,
+    source_uri: manifest.source_url,
     start_s: 0,
     end_s: manifest.duration_s,
-    key: manifest.key,
+    detected_key: manifest.key,
     bpm: manifest.bpm,
-    chordpro: manifest.chordpro,
     lrc: manifest.lrc,
     verified: false,
     created_at: nowIso,
   });
-  const partMap = mapSectionsToParts(
-    manifest.sections.map((sec) => sec.label),
-    manifest.chordpro,
-  );
-  store.replaceSections(
-    perfId,
-    manifest.sections.map((sec, i) => ({ ...sec, work_part_index: partMap[i] ?? null })),
-  );
+  const labelCounts = new Map<string, number>();
+  const sectionRows: SectionRow[] = manifest.sections.map((sec, i) => {
+    const ordinal = (labelCounts.get(sec.label) ?? 0) + 1;
+    labelCounts.set(sec.label, ordinal);
+    return {
+      id: `sec-${perfId}-${i + 1}`,
+      label: sec.label,
+      ordinal,
+      start_s: sec.start_s,
+      end_s: sec.end_s,
+      start_bar: sec.start_bar,
+      end_bar: sec.end_bar,
+      variation_of: null,
+    };
+  });
+  store.replaceSections(perfId, sectionRows);
+  store.replaceSectionPartMap(perfId, autoSectionPartMap(sectionRows, degreeChart));
   store.setBeatgrid(perfId, manifest.bpm, manifest.beats, manifest.downbeat_indices);
-  store.setChords(
+  store.setChordEvents(
     perfId,
     manifest.chord_events.map((e) => ({ start_s: e.start_s, chord: e.chord })),
     false,

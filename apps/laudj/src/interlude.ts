@@ -30,7 +30,7 @@ async function fromPerformanceChords(songId: string): Promise<string[]> {
   const perfId = await performanceIdFor(songId);
   if (!perfId) return [];
   const detail = await fetchPerformance(perfId);
-  const events: ChordEvent[] = detail?.chords ?? [];
+  const events: ChordEvent[] = detail?.chord_events ?? [];
 
   const weights = new Map<string, number>();
   const firstSeen = new Map<string, number>();

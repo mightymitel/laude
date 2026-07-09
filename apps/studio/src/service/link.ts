@@ -13,7 +13,7 @@
 import '../env';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp, type Firestore } from 'firebase-admin/firestore';
-import { convertChordPro, renderChordPro } from '@laude/chords';
+import { renderChordPro } from '@laude/chords';
 import { COLLECTIONS } from '@laude/song-model';
 import { PROJECT_ID } from '../env';
 import type { Arrangement, PartType, SongPart } from '../laudasist-types';
@@ -77,11 +77,7 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
   const song = store.getLocalSong(localSongId);
   if (!song) return { ok: false, error: `unknown local song ${localSongId}` };
   if (song.global_song_id) return { ok: true, song_id: song.global_song_id, already: true };
-
-  const perf = song.preferred_performance_id
-    ? store.getPerformance(song.preferred_performance_id)
-    : null;
-  if (!perf) return { ok: false, error: 'song has no performance to publish from' };
+  if (!song.chordpro.trim()) return { ok: false, error: 'song has no chart to publish' };
 
   const firestore = db();
 
@@ -100,22 +96,24 @@ export async function linkOrMint(store: LocalStore, localSongId: string): Promis
   }
 
   // Mint a PRIVATE global song owned by the demo user. Only the WORK crosses
-  // (DEC-44/45): lyrics + chords as Nashville degrees with the detected key as
-  // reference. LRC/grid/sections/stems stay local to LaudStudio.
+  // (DEC-44/45): the song-level DEGREE chart, copied verbatim (DEC-59 —
+  // degrees were computed at extraction; mint has no conversion step).
+  // analysis_key seeds default_key once; independent thereafter (DEC-60).
+  // LRC/grid/sections/stems stay local to LaudStudio.
   const now = new Date();
-  const degreeChart = convertChordPro(perf.chordpro, { toNotation: 'nashville', key: perf.key });
-  const { parts, defaultArrangement, arrangements } = buildLaudasistParts(degreeChart, perf.key);
+  const degreeChart = song.chordpro;
+  const { parts, defaultArrangement, arrangements } = buildLaudasistParts(degreeChart, song.analysis_key);
   await firestore.collection(COLLECTIONS.songs).doc(localSongId).set({
     id: localSongId,
     canonical_title: song.title,
-    default_key: song.original_key,
+    default_key: song.analysis_key,
     language: song.language,
     tags: ['laudstudio'],
     verified: false,
     created_at: now.toISOString(),
     title: song.title,
     author: 'Extras automat (UNVERIFIED)',
-    defaultKey: song.original_key,
+    defaultKey: song.analysis_key,
     defaultArrangement,
     arrangements,
     parts,

@@ -1,11 +1,16 @@
 /**
- * Heuristic ONE-WAY mapping: timed DJ sections → work parts (DEC-43).
- * Computed at ingest from section labels vs the chart's section order;
- * the Studio editor refines it later (alignment is what unlocks driving,
- * not what makes linking work). Unmapped sections stay null — the DJ then
- * drives audio through them without announcing a part.
+ * Heuristic ONE-WAY mapping: timed DJ sections → work parts (DEC-43/56).
+ * Computed at ingest from section labels vs the chart's part list; the
+ * Studio editor refines it later (alignment unlocks driving, not linking).
+ *
+ * Emits WORK-PART REFS (label + ordinal, DEC-56) — never indices: the global
+ * chart is a ChordPro blob with no stable part IDs. Sections that are
+ * clearly lyric-less (intro/outro/instrumental) map to 'instrumental'
+ * (a deliberate no-part, DEC-62); unrecognized labels map to null
+ * (unaligned — no mapping row is written).
  */
 import { renderChordPro } from '@laude/chords';
+import type { WorkPartRef } from '@laude/song-model';
 
 type PartKind = 'verse' | 'chorus' | 'bridge';
 
@@ -20,32 +25,45 @@ export function classifyLabel(label: string): { kind: PartKind; n: number } | nu
   return null;
 }
 
+/** Intro / Outro / Instrumental / Interlude — deliberately no work part. */
+export function isInstrumentalLabel(label: string): boolean {
+  return /(intro|outro|instrumental|interlud)/i.test(label.trim());
+}
+
+export type SectionPartTarget = WorkPartRef | 'instrumental' | null;
+
 /**
- * Map each timed-section label onto an index into the WORK's part order
- * (the chart's section order — the same order Laudasist's arrangement uses).
- * Repeated choruses in time all map to the single chorus part.
+ * Map each timed-section label onto a work-part ref from the chart. Repeated
+ * choruses in time all map to the single chorus part.
  */
-export function mapSectionsToParts(labels: string[], chordpro: string): (number | null)[] {
-  let partsByKindOcc: Map<string, number>;
+export function mapSectionsToPartRefs(labels: string[], chordpro: string): SectionPartTarget[] {
+  let partsByKindOcc: Map<string, WorkPartRef>;
   try {
     const rendered = renderChordPro(chordpro);
-    const counters = new Map<PartKind, number>();
+    const kindCounters = new Map<PartKind, number>();
+    const labelCounters = new Map<string, number>();
     partsByKindOcc = new Map();
-    rendered.sections.forEach((section, index) => {
-      const kind: PartKind = section.type === 'chorus' ? 'chorus' : section.type === 'bridge' ? 'bridge' : 'verse';
-      const occurrence = (counters.get(kind) ?? 0) + 1;
-      counters.set(kind, occurrence);
-      partsByKindOcc.set(`${kind}:${occurrence}`, index);
-    });
+    for (const section of rendered.sections) {
+      const kind: PartKind =
+        section.type === 'chorus' ? 'chorus' : section.type === 'bridge' ? 'bridge' : 'verse';
+      const occurrence = (kindCounters.get(kind) ?? 0) + 1;
+      kindCounters.set(kind, occurrence);
+      const ordinal = (labelCounters.get(section.label) ?? 0) + 1;
+      labelCounters.set(section.label, ordinal);
+      partsByKindOcc.set(`${kind}:${occurrence}`, { label: section.label, ordinal });
+    }
   } catch {
-    return labels.map(() => null);
+    partsByKindOcc = new Map();
   }
 
   return labels.map((label) => {
+    if (isInstrumentalLabel(label)) return 'instrumental';
     const classified = classifyLabel(label);
     if (!classified) return null;
     return (
       partsByKindOcc.get(`${classified.kind}:${classified.n}`) ??
+      // Repeated sections beyond the chart's count reuse occurrence 1
+      // (choruses repeat in time but exist once in the work).
       partsByKindOcc.get(`${classified.kind}:1`) ??
       null
     );
