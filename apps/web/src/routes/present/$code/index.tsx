@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState, useCallback } from 'react'
 import { useSessionConnection } from '@/hooks/useSessionConnection'
-import { useCommunitySongs } from '@/hooks/useCommunitySongs'
+import { useLyricsSearch } from '@/hooks/useLyricsSearch'
 import { loadPresenter } from '@/lib/presenter'
+import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Song } from '@laudasist/shared'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
@@ -50,9 +51,10 @@ function PresenterPage() {
   const presenter = useMemo(() => loadPresenter(), [])
   const { state: session, client, connected, error } = useSessionConnection(code, presenter)
 
-  // Local state for UI (search)
+  // Local state for UI (search) — server-side lyrics search, debounced in
+  // the hook (WP-105): lyrics are the reliable key for worship songs.
   const [searchQuery, setSearchQuery] = useState('')
-  const { data: searchResults } = useCommunitySongs({ search: searchQuery || undefined })
+  const { results: searchResults } = useLyricsSearch(searchQuery)
 
   // --- ACTIONS ---
 
@@ -94,6 +96,14 @@ function PresenterPage() {
       current: { song_id: song.id, section_index: 0, key: song.defaultKey },
       currentSong: embed(song),
     })
+  }
+
+  // A search hit carries metadata only; selection fetches the full song
+  // (presenters search public/official — the endpoint already filtered).
+  const selectSearchHit = (songId: string) => {
+    api.get<Song>(`/api/community/songs/${songId}`, { skipAuth: true })
+      .then((song) => selectCommunitySong(song))
+      .catch((err: unknown) => console.warn('song fetch failed', err))
   }
 
   // --- RENDERING ---
@@ -139,16 +149,16 @@ function PresenterPage() {
               placeholder="Search community songs..."
               className={styles.searchInput}
             />
-            {searchQuery && searchResults && searchResults.length > 0 && (
+            {searchQuery && searchResults.length > 0 && (
               <div className={styles.searchResults}>
-                {searchResults.map((song) => (
+                {searchResults.map((hit) => (
                   <button
-                    key={song.id}
+                    key={hit.song_id}
                     className={styles.searchResultItem}
-                    onClick={() => selectCommunitySong(song)}
+                    onClick={() => selectSearchHit(hit.song_id)}
                   >
-                    <span>{song.title}</span>
-                    <span className={styles.songKey}>{song.defaultKey}</span>
+                    <span>{hit.title}</span>
+                    <span className={styles.songKey}>{hit.snippet}</span>
                   </button>
                 ))}
               </div>

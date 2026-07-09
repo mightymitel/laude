@@ -68,6 +68,12 @@ app.use('/api/community', communityRouter);
 import playlistsRouter from './routes/playlists.js';
 app.use('/api/playlists', authMiddleware, playlistsRouter);
 
+// Lyrics search (WP-105): optional auth — anonymous sees public+official,
+// authed additionally sees own private songs. Always-warm process by design.
+import searchRouter from './routes/search.js';
+import { optionalAuthMiddleware } from './middleware/auth.js';
+app.use('/api/search', optionalAuthMiddleware, searchRouter);
+
 // Start server
 const PORT = process.env.PORT || 3001;
 

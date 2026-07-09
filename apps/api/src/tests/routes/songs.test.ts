@@ -19,6 +19,9 @@ jest.mock('../../middleware/auth.js', () => ({
         req.userId = 'test-user-id';
         next();
     },
+    optionalAuthMiddleware: (_req: Request, _res: Response, next: NextFunction) => {
+        next();
+    },
 }));
 
 // Mock Firebase Admin
