@@ -5,6 +5,7 @@
  */
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import '@laude/design-system/styles.css';
 import { Button, Card, Chip, EmptyState } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
 import type { MessageKey } from '@laude/i18n';
@@ -41,7 +42,7 @@ const STATUS_KEYS: Record<JobStatus, MessageKey> = {
   error: 'extract.status.error',
 };
 
-export const Route = createFileRoute('/platform/extract')({
+export const Route = createFileRoute('/extract')({
   component: ExtractPage,
 });
 
@@ -182,7 +183,7 @@ function ExtractPage() {
               <span className="ld-spacer" />
               {job.status === 'done' && job.song_id !== null && (
                 links[job.id]?.status === 'done' && links[job.id]?.song_id !== undefined ? (
-                  <Link to="/platform/songs/$songId" params={{ songId: links[job.id].song_id ?? '' }}>
+                  <Link to="/library/$id" params={{ id: links[job.id].song_id ?? '' }}>
                     <Button variant="primary">{t('extract.openSong')}</Button>
                   </Link>
                 ) : (

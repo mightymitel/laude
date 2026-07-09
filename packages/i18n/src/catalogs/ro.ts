@@ -1,107 +1,32 @@
 /** Romanian catalog — the default locale. Keep keys in sync with en.ts. */
 export const ro = {
   // Generic
-  'app.laudasist': 'Laudasist',
-  'app.laudj': 'LauDJ',
-  'app.platform': 'Platforma de laudă',
-  'common.search': 'Caută',
   'common.loading': 'Se încarcă…',
   'common.empty': 'Nimic aici încă',
-  'common.save': 'Salvează',
-  'common.cancel': 'Renunță',
   'common.close': 'Închide',
-  'common.back': 'Înapoi',
-  'common.language': 'Limbă',
-  'common.settings': 'Setări',
-  'common.on': 'Pornit',
-  'common.off': 'Oprit',
-  'common.verified': 'Verificat',
-  'common.unverified': 'NEVERIFICAT',
   'common.key': 'Tonalitate',
   'common.tempo': 'Tempo',
-  'common.all': 'Toate',
 
   // Platform hub
-  'hub.title': 'Platforma de laudă — wireframe',
-  'hub.library': 'Bibliotecă de cântări',
-  'hub.library.desc': 'Caută, filtrează, deschide cântări',
-  'hub.session': 'Sesiune live',
-  'hub.session.desc': 'Sesiune multi-prezentator + directive companion',
-  'hub.stage': 'Scenă / Prezentare',
-  'hub.stage.desc': 'Versuri + acorduri pentru scenă',
-  'hub.karaoke': 'Karaoke',
-  'hub.karaoke.desc': 'Versuri sincronizate (LRC)',
-  'hub.laudj': 'Panou LauDJ',
-  'hub.laudj.desc': 'Mixer, transport, paduri (aplicație separată)',
 
   // Library
-  'library.title': 'Bibliotecă',
-  'library.searchPlaceholder': 'Caută titlu, versuri, etichete…',
-  'library.filter.all': 'Toate',
-  'library.filter.ro': 'Română',
-  'library.filter.en': 'Engleză',
-  'library.filter.verifiedOnly': 'Doar verificate',
-  'library.songs': 'cântări',
-  'library.translation': 'Traducere',
-  'library.noResults': 'Nicio cântare găsită',
 
   // Song detail
-  'song.openKaraoke': 'Deschide karaoke',
-  'song.openStage': 'Vezi pe scenă',
-  'song.notation': 'Notație',
-  'song.transpose': 'Transpune',
-  'song.original': 'Original',
-  'song.sections': 'Secțiuni',
-  'song.lyricsChords': 'Versuri + acorduri',
-  'song.translationLink': 'Vezi traducerea',
-  'song.bpm': 'BPM',
-  'song.noLrc': 'Fără sincronizare karaoke (LRC) încă',
 
   // Karaoke
-  'karaoke.title': 'Karaoke',
-  'karaoke.play': 'Pornește',
-  'karaoke.pause': 'Pauză',
-  'karaoke.restart': 'De la capăt',
-  'karaoke.mockAudio': 'Audio simulat — cronometru local',
 
   // Session
-  'session.title': 'Sesiune live',
   'session.presenters': 'Prezentatori',
-  'session.currentSong': 'Cântarea curentă',
   'session.section': 'Secțiune',
-  'session.prevPart': 'Partea anterioară',
-  'session.nextPart': 'Partea următoare',
-  'session.blank': 'Ecran gol',
-  'session.join': 'Intră în sesiune',
-  'session.leave': 'Ieși',
   'session.noSong': 'Nicio cântare selectată',
   'session.pickSong': 'Alege o cântare',
-  'session.lastUpdatedBy': 'Ultima modificare de',
-  'session.companion': 'Directive companion (LauDJ)',
-  'session.pads_on': 'Paduri',
-  'session.pad.style': 'Stil pad',
-  'session.pad.volume': 'Volum pad',
-  'session.pad.interlude': 'Interludiu',
-  'session.tempo': 'Tempo live',
 
   // Stage / presenter
-  'stage.waiting': 'Se așteaptă sesiunea…',
-  'stage.blank': '(ecran gol)',
-  'stage.title': 'Vedere scenă',
-  'stage.enterCode': 'Introdu codul de vizualizare afișat pe pagina sesiunii',
-  'stage.join': 'Intră',
-  'session.viewerCode': 'Cod vizualizare',
-  'session.presenterCode': 'Cod prezentator',
-  'session.openStage': 'Deschide vederea de scenă',
-  'session.djManifest': 'Piese DJ (manifest)',
-  'session.djLinked': 'DJ · legat',
-  'session.djLocal': 'DJ · doar local',
 
   // Curation
 
   // LauDJ panel
   'laudj.title': 'LauDJ — consolă',
-  'laudj.connection': 'Conexiune',
   'laudj.connected': 'Conectat (motor audio local)',
   'laudj.disconnected': 'Deconectat',
   'laudj.pairHint': 'Scanează QR pe tabletă pentru a controla',
@@ -122,7 +47,6 @@ export const ro = {
   'laudj.play': 'Redă',
   'laudj.pause': 'Pauză',
   'laudj.sections': 'Lansator de secțiuni',
-  'laudj.queued': 'În așteptare',
   'laudj.transition': 'Tranziție',
   'laudj.transition.immediate': 'Imediat',
   'laudj.transition.quantized': 'Cuantizat',
@@ -136,7 +60,6 @@ export const ro = {
   'laudj.session.codePlaceholder': 'Cod',
   'laudj.session.join': 'Intră în sesiune',
   'laudj.session.leave': 'Ieși',
-  'laudj.keyTempo': 'Tonalitate & tempo',
 
   // --- laudj extra keys ---
   'laudj.pair': 'Asociază',
@@ -152,22 +75,6 @@ export const ro = {
   'laudj.padstyle.deep': 'Profund',
 
   // --- platform views extra keys ---
-  'hub.laudj.external': 'Panoul LauDJ rulează separat la {url}',
-  'platform.error': 'Eroare la încărcarea datelor',
-  'song.notFound': 'Cântarea nu a fost găsită',
-  'notation.custom': '+ Personalizată',
-  'notation.customTitle': 'Notație personalizată',
-  'notation.name': 'Nume notație',
-  'notation.sharpNames': 'Cele 12 nume de note (varianta cu diez)',
-  'notation.register': 'Adaugă notația',
-  'notation.invalid': 'Notație invalidă',
-  'pad.style.warm': 'Cald',
-  'pad.style.bright': 'Luminos',
-  'pad.style.shimmer': 'Sclipitor',
-  'pad.style.deep': 'Profund',
-  'presenter.kind.human': 'Uman',
-  'presenter.kind.dj': 'LauDJ',
-  'presenter.kind.mic': 'Microfon',
 
   // --- laudj queue keys ---
   'laudj.queue': 'Coadă de părți',
@@ -177,7 +84,6 @@ export const ro = {
   'laudj.queue.add': 'Adaugă în coadă',
   'laudj.queue.playNow': 'Redă acum',
   'laudj.queue.remove': 'Șterge din coadă',
-  'laudj.queue.repeats': 'Repetări',
   'laudj.queue.crescendo': 'Crescendo',
   'laudj.queue.drop': 'Drop',
   'laudj.queue.solo.none': 'Solo: fără',
@@ -208,8 +114,6 @@ export const ro = {
   'extract.link': 'Leagă în bibliotecă',
   'extract.linking': 'Se leagă…',
   'extract.serviceDown': 'Serviciul de extragere nu rulează (npm run poc îl pornește)',
-  'hub.extract': 'Extrage cântare',
-  'hub.extract.desc': 'YouTube → versuri, acorduri, stem-uri',
 } as const;
 
 export type MessageKey = keyof typeof ro;

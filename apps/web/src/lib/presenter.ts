@@ -5,7 +5,7 @@
  */
 import type { Presenter } from '@laude/song-model';
 
-const STORAGE_KEY = 'platform.presenter';
+const STORAGE_KEY = 'laudasist.presenter';
 
 export function loadPresenter(): Presenter {
   const raw = sessionStorage.getItem(STORAGE_KEY);
