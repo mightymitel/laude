@@ -31,8 +31,6 @@ export const en: Record<MessageKey, string> = {
   'hub.stage.desc': 'Stage-readable lyrics + chords',
   'hub.karaoke': 'Karaoke',
   'hub.karaoke.desc': 'Synced lyrics (LRC)',
-  'hub.curation': 'LaudStudio curation',
-  'hub.curation.desc': 'Pick the best-sounding take',
   'hub.laudj': 'LauDJ panel',
   'hub.laudj.desc': 'Mixer, transport, pads (separate app)',
 
@@ -45,9 +43,6 @@ export const en: Record<MessageKey, string> = {
   'library.songs': 'songs',
   'library.translation': 'Translation',
   'library.noResults': 'No songs found',
-
-  'song.performances': 'Performances',
-  'song.performance.promoted': 'Promoted',
   'song.openKaraoke': 'Open karaoke',
   'song.openStage': 'View on stage',
   'song.notation': 'Notation',
@@ -57,7 +52,6 @@ export const en: Record<MessageKey, string> = {
   'song.lyricsChords': 'Lyrics + chords',
   'song.translationLink': 'See translation',
   'song.bpm': 'BPM',
-  'song.stems': 'Stems',
   'song.noLrc': 'No karaoke sync (LRC) yet',
 
   'karaoke.title': 'Karaoke',
@@ -87,11 +81,6 @@ export const en: Record<MessageKey, string> = {
 
   'stage.waiting': 'Waiting for the session…',
   'stage.blank': '(blank)',
-
-  'curation.title': 'Curation — pick the take',
-  'curation.promote': 'Promote',
-  'curation.promoted': 'Preferred performance',
-  'curation.service': 'Service',
 
   'laudj.title': 'LauDJ — console',
   'laudj.connection': 'Connection',
@@ -155,11 +144,9 @@ export const en: Record<MessageKey, string> = {
   'pad.style.bright': 'Bright',
   'pad.style.shimmer': 'Shimmer',
   'pad.style.deep': 'Deep',
-  'curation.noPerformances': 'No performances to curate yet',
   'presenter.kind.human': 'Human',
   'presenter.kind.laudj': 'LauDJ',
   'presenter.kind.mic': 'Mic',
-  'curation.writeError': 'Promote failed',
 
   // --- laudj queue keys ---
   'laudj.queue': 'Part queue',

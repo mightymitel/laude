@@ -1,6 +1,11 @@
 /**
- * @laude/song-model — the Firestore data contract shared by LaudStudio, Laudasist and LauDJ.
- * Mirrors "Firebase Data Model & Contract" (Notion). Song ID = the join key.
+ * @laude/song-model — the data contract shared by LaudStudio, Laudasist and LauDJ,
+ * across BOTH domains of the two-domain split (song ID = the join key):
+ *  - GLOBAL (Firebase/Laudasist): songs, lyrics, links, setlists — see COLLECTIONS.
+ *  - PERSONAL (LaudStudio local store): services, segments, performances and all
+ *    time-annotations — the types live here, the data never touches Firestore
+ *    (wire format in ./local).
+ * Mirrors "Firebase Data Model & Contract" + "Cross-App Integration" (Notion).
  *
  * Rules encoded here:
  *  - auto-extracted content is written `verified: false` (UNVERIFIED); apps default to verified-only.
@@ -28,8 +33,6 @@ export interface Song {
   language: Lang;
   ccli_number?: string;
   tags: string[];
-  /** Best-iteration performance promoted at the curation gate, per this song's language. */
-  preferred_performance_id?: PerformanceId;
   /** False while auto-extracted and not yet human-confirmed. */
   verified: boolean;
   created_at: string; // ISO
@@ -42,6 +45,8 @@ export interface SongLyrics {
   chordpro: string;
   /** Karaoke timing (LRC-style, line-level with optional word-level). May be absent pre-Tier-2. */
   lrc?: LrcLine[];
+  /** Denormalized from the song so security rules stay statically queryable. */
+  visibility: 'public' | 'private';
   verified: boolean;
 }
 
@@ -60,6 +65,7 @@ export interface SongLink {
 
 // ---------------------------------------------------------------------------
 // Services (source videos) & segments (Tier-1 output)
+// PERSONAL DOMAIN: stored in LaudStudio's local store, never in Firestore.
 // ---------------------------------------------------------------------------
 
 export interface Service {
@@ -83,6 +89,7 @@ export interface Segment {
 
 // ---------------------------------------------------------------------------
 // Performances & time-annotations (Tier-2 output; keyed by performance)
+// PERSONAL DOMAIN: stored in LaudStudio's local store, never in Firestore.
 // ---------------------------------------------------------------------------
 
 export interface Performance {
@@ -206,19 +213,13 @@ export interface LiveSession {
 // Firestore collection names (one place, no scattered strings)
 // ---------------------------------------------------------------------------
 
+// GLOBAL collections only — personal-domain data (performances, sections,
+// beatgrid, chords, recorded services, segments) lives in the LaudStudio
+// local store and has no Firestore collection.
 export const COLLECTIONS = {
   songs: 'songs',
   song_lyrics: 'song_lyrics',
   song_links: 'song_links',
-  // NOTE: the Notion contract sketch says `services`, but that name is taken
-  // by Laudasist's own service-planning collection — renamed here to avoid the
-  // clash. Open question logged for the Notion spec.
-  services: 'recorded_services',
-  segments: 'segments',
-  performances: 'performances',
-  sections: 'sections',
-  beatgrid: 'beatgrid',
-  chords: 'chords',
   setlists: 'setlists',
   setlist_items: 'setlist_items',
   sessions: 'sessions',
@@ -227,26 +228,13 @@ export const COLLECTIONS = {
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
 
 // ---------------------------------------------------------------------------
-// Cloud Storage layout — path builders (the layout is part of the contract)
+// Cloud Storage layout — GLOBAL blobs only. Personal audio (stems, key
+// variants, mixdowns) lives on LaudStudio's disk (see ./local + the
+// LaudStudio local-schema spec); only shared pads stay in Cloud Storage.
 // ---------------------------------------------------------------------------
 
 export const storagePaths = {
-  stem: (songId: SongId, performanceId: PerformanceId, stem: StemName, ext = 'ogg') =>
-    `audio/${songId}/${performanceId}/${stem}.${ext}`,
-  keyVariant: (
-    songId: SongId,
-    performanceId: PerformanceId,
-    stem: StemName,
-    semitones: number,
-    ext = 'ogg',
-  ) => `variants/${songId}/${performanceId}/${stem}/${semitones}.${ext}`,
-  mixdown: (songId: SongId, performanceId: PerformanceId, ext = 'mp3') =>
-    `mixdown/${songId}/${performanceId}.${ext}`,
   pad: (key: string, style: string, ext = 'ogg') => `pads/${key}/${style}.${ext}`,
 };
-
-/** Local cache key mandated by the architecture: (song_id, stem, key_variant). */
-export const cacheKey = (songId: SongId, stem: StemName, keyVariant: number) =>
-  `${songId}:${stem}:${keyVariant}`;
 
 export * from './local';

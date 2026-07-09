@@ -12,9 +12,9 @@ import {
   where,
   type DocumentData,
 } from 'firebase/firestore';
-import { COLLECTIONS, type CollectionName, type SessionCurrent, type Song } from '@laude/song-model';
+import { COLLECTIONS, type CollectionName, type SessionCurrent, type Song, type SongLyrics } from '@laude/song-model';
 import { db } from '@/lib/firebase';
-import { songFromDoc, sessionCurrentFromDoc } from './fire';
+import { lyricsFromDoc, songFromDoc, sessionCurrentFromDoc } from './fire';
 
 export interface CollectionState<T> {
   docs: T[];
@@ -57,6 +57,25 @@ export function usePublicSongs(): CollectionState<Song> {
       },
       (err) => {
         console.error('[platform] public songs subscription failed', err);
+        setState({ docs: [], loading: false, error: err.message });
+      },
+    );
+  }, []);
+  return state;
+}
+
+/** Same rules constraint as songs: lyrics are queried by public visibility. */
+export function usePublicLyrics(): CollectionState<SongLyrics> {
+  const [state, setState] = useState<CollectionState<SongLyrics>>({ docs: [], loading: true, error: null });
+  useEffect(() => {
+    const q = query(collection(db, COLLECTIONS.song_lyrics), where('visibility', '==', 'public'));
+    return onSnapshot(
+      q,
+      (snap) => {
+        setState({ docs: snap.docs.map((d) => lyricsFromDoc(d.id, d.data())), loading: false, error: null });
+      },
+      (err) => {
+        console.error('[platform] public lyrics subscription failed', err);
         setState({ docs: [], loading: false, error: err.message });
       },
     );

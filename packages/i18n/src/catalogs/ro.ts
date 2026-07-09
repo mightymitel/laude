@@ -31,8 +31,6 @@ export const ro = {
   'hub.stage.desc': 'Versuri + acorduri pentru scenă',
   'hub.karaoke': 'Karaoke',
   'hub.karaoke.desc': 'Versuri sincronizate (LRC)',
-  'hub.curation': 'Curare LaudStudio',
-  'hub.curation.desc': 'Alege cea mai bună interpretare',
   'hub.laudj': 'Panou LauDJ',
   'hub.laudj.desc': 'Mixer, transport, paduri (aplicație separată)',
 
@@ -48,8 +46,6 @@ export const ro = {
   'library.noResults': 'Nicio cântare găsită',
 
   // Song detail
-  'song.performances': 'Interpretări',
-  'song.performance.promoted': 'Promovată',
   'song.openKaraoke': 'Deschide karaoke',
   'song.openStage': 'Vezi pe scenă',
   'song.notation': 'Notație',
@@ -59,7 +55,6 @@ export const ro = {
   'song.lyricsChords': 'Versuri + acorduri',
   'song.translationLink': 'Vezi traducerea',
   'song.bpm': 'BPM',
-  'song.stems': 'Stem-uri',
   'song.noLrc': 'Fără sincronizare karaoke (LRC) încă',
 
   // Karaoke
@@ -94,10 +89,6 @@ export const ro = {
   'stage.blank': '(ecran gol)',
 
   // Curation
-  'curation.title': 'Curare — alege interpretarea',
-  'curation.promote': 'Promovează',
-  'curation.promoted': 'Interpretare preferată',
-  'curation.service': 'Serviciu',
 
   // LauDJ panel
   'laudj.title': 'LauDJ — consolă',
@@ -162,11 +153,9 @@ export const ro = {
   'pad.style.bright': 'Luminos',
   'pad.style.shimmer': 'Sclipitor',
   'pad.style.deep': 'Profund',
-  'curation.noPerformances': 'Nicio interpretare de curat încă',
   'presenter.kind.human': 'Uman',
   'presenter.kind.laudj': 'LauDJ',
   'presenter.kind.mic': 'Microfon',
-  'curation.writeError': 'Promovarea a eșuat',
 
   // --- laudj queue keys ---
   'laudj.queue': 'Coadă de părți',

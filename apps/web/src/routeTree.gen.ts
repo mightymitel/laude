@@ -23,7 +23,6 @@ import { Route as PlatformStageRouteImport } from './routes/platform/stage'
 import { Route as PlatformSessionRouteImport } from './routes/platform/session'
 import { Route as PlatformLibraryRouteImport } from './routes/platform/library'
 import { Route as PlatformExtractRouteImport } from './routes/platform/extract'
-import { Route as PlatformCurationRouteImport } from './routes/platform/curation'
 import { Route as LibraryNewRouteImport } from './routes/library/new'
 import { Route as DebugSongEditorRouteImport } from './routes/debug/song-editor'
 import { Route as ViewCodeIndexRouteImport } from './routes/view/$code/index'
@@ -103,11 +102,6 @@ const PlatformExtractRoute = PlatformExtractRouteImport.update({
   path: '/extract',
   getParentRoute: () => PlatformRouteRoute,
 } as any)
-const PlatformCurationRoute = PlatformCurationRouteImport.update({
-  id: '/curation',
-  path: '/curation',
-  getParentRoute: () => PlatformRouteRoute,
-} as any)
 const LibraryNewRoute = LibraryNewRouteImport.update({
   id: '/library/new',
   path: '/library/new',
@@ -159,7 +153,6 @@ export interface FileRoutesByFullPath {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/platform/curation': typeof PlatformCurationRoute
   '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
@@ -183,7 +176,6 @@ export interface FileRoutesByTo {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/platform/curation': typeof PlatformCurationRoute
   '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
@@ -209,7 +201,6 @@ export interface FileRoutesById {
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
   '/library/new': typeof LibraryNewRoute
-  '/platform/curation': typeof PlatformCurationRoute
   '/platform/extract': typeof PlatformExtractRoute
   '/platform/library': typeof PlatformLibraryRoute
   '/platform/session': typeof PlatformSessionRoute
@@ -236,7 +227,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/platform/curation'
     | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
@@ -260,7 +250,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/platform/curation'
     | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
@@ -285,7 +274,6 @@ export interface FileRouteTypes {
     | '/tuner'
     | '/debug/song-editor'
     | '/library/new'
-    | '/platform/curation'
     | '/platform/extract'
     | '/platform/library'
     | '/platform/session'
@@ -418,13 +406,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformExtractRouteImport
       parentRoute: typeof PlatformRouteRoute
     }
-    '/platform/curation': {
-      id: '/platform/curation'
-      path: '/curation'
-      fullPath: '/platform/curation'
-      preLoaderRoute: typeof PlatformCurationRouteImport
-      parentRoute: typeof PlatformRouteRoute
-    }
     '/library/new': {
       id: '/library/new'
       path: '/library/new'
@@ -485,7 +466,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface PlatformRouteRouteChildren {
-  PlatformCurationRoute: typeof PlatformCurationRoute
   PlatformExtractRoute: typeof PlatformExtractRoute
   PlatformLibraryRoute: typeof PlatformLibraryRoute
   PlatformSessionRoute: typeof PlatformSessionRoute
@@ -496,7 +476,6 @@ interface PlatformRouteRouteChildren {
 }
 
 const PlatformRouteRouteChildren: PlatformRouteRouteChildren = {
-  PlatformCurationRoute: PlatformCurationRoute,
   PlatformExtractRoute: PlatformExtractRoute,
   PlatformLibraryRoute: PlatformLibraryRoute,
   PlatformSessionRoute: PlatformSessionRoute,

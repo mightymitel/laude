@@ -1,14 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    // Helper to check if user matches the requested userId
+
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Owner check against the parent song doc (one get() per write).
+    function songOwner(songId) {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/songs/$(songId)).data.ownerId == request.auth.uid;
     }
 
     // Users collection
@@ -30,22 +34,39 @@ service cloud.firestore {
                             && resource.data.ownerId == request.auth.uid;
     }
 
-    // ------------------------------------------------------------------
-    // Worship Platform contract collections — PoC/EMULATOR-ONLY rules.
-    // The wireframe reads/writes these from the browser without auth.
-    // TODO: per-collection rules before anything real ships (see Notion
-    // "Firebase Data Model & Contract" acceptance criteria).
-    // ------------------------------------------------------------------
-    match /song_lyrics/{docId} { allow read, write: if true; }
-    match /song_links/{docId} { allow read, write: if true; }
-    match /recorded_services/{docId} { allow read, write: if true; }
-    match /segments/{docId} { allow read, write: if true; }
-    match /performances/{docId} { allow read, write: if true; }
-    match /sections/{docId} { allow read, write: if true; }
-    match /beatgrid/{docId} { allow read, write: if true; }
-    match /chords/{docId} { allow read, write: if true; }
-    match /setlists/{docId} { allow read, write: if true; }
-    match /setlist_items/{docId} { allow read, write: if true; }
-    match /sessions/{docId} { allow read, write: if true; }
+    // Lyrics carry a denormalized `visibility` (copied from their song) so
+    // public-library queries stay statically provable; writes check the
+    // parent song's owner.
+    match /song_lyrics/{docId} {
+      allow read: if resource.data.visibility == 'public'
+                  || songOwner(resource.data.song_id);
+      allow create: if songOwner(request.resource.data.song_id);
+      allow update, delete: if songOwner(resource.data.song_id);
+    }
+
+    // Song relations (translation/medley/alternate): public metadata.
+    match /song_links/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /setlists/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /setlist_items/{docId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // NO client `sessions` collection: the live session is owned by the
+    // session relay (authoritative in-memory state; socket/REST transport).
+    // Its optional Firestore mirror (`liveSessions`) is written by the relay
+    // through the Admin SDK, which bypasses rules — clients get default deny.
+    //
+    // NO personal-domain collections (performances, sections, beatgrid,
+    // chords, recorded_services, segments): that data lives in LaudStudio's
+    // local store, never in Firestore — default deny by omission.
   }
 }

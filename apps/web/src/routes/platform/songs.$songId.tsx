@@ -1,6 +1,6 @@
 /**
  * Song detail (hero view, calm/light): lyrics + chords rendered from
- * canonical ChordPro with notation + transpose controls, plus performances.
+ * canonical ChordPro with notation + transpose controls.
  */
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
@@ -8,11 +8,10 @@ import { COLLECTIONS } from '@laude/song-model';
 import { renderChordPro, transposeKeyName, type RenderedSong } from '@laude/chords';
 import { Button, Chip, ChordLyricTracker, EmptyState, Stepper } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
-import { usePlatformCollection, useSongDoc } from '@/platform/hooks';
-import { linkFromDoc, lyricsFromDoc, performanceFromDoc, serviceFromDoc } from '@/platform/fire';
+import { usePlatformCollection, usePublicLyrics, useSongDoc } from '@/platform/hooks';
+import { linkFromDoc, lyricsFromDoc } from '@/platform/fire';
 import { translationMap } from '@/platform/utils';
 import { NotationControls } from '@/platform/components/NotationControls';
-import { PerformanceCard } from '@/platform/components/PerformanceCard';
 
 export const Route = createFileRoute('/platform/songs/$songId')({
   component: SongDetailPage,
@@ -24,9 +23,7 @@ function SongDetailPage() {
   const navigate = useNavigate();
 
   const song = useSongDoc(songId);
-  const lyrics = usePlatformCollection(COLLECTIONS.song_lyrics, lyricsFromDoc);
-  const performances = usePlatformCollection(COLLECTIONS.performances, performanceFromDoc);
-  const services = usePlatformCollection(COLLECTIONS.services, serviceFromDoc);
+  const lyrics = usePublicLyrics();
   const links = usePlatformCollection(COLLECTIONS.song_links, linkFromDoc);
 
   const [notation, setNotation] = useState('english');
@@ -60,7 +57,6 @@ function SongDetailPage() {
   const s = song.value;
   const currentKey = transposeKeyName(s.original_key, transpose);
   const translationId = translationMap(links.docs).get(s.id);
-  const songPerformances = performances.docs.filter((p) => p.song_id === s.id);
 
   return (
     <main className="ld-page ld-vstack">
@@ -114,21 +110,6 @@ function SongDetailPage() {
         />
       )}
 
-      <span className="ld-label">{t('song.performances')}</span>
-      {songPerformances.length === 0 ? (
-        <EmptyState>{performances.loading ? t('common.loading') : t('common.empty')}</EmptyState>
-      ) : (
-        <div className="ld-vstack">
-          {songPerformances.map((perf) => (
-            <PerformanceCard
-              key={perf.id}
-              perf={perf}
-              service={services.docs.find((sv) => sv.id === perf.service_id)}
-              promoted={s.preferred_performance_id === perf.id}
-            />
-          ))}
-        </div>
-      )}
     </main>
   );
 }

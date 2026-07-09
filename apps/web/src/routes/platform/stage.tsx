@@ -9,7 +9,7 @@ import { renderChordPro, transposeAmount } from '@laude/chords';
 import { Chip, ChordLyricTracker, EmptyState } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
 import { DEFAULT_SESSION_ID } from '@laude/session';
-import { usePlatformCollection, useSessionCurrent, useSongDoc } from '@/platform/hooks';
+import { usePublicLyrics, useSessionCurrent, useSongDoc } from '@/platform/hooks';
 import { lyricsFromDoc } from '@/platform/fire';
 import { clamp } from '@/platform/utils';
 
@@ -22,7 +22,7 @@ function StagePage() {
   const sessionState = useSessionCurrent(DEFAULT_SESSION_ID);
   const current = sessionState.current;
   const song = useSongDoc(current?.song_id ?? null);
-  const lyricsCol = usePlatformCollection(COLLECTIONS.song_lyrics, lyricsFromDoc);
+  const lyricsCol = usePublicLyrics();
 
   const rendered = useMemo(() => {
     const s = song.value;

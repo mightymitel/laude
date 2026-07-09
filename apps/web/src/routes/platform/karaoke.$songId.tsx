@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { COLLECTIONS } from '@laude/song-model';
 import { Button, Chip, ChordLyricTracker, EmptyState } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
-import { usePlatformCollection, useSongDoc } from '@/platform/hooks';
+import { usePublicLyrics, useSongDoc } from '@/platform/hooks';
 import { lyricsFromDoc } from '@/platform/fire';
 import { formatTime } from '@/platform/utils';
 
@@ -21,7 +21,7 @@ function KaraokePage() {
   const { songId } = Route.useParams();
   const t = useT();
   const song = useSongDoc(songId);
-  const lyrics = usePlatformCollection(COLLECTIONS.song_lyrics, lyricsFromDoc);
+  const lyrics = usePublicLyrics();
 
   const [playing, setPlaying] = useState(false);
   const [position, setPosition] = useState(0);

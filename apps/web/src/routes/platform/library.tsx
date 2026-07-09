@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { COLLECTIONS, type Lang, type Song } from '@laude/song-model';
 import { Card, Chip, EmptyState, Segmented, Toggle } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
-import { usePlatformCollection, usePublicSongs } from '@/platform/hooks';
+import { usePlatformCollection, usePublicLyrics, usePublicSongs } from '@/platform/hooks';
 import { linkFromDoc, lyricsFromDoc } from '@/platform/fire';
 import { stripChordPro, translationMap } from '@/platform/utils';
 
@@ -20,7 +20,7 @@ type LangFilter = 'all' | Lang;
 function LibraryPage() {
   const t = useT();
   const songs = usePublicSongs();
-  const lyrics = usePlatformCollection(COLLECTIONS.song_lyrics, lyricsFromDoc);
+  const lyrics = usePublicLyrics();
   const links = usePlatformCollection(COLLECTIONS.song_links, linkFromDoc);
 
   const [search, setSearch] = useState('');

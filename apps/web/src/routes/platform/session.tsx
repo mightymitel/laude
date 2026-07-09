@@ -10,7 +10,7 @@ import { renderChordPro, transposeKeyName } from '@laude/chords';
 import { Button, Chip, EmptyState, StatusDot, Stepper, Toggle } from '@laude/design-system';
 import { useT } from '@laude/i18n/react';
 import { db } from '@/lib/firebase';
-import { usePlatformCollection, usePublicSongs } from '@/platform/hooks';
+import { usePublicLyrics, usePublicSongs } from '@/platform/hooks';
 import { lyricsFromDoc } from '@/platform/fire';
 import { loadPresenter } from '@/platform/presenter';
 import { clamp } from '@/platform/utils';
@@ -41,7 +41,7 @@ function SessionPage() {
   };
 
   const songs = usePublicSongs();
-  const lyricsCol = usePlatformCollection(COLLECTIONS.song_lyrics, lyricsFromDoc);
+  const lyricsCol = usePublicLyrics();
 
   const current = session?.current;
   const currentSong =
