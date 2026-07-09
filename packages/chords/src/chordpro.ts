@@ -1,11 +1,25 @@
 /**
- * ChordPro rendering on top of ChordSheetJS. Storage format is canonical
- * ChordPro with English chord symbols; rendering transposes + re-spells per
- * the chosen notation. Returns plain data the apps render themselves.
+ * ChordPro rendering on top of ChordSheetJS. GLOBAL storage format (DEC-45):
+ * ChordPro is the container, the bracket content is Nashville DEGREES plus a
+ * `{key: X}` reference key used only to render a default — letters are a
+ * rendering, produced per-device through the notation registry. Letter
+ * chordpro (legacy/local sources) still parses; `convertChordPro` moves
+ * between the two.
  */
-import { ChordProParser } from 'chordsheetjs';
+// Default-import interop: chordsheetjs v12 is CJS-only (no ESM exports map);
+// a named import fails under plain node ESM (tsx tests) though bundlers cope.
+import ChordSheetJS from 'chordsheetjs';
+
+const { ChordProParser } = ChordSheetJS;
 import { transposeChord, semitonesBetweenKeys } from './canonical';
-import { NotationContext, getNotation, parseCanonical } from './notations';
+import {
+  NotationContext,
+  getNotation,
+  isDegreeToken,
+  nashvilleNotation,
+  parseCanonical,
+} from './notations';
+import type { CanonicalChord } from './canonical';
 
 export interface RenderedChordLyricPair {
   /** Formatted chord in the requested notation ('' when none). */
@@ -60,8 +74,12 @@ export function renderChordPro(chordpro: string, options: RenderOptions = {}): R
         // ChordLyricsPair duck-typing: has .chords + .lyrics strings.
         const maybe = item as { chords?: unknown; lyrics?: unknown };
         if (typeof maybe.chords === 'string' && typeof maybe.lyrics === 'string') {
+          const canonical = parseChordInKey(maybe.chords, sourceKey);
           items.push({
-            chord: renderChordSymbol(maybe.chords, transpose, notation.id, ctx),
+            chord:
+              canonical === null
+                ? maybe.chords.trim()
+                : notation.format(transposeChord(canonical, transpose), ctx),
             lyrics: maybe.lyrics,
           });
         }
@@ -82,6 +100,45 @@ export function renderChordPro(chordpro: string, options: RenderOptions = {}): R
     key: targetKey,
     sections,
   };
+}
+
+/**
+ * Parse one chord token from stored chordpro: Nashville degrees resolve
+ * against the reference key; anything else parses as canonical English.
+ * The single boundary between storage (degrees) and pitch classes.
+ */
+export function parseChordInKey(symbol: string, key: string): CanonicalChord | null {
+  const trimmed = symbol.trim();
+  if (!trimmed) return null;
+  if (isDegreeToken(trimmed)) return nashvilleNotation.parse(trimmed, { key });
+  return parseCanonical(trimmed);
+}
+
+export interface ConvertOptions {
+  /** Target notation for the bracket content ('nashville' for storage). */
+  toNotation: string;
+  /** Reference key: source key when converting letters→degrees, and the
+   * rendered key when converting degrees→letters. */
+  key: string;
+}
+
+/**
+ * Rewrite a chordpro string's bracket content into another notation, leaving
+ * lyrics + directives untouched. Converting TO degrees ensures a `{key:}`
+ * directive (the reference key) is present. Unparseable tokens pass through.
+ */
+export function convertChordPro(chordpro: string, options: ConvertOptions): string {
+  const notation = getNotation(options.toNotation) ?? getNotation('english')!;
+  const ctx: NotationContext = { key: options.key };
+  let out = chordpro.replace(/\[([^\]]+)\]/g, (whole, token: string) => {
+    const canonical = parseChordInKey(token, options.key);
+    if (canonical === null) return whole;
+    return `[${notation.format(canonical, ctx)}]`;
+  });
+  if (options.toNotation === 'nashville' && !/\{key\s*:/i.test(out)) {
+    out = `{key: ${options.key}}\n${out}`;
+  }
+  return out;
 }
 
 /** Transpose + re-spell one canonical English chord symbol. Unparseable symbols pass through. */

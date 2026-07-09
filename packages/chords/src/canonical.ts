@@ -66,3 +66,18 @@ export function keyRootPc(key: string): PitchClass | null {
 export function keyIsMinor(key: string): boolean {
   return /m(?!aj)/.test(key.trim().slice(1));
 }
+
+/** Major keys spelled with flats (F Bb Eb Ab Db Gb) by pitch class. */
+const FLAT_MAJOR_ROOTS = new Set<number>([5, 10, 3, 8, 1, 6]);
+/** Minor keys spelled with flats (Dm Gm Cm Fm Bbm Ebm) by pitch class. */
+const FLAT_MINOR_ROOTS = new Set<number>([2, 7, 0, 5, 10, 3]);
+
+/** Whether chords in this key conventionally spell accidentals as flats. */
+export function keyPrefersFlats(key: string): boolean {
+  const trimmed = key.trim();
+  if (/^[A-G]b/.test(trimmed)) return true;
+  if (/^[A-G]#/.test(trimmed)) return false;
+  const pc = keyRootPc(trimmed);
+  if (pc === null) return false;
+  return keyIsMinor(trimmed) ? FLAT_MINOR_ROOTS.has(pc) : FLAT_MAJOR_ROOTS.has(pc);
+}

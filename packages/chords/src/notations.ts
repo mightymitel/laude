@@ -10,6 +10,7 @@ import {
   PitchClass,
   SHARP_NAMES,
   keyIsMinor,
+  keyPrefersFlats,
   keyRootPc,
 } from './canonical';
 
@@ -140,8 +141,36 @@ export const solfegeNotation = createMappedNotation(
   true,
 );
 
-/** Nashville: relative to the current key's major scale. Degrees with quality suffixes. */
+/**
+ * Nashville: relative to the current key's major scale. Degrees with quality
+ * suffixes. This is simultaneously a notation AND the global STORAGE format
+ * (DEC-45): stored charts hold degrees + a reference key; letters are a
+ * rendering. The vocabulary covers modal borrowing (b3, b6, b7 …) and
+ * secondary-dominant bass degrees (5/7); sharp spellings alias the flats.
+ */
 const NASHVILLE_DEGREES = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+/** Accepted alternate spellings → pitch-class offset from the key root. */
+const DEGREE_ALIASES = new Map<string, number>([
+  ...NASHVILLE_DEGREES.map((d, i): [string, number] => [d, i]),
+  ['#1', 1],
+  ['#2', 3],
+  ['#4', 6],
+  ['#5', 8],
+  ['#6', 10],
+]);
+/** Longest-first so "b7" wins over "7". */
+const DEGREE_TOKENS = [...DEGREE_ALIASES.keys()].sort((a, b) => b.length - a.length);
+
+function parseDegree(text: string): { rel: number; rest: string } | null {
+  const hit = DEGREE_TOKENS.find((t) => text.startsWith(t));
+  if (hit === undefined) return null;
+  return { rel: DEGREE_ALIASES.get(hit)!, rest: text.slice(hit.length) };
+}
+
+/** True when a chord token is a Nashville degree ("4m", "b7", "5/7" …). */
+export function isDegreeToken(token: string): boolean {
+  return /^(b|#)?[1-7]/.test(token.trim());
+}
 
 export const nashvilleNotation: Notation = {
   id: 'nashville',
@@ -159,21 +188,21 @@ export const nashvilleNotation: Notation = {
     const keyPc = ctx?.key ? keyRootPc(ctx.key) : null;
     if (keyPc === null || keyPc === undefined) return null;
     const [head, bassRaw] = splitBass(token.trim());
-    const m = head.match(/^(b?#?[1-7])(.*)$/);
-    if (!m) return null;
-    const rel = NASHVILLE_DEGREES.indexOf(m[1]);
-    if (rel === -1) return null;
+    const parsed = parseDegree(head);
+    if (!parsed) return null;
     let bass: PitchClass | undefined;
     if (bassRaw) {
-      const relBass = NASHVILLE_DEGREES.indexOf(bassRaw);
-      if (relBass === -1) return null;
-      bass = ((keyPc + relBass) % 12) as PitchClass;
+      const parsedBass = parseDegree(bassRaw);
+      if (!parsedBass || parsedBass.rest !== '') return null;
+      bass = ((keyPc + parsedBass.rel) % 12) as PitchClass;
     }
     return {
-      root: ((keyPc + rel) % 12) as PitchClass,
-      quality: m[2],
+      root: ((keyPc + parsed.rel) % 12) as PitchClass,
+      quality: parsed.rest,
       bass,
-      accidental: 'sharp',
+      // Spell accidentals the way the reference key does (Bb-key charts say
+      // Eb, not D#) — degrees carry no spelling of their own.
+      accidental: ctx?.key !== undefined && keyPrefersFlats(ctx.key) ? 'flat' : 'sharp',
     };
   },
 };
