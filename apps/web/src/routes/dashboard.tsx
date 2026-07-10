@@ -17,7 +17,7 @@ function DashboardPage() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            navigate({ to: '/login' })
+            navigate({ to: '/login', search: { redirect: undefined } })
         }
     }, [user, authLoading, navigate])
 
@@ -69,7 +69,7 @@ function DashboardPage() {
             </header>
 
             <div className={styles.heroAction}>
-                <Link to="/session" search={{ guest: false, playlistId: undefined }} className={styles.startSessionButton}>
+                <Link to="/session" search={{ guest: false, playlistId: undefined, savedSessionId: undefined }} className={styles.startSessionButton}>
                     <span className={styles.playIcon}>▶</span>
                     <div>
                         <span className={styles.buttonTitle}>Start Playing</span>

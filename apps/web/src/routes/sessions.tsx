@@ -101,7 +101,7 @@ function SessionsPage() {
           <h1 className={styles.title}>My sessions</h1>
         </div>
         <p className={styles.subtitle}>
-          Saved sessions live on your account. <Link to="/login">Sign in</Link> to prepare an
+          Saved sessions live on your account. <Link to="/login" search={{ redirect: undefined }}>Sign in</Link> to prepare an
           evening days ahead — or start a{' '}
           <Link to="/session" search={{ guest: true, playlistId: undefined, savedSessionId: undefined }}>
             quick session

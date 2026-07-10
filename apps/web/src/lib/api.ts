@@ -1,6 +1,11 @@
 import { auth } from './firebase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// The api base URL is CONFIG (DEC-102): env var first, so splitting web from
+// api/relay later is a config change. Unset in a production build means the
+// single-backend bundle (DEC-103) where the api serves this very page.
+const API_URL: string =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV ? 'http://localhost:3001' : window.location.origin);
 
 interface FetchOptions extends RequestInit {
     skipAuth?: boolean;

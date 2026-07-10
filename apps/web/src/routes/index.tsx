@@ -47,7 +47,7 @@ function Home() {
                             >
                                 Get Started with Google
                             </button>
-                            <Link to="/login" className={styles.secondaryButton}>
+                            <Link to="/login" search={{ redirect: undefined }} className={styles.secondaryButton}>
                                 Other Login Options
                             </Link>
                             <div className={styles.guestSection}>

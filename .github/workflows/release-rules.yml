@@ -1,0 +1,52 @@
+# Firestore rules + indexes ride the RELEASE pipeline (DEC-103): they deploy
+# only on a push to `release` — the same trigger App Hosting rolls out on —
+# gated on the rules test suite. Never `firebase deploy --only
+# firestore:rules` by hand: rules are project-global and would govern the
+# archived app and any un-rolled-out code.
+#
+# Required repository secret: FIREBASE_SERVICE_ACCOUNT — the JSON key of a
+# service account with the "Firebase Rules Admin" + "Cloud Datastore Index
+# Admin" roles on laudasist-1c1d2.
+name: release · firestore rules + indexes
+
+on:
+  push:
+    branches: [release]
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'tests/rules/**'
+      - '.github/workflows/release-rules.yml'
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # The Firestore emulator (rules tests) needs a JRE.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - run: npm ci
+
+      # scripts/rules-test.ts spawns the `firebase` binary to boot the emulator.
+      - run: npm install -g firebase-tools
+
+      - name: Rules tests (gate)
+        run: npm run test:rules
+
+      - name: Write service-account credentials
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "$RUNNER_TEMP/sa.json"
+
+      - name: Deploy rules + indexes
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools deploy --only firestore:rules,firestore:indexes --project laudasist-1c1d2 --force

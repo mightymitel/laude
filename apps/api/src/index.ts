@@ -4,6 +4,8 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { createRelay } from '@laude/relay';
 import { Server as SocketServer } from 'socket.io';
 import { initializeFirebase } from './config/firebase.js';
@@ -102,6 +104,20 @@ async function start() {
             new Promise<number>((resolve) => setTimeout(() => resolve(0), 5000)),
         ]);
         if (restored > 0) console.log(`relay: rehydrated ${restored} active session(s) from the mirror`);
+
+        // Single-backend deploy (DEC-103): this process also serves the built
+        // web app when a bundle exists (App Hosting builds it right before
+        // starting us). Dev keeps using Vite on :5173 — no dist, no serving.
+        const webDist = process.env.WEB_DIST ?? join(__dirname, '../../web/dist');
+        if (existsSync(join(webDist, 'index.html'))) {
+            app.use(express.static(webDist));
+            // SPA fallback for client-routed paths; API + socket paths keep 404ing honestly.
+            app.get('*', (req, res, next) => {
+                if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io')) return next();
+                res.sendFile(join(webDist, 'index.html'));
+            });
+            console.log(`serving web bundle from ${webDist}`);
+        }
 
         httpServer.listen(PORT, () => {
             console.log(`🚀 API server running on http://localhost:${PORT} (REST + session relay)`);

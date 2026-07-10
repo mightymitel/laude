@@ -1,15 +1,18 @@
-# Firebase App Hosting configuration
+# Firebase App Hosting configuration — the `laudasist` backend (DEC-100/102/103):
+# ONE backend serving web + api + relay, source repo `laude`, tracked branch
+# `release` (merging to release IS the deploy act — main stays free for agents).
 # https://firebase.google.com/docs/app-hosting
-#
-# NOT WIRED YET: this repo is not connected to an App Hosting backend —
-# laudasist.ro still deploys from the frozen laudasist repo (WP-98). Kept
-# current so connecting it (post WP-96 audit) is a decision, not a rewrite.
 
 runConfig:
-  # DELIBERATE (DEC-53): the relay holds authoritative session state in RAM —
-  # two instances would be two divergent sessions. Do not raise this without
-  # a shared-state adapter (Redis) or session-code sharding.
+  # DELIBERATE (DEC-53/103): the relay holds authoritative session state in
+  # RAM — two instances would be two divergent sessions. Do not raise this
+  # without a shared-state adapter (Redis) or session-code sharding.
+  # VERIFY after the first rollout that the LIVE runConfig actually honours
+  # this file — the frozen backend's maxInstances is unset live despite the
+  # same pin in its file (a console override may win).
   maxInstances: 1
+  # 0 is deliberate: the ~3s cold start on go-live is acceptable (DEC-103).
+  minInstances: 0
 
 scripts:
   buildCommand: npm ci --include=dev && npm run apphosting:build
@@ -18,6 +21,44 @@ scripts:
 env:
   - variable: NODE_ENV
     value: production
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # The web bundle's Firebase client config (public web-app values).
+  - variable: VITE_FIREBASE_API_KEY
+    value: AIzaSyDuUifmLwEDlEDBKbcmytbEU_WODzfTUxw
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_AUTH_DOMAIN
+    value: laudasist-1c1d2.firebaseapp.com
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_PROJECT_ID
+    value: laudasist-1c1d2
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_STORAGE_BUCKET
+    value: laudasist-1c1d2.firebasestorage.app
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
+    value: "28601659644"
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_APP_ID
+    value: 1:28601659644:web:15b2fcd5a2021bd5886779
+    availability:
+      - BUILD
+
+  # VITE_API_URL / VITE_RELAY_URL stay UNSET on purpose: the single-backend
+  # bundle targets its own origin (DEC-103). Splitting web from api/relay
+  # later = set these to the api backend's URL (DEC-102) — a config change.
+
+  # Legacy CORS allowlist entry; same-origin serving makes it mostly moot.
   - variable: FRONTEND_URL
-    value: https://laudasist-1c1d2.web.app
-  # Firebase Admin credentials are automatically available in App Hosting
+    value: https://laudasist.ro
+    availability:
+      - RUNTIME
+
+# Firebase Admin credentials are automatically available in App Hosting.

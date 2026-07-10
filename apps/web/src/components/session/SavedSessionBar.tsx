@@ -48,7 +48,7 @@ export function SavedSessionBar({
             // so further saves update it and a reload reopens it.
             void navigate({
                 to: '/session',
-                search: (prev: Record<string, unknown>) => ({ ...prev, savedSessionId: created.id }),
+                search: { guest: false, playlistId: undefined, savedSessionId: created.id },
                 replace: true,
             })
         } catch (err) {

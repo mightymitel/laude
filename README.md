@@ -9,10 +9,27 @@ song ID:
   local-first SQLite store + audio files served over HTTP (:3002).
 - **LauDJ** (`apps/laudj`) — live multi-stem audio console; joins sessions as
   a `dj` presenter. Tauri shell included (`src-tauri/`), engine stubbed.
-- **Session relay** (`apps/relay`) — stateful socket.io relay (:3003).
+- **Session relay** (`packages/relay`) — a module mounted inside `apps/api`
+  (one backend: REST + socket.io on :3001).
 
 Design source of truth: Notion (Worship Platform). Working contract for
 agents: `CLAUDE.md`.
+
+## Deployment
+
+Production is **one App Hosting backend** (web + api + relay, `apphosting.yaml`,
+`maxInstances: 1` — session state lives in the relay's RAM) in the
+`laudasist-1c1d2` Firebase project, tracking the **`release`** branch: merging
+`main → release` is the deploy act; `main` stays free for agent batches.
+Firestore rules + indexes deploy ONLY via the release pipeline
+(`.github/workflows/release-rules.yml`, gated on `npm run test:rules`) — never
+by hand; rules are project-global.
+
+The **old laudasist repo's backend is an archive** (target: `old.laudasist.ro`,
+unmaintained, no functional promise — it predates the platform's uid namespace
+and WILL break as new rules land). Do not spend effort keeping it alive; the
+rollback story is App Hosting rollback + relay LAN mode (DEC-101), never the
+frozen app.
 
 ## Run it
 

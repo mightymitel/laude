@@ -46,7 +46,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
         <button
           className={styles.startBtn}
           onClick={() =>
-            void navigate({ to: '/session', search: { guest: false, playlistId: playlist.id } })
+            void navigate({ to: '/session', search: { guest: false, playlistId: playlist.id, savedSessionId: undefined } })
           }
         >
           ▶ Open in session
@@ -82,8 +82,8 @@ function PlaylistsPage() {
           <h1 className={styles.title}>Playlists</h1>
         </div>
         <p className={styles.subtitle}>
-          Saved playlists live on your account. <Link to="/login">Sign in</Link> to prepare a
-          meeting ahead of time — or start a <Link to="/session" search={{ guest: true, playlistId: undefined }}>quick session</Link> and export its playlist as a file instead.
+          Saved playlists live on your account. <Link to="/login" search={{ redirect: undefined }}>Sign in</Link> to prepare a
+          meeting ahead of time — or start a <Link to="/session" search={{ guest: true, playlistId: undefined, savedSessionId: undefined }}>quick session</Link> and export its playlist as a file instead.
         </p>
       </div>
     )
