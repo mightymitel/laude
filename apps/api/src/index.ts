@@ -40,8 +40,9 @@ app.use(cors({
         // Check against static whitelist
         if (allowed.indexOf(origin) !== -1) return callback(null, true);
 
-        // Allow any localhost/127.0.0.1
-        if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        // Allow localhost and private-LAN origins (dev boxes + phones on the
+        // wifi hitting the dev stack — RFC1918 ranges only, never public).
+        if (/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)) {
             return callback(null, true);
         }
 
