@@ -256,12 +256,22 @@ export interface SessionCurrent {
    * heuristic (which is wrong exactly on skips/repeats/jumps). Optional:
    * absent when no driver knows it. */
   next_part?: WorkPartRef | null;
-  /** Display/performance key override; null = the song's own key. */
-  key: string | null;
+  /** THE sounding key (WP-144) — authoritative session state, computed by
+   * the writer AT SONG-CHANGE TIME (owner policy: adopt/hold, WP-145) and
+   * carried in the broadcast + rehydrate/late-join. Every client renders
+   * from it; none derives its own. null only while no song was ever made
+   * current. Capo/shape offsets are a per-device DISPLAY layer and never
+   * touch this value. */
+  effective_key: string | null;
   /** Live tempo as percentage of the performance BPM (100 = as recorded). */
   tempo_pct: number;
   blank: boolean;
 }
+
+/** How the owner computes effective_key when the current song changes
+ * (WP-145): adopt the incoming song's key, or hold the on-screen key and
+ * render the incoming song in it (charts are degrees — free transpose). */
+export type KeyPolicy = 'adopt' | 'hold';
 
 // ---------------------------------------------------------------------------
 // Firestore collection names (one place, no scattered strings)

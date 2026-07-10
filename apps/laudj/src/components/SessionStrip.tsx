@@ -122,7 +122,7 @@ export function SessionStrip({ state }: { state: EngineState }) {
           <span className="ld-label">{t('session.section')}</span>
           <span>{sectionLabel}</span>
           <span className="ld-label">{t('common.key')}</span>
-          <span>{current.key ?? '—'}</span>
+          <span>{current.effective_key ?? '—'}</span>
           <span className="ld-label">{t('common.tempo')}</span>
           <span>{current.tempo_pct}%</span>
           <span className="ld-spacer" />

@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import {
   DEFAULT_COMPANION,
   DEFAULT_CURRENT,
+  DEFAULT_KEY_POLICY,
   applySessionPatch,
   type DjManifestEntry,
   type DjMode,
@@ -56,6 +57,7 @@ export class SessionStore {
       currentSong: initial?.currentSong ?? null,
       sessionPlaylist: initial?.sessionPlaylist ?? [],
       chordStyle: initial?.chordStyle ?? 'letters',
+      key_policy: initial?.key_policy ?? DEFAULT_KEY_POLICY,
       companion: { ...DEFAULT_COMPANION, ...initial?.companion },
       directives: initial?.directives ?? {},
       presenters: [],

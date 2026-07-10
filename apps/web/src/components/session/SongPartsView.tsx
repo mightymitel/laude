@@ -16,13 +16,13 @@ interface SongPartsViewProps {
     chordStyle: ChordStyle
     chordDisplay: ChordDisplay
     showChords: boolean
-    useOriginalKey: boolean
+    keyPolicy: 'adopt' | 'hold'
     onSelectPart: (index: number) => void
     onDisplayKey: (key: Key) => void
     onChordStyle: (style: ChordStyle) => void
     onChordDisplay: (display: ChordDisplay) => void
     onShowChords: (show: boolean) => void
-    onUseOriginalKey: (use: boolean) => void
+    onKeyPolicy: (policy: 'adopt' | 'hold') => void
     partRef: (index: number, el: HTMLDivElement | null) => void
 }
 
@@ -61,13 +61,15 @@ export function SongPartsView(props: SongPartsViewProps) {
                         <input type="checkbox" checked={showChords} onChange={(e) => props.onShowChords(e.target.checked)} />
                         Show Chords
                     </label>
-                    <label className={styles.toggle}>
-                        <input
-                            type="checkbox"
-                            checked={props.useOriginalKey}
-                            onChange={(e) => props.onUseOriginalKey(e.target.checked)}
-                        />
-                        Use Song Key
+                    <label className={styles.toggle} title="On song change: adopt the incoming song's key, or hold the current key and transpose the song into it">
+                        <select
+                            className={styles.select}
+                            value={props.keyPolicy}
+                            onChange={(e) => props.onKeyPolicy(e.target.value === 'hold' ? 'hold' : 'adopt')}
+                        >
+                            <option value="adopt">Adopt song key</option>
+                            <option value="hold">Hold current key</option>
+                        </select>
                     </label>
                 </div>
             </div>

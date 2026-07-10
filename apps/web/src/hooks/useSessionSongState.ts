@@ -9,7 +9,9 @@ import { useSongs, useSong } from '@/hooks/useSongs'
 import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import { useSavedSession } from '@/hooks/useSavedSessions'
+import { effectiveKeyOf, songChangeKey } from '@laude/session'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
+import type { KeyPolicy } from '@laude/song-model'
 import type { Key, Song } from '@laudasist/shared'
 import { asKey } from '@/lib/keys'
 
@@ -44,7 +46,6 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
     useEffect(() => {
         localStorage.setItem('laudasist.recentlyPlayed', JSON.stringify(recentlyPlayed))
     }, [recentlyPlayed])
-    const [useOriginalKey, setUseOriginalKey] = useState(true)
     const [playlistLoaded, setPlaylistLoaded] = useState(false)
 
     // ONE session object — local transport until Go Live swaps it.
@@ -56,7 +57,10 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
     // 'instrumental' (DEC-62) renders as no highlighted part on the owner surface.
     const rawPartIndex = state?.current.section_index ?? 0
     const currentPartIndex = typeof rawPartIndex === 'number' ? rawPartIndex : -1
-    const displayKey = asKey(state?.current.key ?? null)
+    // THE sounding key (WP-144): read through the shared reader, never a
+    // local derivation — every surface computes it identically.
+    const displayKey = asKey(state ? effectiveKeyOf(state) : null)
+    const keyPolicy = state?.key_policy ?? 'adopt'
     const sessionPlaylist = useMemo(() => state?.sessionPlaylist ?? [], [state])
 
     const { data: currentSong } = useSong(currentSongId || '')
@@ -96,23 +100,35 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
 
     // === UPDATE HELPERS (single write path, any transport) ===
     const setCurrentSongId = useCallback(
-        (songId: string | null) => {
+        (songId: string | null, entryKey?: string) => {
             // Presenters/viewers render the by-value currentSong — resolve the
             // embed from the playlist item or the loaded library (the relay
             // never resolves by-ref ids itself).
-            const fromPlaylist = songId !== null
-                ? sessionPlaylist.find((i) => i.songId === songId)?.song
+            const playlistItem = songId !== null
+                ? sessionPlaylist.find((i) => i.songId === songId)
                 : undefined
             const fromLibrary = songId !== null
                 ? allSongsData?.data?.find((s) => s.id === songId)
                 : undefined
-            const embedded = fromPlaylist ?? (fromLibrary ? embed(fromLibrary) : null)
+            const embedded = playlistItem?.song ?? (fromLibrary ? embed(fromLibrary) : null)
+            if (songId === null) {
+                session.send({ current: { song_id: null, section_index: 0 }, currentSong: null })
+                return
+            }
+            // Song-change key (WP-144/145): computed HERE, once, and
+            // broadcast — never derived again on any client.
+            const incoming = entryKey ?? playlistItem?.key ?? embedded?.defaultKey ?? 'C'
+            const effective = songChangeKey(
+                state?.key_policy ?? 'adopt',
+                state ? effectiveKeyOf(state) : null,
+                incoming,
+            )
             session.send({
-                current: { song_id: songId, section_index: 0 },
-                currentSong: songId === null ? null : embedded,
+                current: { song_id: songId, section_index: 0, effective_key: effective },
+                currentSong: embedded,
             })
         },
-        [session, sessionPlaylist, allSongsData],
+        [session, sessionPlaylist, allSongsData, state],
     )
 
     const setCurrentPartIndex = useCallback(
@@ -124,7 +140,14 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
 
     const setDisplayKey = useCallback(
         (key: Key) => {
-            session.setCurrent({ key })
+            session.setCurrent({ effective_key: key })
+        },
+        [session],
+    )
+
+    const setKeyPolicy = useCallback(
+        (policy: KeyPolicy) => {
+            session.send({ key_policy: policy })
         },
         [session],
     )
@@ -153,18 +176,19 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
                     },
                 ])
             }
+            const effective = songChangeKey(
+                state?.key_policy ?? 'adopt',
+                state ? effectiveKeyOf(state) : null,
+                song.defaultKey,
+            )
             session.send({
-                current: {
-                    song_id: song.id,
-                    section_index: 0,
-                    ...(useOriginalKey ? { key: song.defaultKey } : {}),
-                },
+                current: { song_id: song.id, section_index: 0, effective_key: effective },
                 currentSong: embed(song),
             })
             setSearchQuery('')
             setRecentlyPlayed((prev) => [song.id, ...prev.filter((id) => id !== song.id)].slice(0, 20))
         },
-        [session, sessionPlaylist, useOriginalKey, setSessionPlaylist],
+        [session, sessionPlaylist, state, setSessionPlaylist],
     )
 
     // Smart ordering for library view when search is empty
@@ -223,8 +247,8 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
         currentPartIndex,
         displayKey,
         sessionPlaylist,
-        useOriginalKey,
-        setUseOriginalKey,
+        keyPolicy,
+        setKeyPolicy,
         setCurrentSongId,
         setCurrentPartIndex,
         setDisplayKey,

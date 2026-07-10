@@ -6,7 +6,7 @@
  */
 import { useRef } from 'react'
 import type { SessionState, ViewportDirectives } from '@laude/session'
-import { DEFAULT_VIEWPORT_DIRECTIVES, partIndexFor } from '@laude/session'
+import { DEFAULT_VIEWPORT_DIRECTIVES, effectiveKeyOf, partIndexFor } from '@laude/session'
 import { asKey } from '@/lib/keys'
 import type { ViewportClass, ViewportStyleOptions } from './contract'
 import { VIEWPORT_PRESETS } from './presets'
@@ -30,7 +30,9 @@ function sliceOf(state: SessionState): RenderSlice | null {
   return {
     song: state.currentSong,
     partIndex: state.current.section_index,
-    displayKey: asKey(state.current.key ?? state.currentSong.defaultKey),
+    // The broadcast sounding key via the shared reader (WP-144) — never a
+    // per-client derivation.
+    displayKey: asKey(effectiveKeyOf(state)),
   }
 }
 

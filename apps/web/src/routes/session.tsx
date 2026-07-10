@@ -47,8 +47,8 @@ function SessionPageContent() {
         currentPartIndex,
         displayKey,
         sessionPlaylist,
-        useOriginalKey,
-        setUseOriginalKey,
+        keyPolicy,
+        setKeyPolicy,
         setCurrentSongId,
         setCurrentPartIndex,
         setDisplayKey,
@@ -167,8 +167,9 @@ function SessionPageContent() {
                         setSessionPlaylist((prev) => prev.map((i) => (i.id === itemId ? { ...i, ...updates } : i)))
                     }
                     onPlaylistSelect={(songId, key) => {
-                        setCurrentSongId(songId)
-                        if (key) setDisplayKey(asKey(key))
+                        // One write: song + its authoritative effective_key
+                        // (playlist-entry override respected — WP-144).
+                        setCurrentSongId(songId, key)
                         setCurrentPartIndex(0)
                     }}
                     savedSessionId={savedSessionId}
@@ -184,13 +185,13 @@ function SessionPageContent() {
                             chordStyle={chordStyle}
                             chordDisplay={chordDisplay}
                             showChords={showChords}
-                            useOriginalKey={useOriginalKey}
+                            keyPolicy={keyPolicy}
                             onSelectPart={setCurrentPartIndex}
                             onDisplayKey={setDisplayKey}
                             onChordStyle={setChordStyle}
                             onChordDisplay={setChordDisplay}
                             onShowChords={setShowChords}
-                            onUseOriginalKey={setUseOriginalKey}
+                            onKeyPolicy={setKeyPolicy}
                             partRef={(index, el) => {
                                 partRefs.current[index] = el
                             }}

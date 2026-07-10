@@ -4,7 +4,7 @@
  * the LocalTransport when solo (same object, no network — DEC-35). Firestore
  * is an optional durability mirror written by the relay — never a transport.
  */
-import type { CompanionDirectives, PresenterKind, SessionCurrent } from '@laude/song-model';
+import type { CompanionDirectives, KeyPolicy, PresenterKind, SessionCurrent } from '@laude/song-model';
 
 /** By-value song content: the full data a viewer needs, embedded in session
  * state — no library fetch, works offline and for guests. */
@@ -132,6 +132,9 @@ export interface SessionState {
   currentSong: EmbeddedSong | null;
   sessionPlaylist: SessionPlaylistItem[];
   chordStyle: string;
+  /** How the owner computes effective_key at song change (WP-145). Session
+   * state (survives rehydrate/late-join); evaluated ONCE, on the owner. */
+  key_policy: KeyPolicy;
   companion: CompanionDirectives;
   /** Broadcast viewport directives keyed by declared class. */
   directives: DirectiveMap;
@@ -151,6 +154,7 @@ export interface SessionPatch {
   currentSong?: EmbeddedSong | null;
   sessionPlaylist?: SessionPlaylistItem[];
   chordStyle?: string;
+  key_policy?: KeyPolicy;
   companion?: Partial<CompanionDirectives>;
   /** Per-class partial merges; a class first referenced here is created. */
   directives?: Record<string, Partial<ViewportDirectives>>;
@@ -164,7 +168,10 @@ export interface SessionPatch {
  * refuses incompatible clients with a message the user can act on. Bump it
  * on ANY breaking change to the events or payload shapes below.
  */
-export const SESSION_PROTOCOL_VERSION = 1;
+// v2: SessionCurrent.key became effective_key (authoritative sounding key,
+// WP-144) and SessionState gained key_policy (WP-145) — a payload rename is
+// a breaking change, so old clients must be refused, not mis-read.
+export const SESSION_PROTOCOL_VERSION = 2;
 
 /** Socket event names — single source for client + relay. */
 export const EVENTS = {
@@ -199,10 +206,12 @@ export interface SnapshotPayload {
 export const DEFAULT_CURRENT: SessionCurrent = {
   song_id: null,
   section_index: 0,
-  key: null,
+  effective_key: null,
   tempo_pct: 100,
   blank: false,
 };
+
+export const DEFAULT_KEY_POLICY: KeyPolicy = 'adopt';
 
 export const DEFAULT_COMPANION: CompanionDirectives = {
   pads_on: false,
@@ -217,6 +226,7 @@ export interface InitialSessionState {
   currentSong: EmbeddedSong | null;
   sessionPlaylist: SessionPlaylistItem[];
   chordStyle: string;
+  key_policy: KeyPolicy;
   companion: CompanionDirectives;
   directives: DirectiveMap;
 }
@@ -227,6 +237,7 @@ export function durableSlice(state: SessionState): InitialSessionState {
     currentSong: state.currentSong,
     sessionPlaylist: state.sessionPlaylist,
     chordStyle: state.chordStyle,
+    key_policy: state.key_policy,
     companion: state.companion,
     directives: state.directives,
   };
@@ -256,9 +267,55 @@ export function applySessionPatch(
     ...(patch.currentSong !== undefined ? { currentSong: patch.currentSong } : {}),
     ...(patch.sessionPlaylist !== undefined ? { sessionPlaylist: patch.sessionPlaylist } : {}),
     ...(patch.chordStyle !== undefined ? { chordStyle: patch.chordStyle } : {}),
+    ...(patch.key_policy !== undefined ? { key_policy: patch.key_policy } : {}),
     ...(patch.companion !== undefined ? { companion: { ...state.companion, ...patch.companion } } : {}),
     directives,
     updated_by: writerId,
     updated_at: updatedAt,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Shared content readers (the divergence invariant, WP-144/150/151): every
+// surface computes key and next-part through THESE — layout may differ per
+// device, content computation may not.
+// ---------------------------------------------------------------------------
+
+/**
+ * The key every client renders/sounds in. After any song change this is the
+ * broadcast `effective_key`; the defaultKey arm exists only for states that
+ * predate WP-144 (never-broadcast solo drafts) and is identical on every
+ * client because everyone runs this same function on the same state.
+ */
+export function effectiveKeyOf(state: SessionState): string | null {
+  return state.current.effective_key ?? state.currentSong?.defaultKey ?? null;
+}
+
+/** Owner-side song-change key computation (WP-145): evaluated ONCE, on the
+ * writer, and broadcast — clients never re-derive it. */
+export function songChangeKey(
+  policy: KeyPolicy,
+  currentEffectiveKey: string | null,
+  incomingKey: string,
+): string {
+  return policy === 'hold' && currentEffectiveKey !== null ? currentEffectiveKey : incomingKey;
+}
+
+/**
+ * The part coming NEXT, as an index into the current song's parts: the
+ * driving DJ's announced `next_part` when present (truth — WP-117), else
+ * the part after the current numeric one, else null (last part /
+ * instrumental with no announcement). Shared by the stage preset and the
+ * owner's playable view.
+ */
+export function nextPartIndexOf(state: SessionState): number | null {
+  const parts = state.currentSong?.parts ?? [];
+  const ref = state.current.next_part;
+  if (ref) {
+    const idx = partIndexFor(parts, ref);
+    if (idx !== null) return idx;
+  }
+  const current = state.current.section_index;
+  if (typeof current === 'number' && current + 1 < parts.length) return current + 1;
+  return null;
 }

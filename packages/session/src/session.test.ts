@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { LocalTransport, createLocalState } from './transport';
 import { WorshipSession } from './session';
-import { applySessionPatch, durableSlice } from './types';
+import { applySessionPatch, durableSlice, effectiveKeyOf, nextPartIndexOf, songChangeKey } from './types';
 import { parsePortable, toPortable, PLAYLIST_FORMAT_VERSION } from './playlist';
 
 const ME = { id: 'mike', name: 'Mike', kind: 'human' as const };
@@ -23,12 +23,12 @@ test('local writes apply synchronously with the shared merge semantics', () => {
   session.subscribe(() => {
     seen += 1;
   });
-  session.setCurrent({ song_id: 'song-1', key: 'G' });
+  session.setCurrent({ song_id: 'song-1', effective_key: 'G' });
   session.setPlaylist([{ id: 'p1', songId: 'song-1' }]);
   session.setDirective('main', { blank: true });
   const s = session.state!;
   assert.equal(s.current.song_id, 'song-1');
-  assert.equal(s.current.key, 'G');
+  assert.equal(s.current.effective_key, 'G');
   assert.equal(s.current.tempo_pct, 100, 'unpatched fields survive');
   assert.equal(s.sessionPlaylist.length, 1);
   assert.equal(s.directives.main?.blank, true);
@@ -59,6 +59,7 @@ test('durableSlice carries exactly the go-live payload (no roster, no codes)', (
     'current',
     'currentSong',
     'directives',
+    'key_policy',
     'sessionPlaylist',
   ]);
   assert.equal(slice.current.song_id, 's');
@@ -145,4 +146,46 @@ test('portable playlist: v1 files are rejected with a clear error, not migrated 
   const badV2 = { ...v1File, format_version: 2 };
   const rejected = parsePortable(badV2);
   assert.equal(rejected.ok, false);
+});
+
+test('effective_key is authoritative session state (WP-144): patch, policy, reader', () => {
+  const session = new WorshipSession(ME);
+  // Song change carries the key the writer computed — the reader returns it.
+  session.send({
+    current: { song_id: 's1', section_index: 0, effective_key: 'D' },
+    currentSong: { id: 's1', title: 'S', defaultKey: 'G', parts: [] },
+  });
+  assert.equal(effectiveKeyOf(session.state!), 'D', 'broadcast value wins over defaultKey');
+  // The durable slice (go-live / rehydrate payload) carries it.
+  assert.equal(durableSlice(session.state!).current.effective_key, 'D');
+
+  // Policy computation happens ONCE, writer-side (WP-145):
+  assert.equal(songChangeKey('adopt', 'D', 'A'), 'A', 'adopt takes the incoming key');
+  assert.equal(songChangeKey('hold', 'D', 'A'), 'D', 'hold keeps the on-screen key');
+  assert.equal(songChangeKey('hold', null, 'A'), 'A', 'hold with no prior key adopts');
+
+  // key_policy is session state and survives the durable slice.
+  session.send({ key_policy: 'hold' });
+  assert.equal(session.state!.key_policy, 'hold');
+  assert.equal(durableSlice(session.state!).key_policy, 'hold');
+});
+
+test('nextPartIndexOf: announced next_part wins; else current+1; else null', () => {
+  const parts = [
+    { id: 'V1', type: 'verse', index: 0, lines: [{ text: 'a' }] },
+    { id: 'C1', type: 'chorus', index: 1, lines: [{ text: 'b' }] },
+    { id: 'V2', type: 'verse', index: 2, lines: [{ text: 'c' }] },
+  ];
+  const session = new WorshipSession(ME);
+  session.send({
+    current: { song_id: 's', section_index: 0, effective_key: 'C' },
+    currentSong: { id: 's', title: 'S', defaultKey: 'C', parts },
+  });
+  assert.equal(nextPartIndexOf(session.state!), 1, 'numeric current+1');
+  // A driving DJ announces the truth — it wins over the heuristic.
+  session.setCurrent({ section_index: 'instrumental', next_part: { label: 'Verse 2', ordinal: 1 } });
+  assert.equal(nextPartIndexOf(session.state!), 2, 'announced ref resolves');
+  // Last part, nothing announced → nothing next.
+  session.setCurrent({ section_index: 2, next_part: null });
+  assert.equal(nextPartIndexOf(session.state!), null);
 });

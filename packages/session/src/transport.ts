@@ -7,6 +7,7 @@ import type { PresenterKind } from '@laude/song-model';
 import {
   DEFAULT_COMPANION,
   DEFAULT_CURRENT,
+  DEFAULT_KEY_POLICY,
   applySessionPatch,
   type SessionPatch,
   type SessionRole,
@@ -50,6 +51,7 @@ export function createLocalState(me: SessionIdentity): SessionState {
     currentSong: null,
     sessionPlaylist: [],
     chordStyle: 'letters',
+    key_policy: DEFAULT_KEY_POLICY,
     companion: { ...DEFAULT_COMPANION },
     directives: {},
     presenters: [],

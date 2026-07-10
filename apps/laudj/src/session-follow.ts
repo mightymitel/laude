@@ -167,7 +167,7 @@ export class DjSessionController {
             },
           ];
       this.client.send({
-        current: { song_id: songId, section_index: 0, key: entry?.key ?? detail.analysis_key },
+        current: { song_id: songId, section_index: 0, effective_key: entry?.key ?? detail.analysis_key },
         currentSong: embedded,
         sessionPlaylist: withSong,
       });
@@ -204,7 +204,7 @@ export class DjSessionController {
     if (now && session.current.song_id && session.current.song_id !== now.transport.song_id) {
       engine.send({ type: 'load_song', song_id: session.current.song_id });
     }
-    padEngine.setKey(session.current.key);
+    padEngine.setKey(session.current.effective_key);
     applyCompanion(prev?.companion ?? null, session);
   }
 
@@ -245,7 +245,7 @@ export class DjSessionController {
 
 function applyCompanion(prev: CompanionDirectives | null, session: SessionState): void {
   const next = session.companion;
-  const key = session.current.key;
+  const key = session.current.effective_key;
   if (next.pad_style !== prev?.pad_style) padsController.setStyle(padStyleOf(next.pad_style));
   if (next.pad_volume !== prev?.pad_volume) padsController.setVolume(next.pad_volume);
   if ((prev?.pads_on ?? false) !== (next.pads_on ?? false)) {

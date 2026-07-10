@@ -6,6 +6,7 @@ import { loadPresenter } from '@/lib/presenter'
 import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Song } from '@laudasist/shared'
+import { effectiveKeyOf } from '@laude/session'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
 import { asKey } from '@/lib/keys'
 import styles from './present.module.css'
@@ -68,7 +69,7 @@ function PresenterPage() {
       current: {
         song_id: item.song.id,
         section_index: 0,
-        key: item.key || item.song.defaultKey,
+        effective_key: item.key || item.song.defaultKey,
       },
       currentSong: item.song,
     })
@@ -83,7 +84,8 @@ function PresenterPage() {
   // 'instrumental' (DEC-62): no part highlighted; next/prev restart from 0.
   const rawPartIndex = session?.current.section_index ?? 0
   const currentPartIndex = typeof rawPartIndex === 'number' ? rawPartIndex : -1
-  const displayKey = asKey(session?.current.key ?? currentSong?.defaultKey ?? null)
+  // Sounding key: the broadcast effective_key via the shared reader (WP-144).
+  const displayKey = asKey(session ? effectiveKeyOf(session) : null)
 
   const nextPart = useCallback(() => {
     if (currentSong && currentPartIndex < currentSong.parts.length - 1) {
@@ -99,7 +101,7 @@ function PresenterPage() {
     setSearchQuery('')
     setDrawerOpen(false)
     client?.send({
-      current: { song_id: song.id, section_index: 0, key: song.defaultKey },
+      current: { song_id: song.id, section_index: 0, effective_key: song.defaultKey },
       currentSong: embed(song),
     })
   }
