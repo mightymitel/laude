@@ -157,3 +157,71 @@ test('dj:request fans out to the room from writers; viewer emits are dropped', a
   presenter.disconnect();
   viewer.disconnect();
 });
+
+test('REST write path (DEC-105): access code looks up, presenter token authorizes', async () => {
+  const session = await goLive();
+  const url = `${baseUrl}/api/sessions/update/${session.accessCode}`;
+  const body = JSON.stringify({ current: { song_id: 'song-x', section_index: 1 } });
+  const headers = { 'Content-Type': 'application/json' };
+
+  // No token → 401. The access code alone was never a credential.
+  const noToken = await fetch(url, { method: 'PUT', headers, body });
+  assert.equal(noToken.status, 401);
+
+  // The viewer/access code as a token → 403 (it grants no write role).
+  const wrongToken = await fetch(url, {
+    method: 'PUT',
+    headers: { ...headers, Authorization: `Bearer ${session.accessCode}` },
+    body,
+  });
+  assert.equal(wrongToken.status, 403);
+
+  // The presenter token writes, and the write is visible to readers.
+  const ok = await fetch(url, {
+    method: 'PUT',
+    headers: { ...headers, Authorization: `Bearer ${session.presenterCode}` },
+    body,
+  });
+  assert.equal(ok.status, 200);
+
+  const now = await fetch(`${baseUrl}/api/sessions/now-playing/${session.accessCode}`);
+  assert.equal(now.status, 200);
+  const nowBody = (await now.json()) as {
+    song: unknown;
+    current: { song_id: string | null; section_index: number | 'instrumental' };
+    directives: Record<string, unknown>;
+    updated_at: string;
+  };
+  assert.equal(nowBody.current.song_id, 'song-x');
+  assert.equal(nowBody.current.section_index, 1);
+  assert.ok(nowBody.directives, 'directives ride in the now-playing payload');
+});
+
+test('GET /playlist serves the session playlist to non-socket readers (DEC-105)', async () => {
+  const session = await goLive();
+  const items = [
+    { id: 'i1', songId: 's1', key: 'G', song: { id: 's1', title: 'Prima', defaultKey: 'G', parts: [] } },
+  ];
+  const write = await fetch(`${baseUrl}/api/sessions/update/${session.accessCode}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.presenterCode}` },
+    body: JSON.stringify({ sessionPlaylist: items }),
+  });
+  assert.equal(write.status, 200);
+
+  const res = await fetch(`${baseUrl}/api/sessions/playlist/${session.accessCode}`);
+  assert.equal(res.status, 200);
+  const body = (await res.json()) as { playlist: { songId: string }[] };
+  assert.equal(body.playlist.length, 1);
+  assert.equal(body.playlist[0]?.songId, 's1');
+
+  // An ended session's codes die with it.
+  const owner = { 'Content-Type': 'application/json', Authorization: 'Bearer lan-owner' };
+  const bySession = await fetch(`${baseUrl}/api/sessions/live/${(session as { id: string }).id}`, {
+    method: 'DELETE',
+    headers: owner,
+  });
+  assert.equal(bySession.status, 200);
+  const gone = await fetch(`${baseUrl}/api/sessions/now-playing/${session.accessCode}`);
+  assert.equal(gone.status, 404);
+});

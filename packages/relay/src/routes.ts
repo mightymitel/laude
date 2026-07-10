@@ -1,12 +1,19 @@
 /**
  * Session REST surface (kept + generalized from Laudasist's apps/api):
- *   POST   /api/sessions/live                owner (Bearer) — create or resume
- *   DELETE /api/sessions/live/:id            owner (Bearer) — end
- *   GET    /api/sessions/join/:accessCode    public — viewer snapshot
- *   GET    /api/sessions/presenter/:code     public — presenter snapshot (codes incl.)
- *   PUT    /api/sessions/update/:accessCode  public — REST update fallback
- * The socket path (see socket.ts) is the fast path; these exist for
- * link-following, late joins and non-socket clients.
+ *   POST   /api/sessions/live                     owner (Bearer) — create or resume
+ *   DELETE /api/sessions/live/:id                 owner (Bearer) — end
+ *   GET    /api/sessions/join/:accessCode         public — viewer snapshot
+ *   GET    /api/sessions/presenter/:code          public — presenter snapshot (codes incl.)
+ *   GET    /api/sessions/now-playing/:accessCode  public — song + part + directives
+ *   GET    /api/sessions/playlist/:accessCode     public — the session playlist
+ *   PUT    /api/sessions/update/:accessCode       presenter token (Bearer) — write
+ *
+ * The socket path (see socket.ts) is the fast path; REST exists for scripts,
+ * a foot pedal, LauDJ's desktop shell — NOT as a transport fallback (the
+ * socket already rides long-polling in production, DEC-91/105). Deliberately
+ * rejected (DEC-105): a version counter, delta polling, directives-as-state.
+ * The ACCESS CODE is a lookup key, never a credential (Flow 3 posts it in a
+ * group chat); writing requires the PRESENTER token in Authorization.
  */
 import { Router, type Request, type Response } from 'express';
 import type { InitialSessionState, SessionPatch } from '@laude/session';
@@ -120,16 +127,52 @@ export function sessionRoutes(
     res.json(session);
   });
 
-  router.put('/update/:accessCode', (req, res) => {
-    // Kept for non-socket writers; the access code is the (weak) credential,
-    // exactly as in the original API. Fast path is socket state:set.
+  // Targeted reads for non-socket callers (DEC-105). Directives ride in the
+  // now-playing payload because that is what a reader needs in order to
+  // render — they are NOT being promoted into a unified versioned state.
+  router.get('/now-playing/:accessCode', (req, res) => {
     const session = store.activeByAccessCode(req.params.accessCode ?? '');
     if (!session) {
       res.status(404).json({ error: 'Session not found or ended' });
       return;
     }
+    res.json({
+      song: session.currentSong ?? null,
+      current: session.current,
+      directives: session.directives,
+      updated_at: session.updated_at,
+    });
+  });
+
+  router.get('/playlist/:accessCode', (req, res) => {
+    const session = store.activeByAccessCode(req.params.accessCode ?? '');
+    if (!session) {
+      res.status(404).json({ error: 'Session not found or ended' });
+      return;
+    }
+    res.json({ playlist: session.sessionPlaylist, updated_at: session.updated_at });
+  });
+
+  router.put('/update/:accessCode', (req, res) => {
+    // The access code only LOOKS UP the session; authorization is the
+    // presenter token in the Authorization header, and the write is stamped
+    // with the role the token grants (DEC-105). No token, no write.
+    const session = store.activeByAccessCode(req.params.accessCode ?? '');
+    if (!session) {
+      res.status(404).json({ error: 'Session not found or ended' });
+      return;
+    }
+    const header = req.headers.authorization;
+    if (!header?.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Writing needs the presenter token in Authorization' });
+      return;
+    }
+    if (header.slice('Bearer '.length).toUpperCase() !== session.presenterCode) {
+      res.status(403).json({ error: 'Not a presenter token for this session' });
+      return;
+    }
     const patch = patchFromBody(req.body);
-    const updated = store.applyPatch(session.id, patch, 'rest');
+    const updated = store.applyPatch(session.id, patch, 'rest-presenter');
     if (!updated) {
       res.status(409).json({ error: 'Session not active' });
       return;
