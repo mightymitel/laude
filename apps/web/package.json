@@ -11,6 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@laudasist/shared": "*",
+    "@laude/chords": "*",
+    "@laude/design-system": "*",
+    "@laude/i18n": "*",
+    "@laude/session": "*",
+    "@laude/song-model": "*",
+    "@laude/tuner": "*",
     "@tanstack/react-query": "^5.90.18",
     "@tanstack/react-router": "^1.150.0",
     "classnames": "^2.5.1",

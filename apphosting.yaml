@@ -15,7 +15,13 @@ runConfig:
   minInstances: 0
 
 scripts:
-  buildCommand: npm ci --include=dev && npm run apphosting:build
+  # NEVER reference an `apphosting:build` npm script here — the buildpack
+  # rewrites package.json's `apphosting:build` to THIS command and runs it,
+  # so a buildCommand that calls `npm run apphosting:build` recurses forever
+  # (that's exactly how the first rollout burned its 1h budget).
+  # The install is scoped to the deployed workspaces: studio (native sqlite
+  # build) and laudj are not part of this backend.
+  buildCommand: npm ci --include=dev -w apps/web -w apps/api -w packages/shared && npm run build:hosting
   runCommand: npm start -w apps/api
 
 env:
