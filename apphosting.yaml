@@ -21,12 +21,12 @@ scripts:
   # (that's exactly how the first rollout burned its 1h budget).
   # The install is scoped to the deployed workspaces: studio (native sqlite
   # build) and laudj are not part of this backend.
-  # FULL install on purpose: workspace-scoped `npm ci -w …` skips the
-  # selected workspaces' devDependencies under the buildpack (vite etc.
-  # missing → tsc fails). The full ci is slower cold (~30min, cached after)
-  # but semantically bulletproof. build:hosting drives the three builds via
-  # --prefix — immune to any inherited npm workspace config.
-  buildCommand: npm ci --include=dev && npm run build:hosting
+  # The preparer REWRITES package.json to inject this command as the
+  # `apphosting:build` script — and drops the `workspaces` field doing it
+  # (cloud installs saw a 360-package tree vs thousands locally; every
+  # workspace symptom across rollouts 001–005 traces to this). So: print
+  # what the cloud actually sees, restore the field if missing, install.
+  buildCommand: cat package.json && npm --version && node -e "const f=require('fs');const p=JSON.parse(f.readFileSync('package.json','utf8'));if(!p.workspaces){p.workspaces=['apps/*','packages/*'];f.writeFileSync('package.json',JSON.stringify(p,null,2));console.log('workspaces field RESTORED')}" && npm ci --include=dev && npm run build:hosting
   runCommand: npm start -w apps/api
 
 env:
