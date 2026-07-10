@@ -1,6 +1,16 @@
+import { lazy, Suspense } from 'react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { useTheme } from '@/hooks/useTheme'
+
+// Dev-only, LAZILY imported: the devtools are a devDependency, so a static
+// import would break production bundling (where dev deps don't exist).
+const TanStackRouterDevtools = import.meta.env.DEV
+    ? lazy(() =>
+          import('@tanstack/react-router-devtools').then((m) => ({
+              default: m.TanStackRouterDevtools,
+          })),
+      )
+    : null
 
 function RootComponent() {
     // Initialize theme on app load
@@ -9,7 +19,11 @@ function RootComponent() {
     return (
         <>
             <Outlet />
-            {process.env.NODE_ENV === 'development' && <TanStackRouterDevtools />}
+            {TanStackRouterDevtools !== null && (
+                <Suspense fallback={null}>
+                    <TanStackRouterDevtools />
+                </Suspense>
+            )}
         </>
     )
 }
