@@ -53,9 +53,10 @@ export function PlaylistPortability({
 
     const save = async () => {
         if (!auth.currentUser) {
-            // The natural conversion moment: saving needs an account.
+            // The natural conversion moment: saving needs an account. Coming
+            // back lands in the SAME working session (persisted durable slice).
             if (window.confirm('Saving a playlist needs an account. Sign in now?')) {
-                void navigate({ to: '/login' })
+                void navigate({ to: '/login', search: { redirect: 'session' } })
             }
             return
         }

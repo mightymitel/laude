@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import type { ChordStyle } from '@laudasist/shared'
 import { useSessionSongState } from '@/hooks/useSessionSongState'
+import { auth } from '@/lib/firebase'
 import { asKey } from '@/lib/keys'
 import styles from './session.module.css'
 import { Modal } from '@/components/Modal/Modal'
@@ -34,6 +35,7 @@ function SessionPage() {
 
 function SessionPageContent() {
     const { guest: isGuest, playlistId, savedSessionId } = Route.useSearch()
+    const navigate = useNavigate()
 
     const {
         live,
@@ -111,7 +113,22 @@ function SessionPageContent() {
                                 </button>
                             </>
                         ) : (
-                            <button onClick={() => void goLive()} disabled={isLoading} className={styles.goLiveBtn}>
+                            <button
+                                onClick={() => {
+                                    // Going live needs an authed owner (DEC-36).
+                                    // The conversion moment: sign in and come
+                                    // back — the working session survives.
+                                    if (!auth.currentUser) {
+                                        if (window.confirm('Going live needs an account. Sign in now?')) {
+                                            void navigate({ to: '/login', search: { redirect: 'session' } })
+                                        }
+                                        return
+                                    }
+                                    void goLive()
+                                }}
+                                disabled={isLoading}
+                                className={styles.goLiveBtn}
+                            >
                                 {isLoading ? 'Starting...' : '🔴 Go Live'}
                             </button>
                         ))}

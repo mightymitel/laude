@@ -55,8 +55,12 @@ function Home() {
                                 <Link to="/tuner" className={styles.secondaryButton}>
                                     🎸 Tuner
                                 </Link>
-                                <Link to="/session" search={{ guest: true, playlistId: undefined }} className={styles.guestButton}>
-                                    🎵 Start Worshiping (Guest)
+                                <Link
+                                    to="/session"
+                                    search={{ guest: true, playlistId: undefined, savedSessionId: undefined }}
+                                    className={styles.guestButton}
+                                >
+                                    🎵 Start Playing — no account needed
                                 </Link>
                             </div>
                         </>

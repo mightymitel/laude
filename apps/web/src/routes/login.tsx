@@ -5,10 +5,19 @@ import styles from './login.module.css'
 
 export const Route = createFileRoute('/login')({
     component: LoginPage,
+    validateSearch: (search: Record<string, unknown>) => {
+        return {
+            // Guest→authed conversion (Flow 1): a sign-in prompt inside a
+            // working session sends the user back to it — the personal
+            // session's durable slice survives the round-trip per device.
+            redirect: search.redirect === 'session' ? ('session' as const) : undefined,
+        }
+    },
 })
 
 function LoginPage() {
     const navigate = useNavigate()
+    const { redirect } = Route.useSearch()
     const { signInWithGoogle, signInWithEmail, signUpWithEmail, error: authError } = useAuth()
     const [isLogin, setIsLogin] = useState(true)
     const [email, setEmail] = useState('')
@@ -27,7 +36,11 @@ function LoginPage() {
             } else {
                 await signUpWithEmail(email, password)
             }
-            navigate({ to: '/dashboard' })
+            if (redirect === 'session') {
+                navigate({ to: '/session', search: { guest: false, playlistId: undefined, savedSessionId: undefined } })
+            } else {
+                navigate({ to: '/dashboard' })
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Authentication failed')
         } finally {
@@ -39,7 +52,11 @@ function LoginPage() {
         setError(null)
         try {
             await signInWithGoogle()
-            navigate({ to: '/dashboard' })
+            if (redirect === 'session') {
+                navigate({ to: '/session', search: { guest: false, playlistId: undefined, savedSessionId: undefined } })
+            } else {
+                navigate({ to: '/dashboard' })
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Google sign in failed')
         }

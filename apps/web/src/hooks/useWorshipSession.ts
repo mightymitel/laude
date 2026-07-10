@@ -5,7 +5,7 @@
  * snapshot, mints fresh links); Stop Live swaps back keeping the state.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { WorshipSession, type GoLiveResult, type SessionState } from '@laude/session'
+import { WorshipSession, durableSlice, type GoLiveResult, type SessionState } from '@laude/session'
 import { auth } from '@/lib/firebase'
 import { RELAY_URL } from '@/lib/relay'
 import { loadPresenter } from '@/lib/presenter'
@@ -20,10 +20,34 @@ function ownerIdentity() {
     }
 }
 
+/**
+ * The personal session survives navigation, reload and the SIGN-IN moment
+ * (guest→authed conversion): its durable slice persists per-device and
+ * re-seeds the fresh session object on the next mount. A guest who builds a
+ * set, signs in at a save prompt and lands back on /session keeps the set.
+ * Live state is never persisted here — the relay owns it (rejoin by link).
+ */
+const PERSONAL_SESSION_KEY = 'laudasist.personalSession'
+
+function loadPersonalSession(): ReturnType<typeof durableSlice> | null {
+    try {
+        const raw = localStorage.getItem(PERSONAL_SESSION_KEY)
+        const parsed: unknown = raw === null ? null : JSON.parse(raw)
+        if (typeof parsed !== 'object' || parsed === null) return null
+        return parsed as ReturnType<typeof durableSlice>
+    } catch {
+        return null
+    }
+}
+
 export function useWorshipSession() {
     const sessionRef = useRef<WorshipSession | null>(null)
     if (sessionRef.current === null) {
         sessionRef.current = new WorshipSession(ownerIdentity())
+        const stored = loadPersonalSession()
+        if (stored !== null) {
+            sessionRef.current.send(stored)
+        }
     }
     const session = sessionRef.current
 
@@ -38,6 +62,13 @@ export function useWorshipSession() {
             setState(change.state)
             setIsLive(session.isLive)
             setLinks(session.links)
+            if (!session.isLive) {
+                try {
+                    localStorage.setItem(PERSONAL_SESSION_KEY, JSON.stringify(durableSlice(change.state)))
+                } catch {
+                    // Quota/serialization failures must never break the session.
+                }
+            }
         })
         return () => {
             unsub()

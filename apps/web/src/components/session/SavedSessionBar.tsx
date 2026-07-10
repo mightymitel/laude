@@ -27,8 +27,10 @@ export function SavedSessionBar({
 
     const save = async () => {
         if (!auth.currentUser) {
+            // Conversion moment: sign in and come BACK — the working session
+            // survives the round-trip (persisted durable slice).
             if (window.confirm('Saving a session needs an account. Sign in now?')) {
-                void navigate({ to: '/login' })
+                void navigate({ to: '/login', search: { redirect: 'session' } })
             }
             return
         }
