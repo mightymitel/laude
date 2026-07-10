@@ -26,8 +26,6 @@ export const VIEWPORT_CLASSES = ['main', 'stage', 'instrument', 'subtitles'] as 
 export type ViewportClass = (typeof VIEWPORT_CLASSES)[number];
 
 export function asViewportClass(value: string | undefined): ViewportClass {
-  // Legacy alias from the pre-contract viewer page.
-  if (value === 'audience') return 'main';
   return (VIEWPORT_CLASSES as readonly string[]).includes(value ?? '')
     ? (value as ViewportClass)
     : 'main';

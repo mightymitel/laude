@@ -4,7 +4,8 @@
  * HTTP service — see src/service/). All writes go through this module.
  *
  * Schema rules live in ./schema (v2, WP-102). Legacy v1 DBs (chart on the
- * performance) are migrated in place on open — see migrateV1toV2.
+ * performance) are REJECTED on open — no migrations while no production data
+ * exists (DEC-98); a dev-box v1 store is re-creatable via seed/ingest.
  */
 import Database from 'better-sqlite3';
 import { relative } from 'node:path';
@@ -135,7 +136,13 @@ export class LocalStore {
       (this.db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map(
         (c) => c.name,
       );
-    if (isLegacyV1(columnsOf)) migrateV1toV2(this.db);
+    if (isLegacyV1(columnsOf)) {
+      this.db.close();
+      throw new Error(
+        `Unsupported legacy v1 store at ${dbPath} — no migration path exists (DEC-98). ` +
+          'Delete the file and re-seed (npm run seed:local) or re-ingest.',
+      );
+    }
     this.db.exec(SCHEMA);
     this.db.pragma(`user_version = ${SCHEMA_VERSION}`);
   }
@@ -499,153 +506,6 @@ export class LocalStore {
     const key_variants = stems.length > 0 ? [...new Set([0, ...variantSemis])].sort((a, b) => a - b) : [];
     return { stems, key_variants, mixdown: rows.some((r) => r.kind === 'mixdown') };
   }
-}
-
-/**
- * In-place v1 → v2 migration (WP-102). The v1 store kept the chart + key on
- * the performance and the mapping as sections.work_part_index. Ports:
- *  - local_songs: chart hoisted from the preferred/first performance,
- *    converted to degrees against that performance's key (analysis_key) —
- *    degrees are computed at extraction from now on (DEC-59);
- *  - performances: key → detected_key, youtube_id → source_uri, chart column
- *    dropped; performance_chords → chord_events;
- *  - sections: gain ids + ordinals; work_part_index is NOT ported — the
- *    auto-matcher is re-run instead (DEC-56: repair needs no stored
- *    correspondence), writing section_part_map rows.
- */
-function migrateV1toV2(db: Database.Database): void {
-  const nowIso = new Date().toISOString();
-  const legacySongs = db.prepare('SELECT * FROM local_songs').all() as Record<string, unknown>[];
-  const legacyPerformances = db.prepare('SELECT * FROM performances').all() as Record<string, unknown>[];
-  const legacySections = db
-    .prepare('SELECT * FROM sections ORDER BY performance_id, idx')
-    .all() as Record<string, unknown>[];
-  const legacyServices = db.prepare('SELECT * FROM services').all() as Record<string, unknown>[];
-  const legacyChords = db.prepare('SELECT * FROM performance_chords').all() as Record<string, unknown>[];
-
-  // Table rebuild: FK enforcement off for the duration (the standard SQLite
-  // migration pattern — rows are re-inserted in bulk, order-independent).
-  db.pragma('foreign_keys = OFF');
-  db.transaction(() => {
-    db.exec(
-      'DROP TABLE local_songs; DROP TABLE performances; DROP TABLE sections; DROP TABLE performance_chords; DROP TABLE services;',
-    );
-    db.exec(SCHEMA);
-
-    const perfBySong = new Map<string, Record<string, unknown>[]>();
-    for (const p of legacyPerformances) {
-      const list = perfBySong.get(String(p.local_song_id)) ?? [];
-      list.push(p);
-      perfBySong.set(String(p.local_song_id), list);
-    }
-
-    const insSong = db.prepare(
-      `INSERT INTO local_songs (id, global_song_id, link_state, title, author, language, chordpro, chart_source,
-         analysis_key, preferred_performance_id, verified, created_at, updated_at)
-       VALUES (@id, @global_song_id, @link_state, @title, NULL, @language, @chordpro, 'derived',
-         @analysis_key, @preferred_performance_id, @verified, @created_at, @updated_at)`,
-    );
-    for (const s of legacySongs) {
-      const perfs = perfBySong.get(String(s.id)) ?? [];
-      const preferred =
-        perfs.find((p) => p.id === s.preferred_performance_id) ?? perfs[0] ?? null;
-      const rawChart = preferred ? String(preferred.chordpro ?? '') : '';
-      const analysisKey = preferred ? String(preferred.key) : String(s.original_key ?? 'C');
-      insSong.run({
-        id: String(s.id),
-        global_song_id: s.global_song_id ?? null,
-        link_state: s.global_song_id ? 'linked' : 'local',
-        title: String(s.title),
-        language: String(s.language),
-        chordpro: toDegreeChart(rawChart, analysisKey),
-        analysis_key: analysisKey,
-        preferred_performance_id: s.preferred_performance_id ?? null,
-        verified: asBool(s.verified) ? 1 : 0,
-        created_at: String(s.created_at),
-        updated_at: nowIso,
-      });
-    }
-
-    const insPerf = db.prepare(
-      `INSERT INTO performances (id, local_song_id, service_id, segment_id, source_uri, start_s, end_s, detected_key, bpm, lrc, verified, created_at)
-       VALUES (@id, @local_song_id, @service_id, NULL, @source_uri, @start_s, @end_s, @detected_key, @bpm, @lrc, @verified, @created_at)`,
-    );
-    for (const p of legacyPerformances) {
-      insPerf.run({
-        id: String(p.id),
-        local_song_id: String(p.local_song_id),
-        service_id: p.service_id ?? null,
-        source_uri: p.youtube_id ?? null,
-        start_s: Number(p.start_s),
-        end_s: Number(p.end_s),
-        detected_key: String(p.key),
-        bpm: Number(p.bpm),
-        lrc: String(p.lrc ?? '[]'),
-        verified: asBool(p.verified) ? 1 : 0,
-        created_at: String(p.created_at),
-      });
-    }
-
-    // services: youtube_id → source_uri (recreated above; v1 had NOT NULL youtube_id).
-    const insSvc = db.prepare(
-      'INSERT OR REPLACE INTO services (id, date, title, source_uri) VALUES (?, ?, ?, ?)',
-    );
-    for (const s of legacyServices) {
-      insSvc.run(String(s.id), String(s.date), String(s.title), String(s.youtube_id ?? ''));
-    }
-
-    const insSec = db.prepare(
-      `INSERT INTO sections (id, performance_id, position, label, ordinal, start_s, end_s, start_bar, end_bar, variation_of)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
-    );
-    const labelCounts = new Map<string, number>();
-    const sectionsByPerf = new Map<string, { id: string; label: string }[]>();
-    for (const sec of legacySections) {
-      const perfId = String(sec.performance_id);
-      const idx = Number(sec.idx);
-      const label = String(sec.label);
-      const countKey = `${perfId}:${label}`;
-      const ordinal = (labelCounts.get(countKey) ?? 0) + 1;
-      labelCounts.set(countKey, ordinal);
-      const id = `sec-${perfId}-${idx + 1}`;
-      insSec.run(id, perfId, idx, label, ordinal, Number(sec.start_s), Number(sec.end_s), Number(sec.start_bar), Number(sec.end_bar));
-      const list = sectionsByPerf.get(perfId) ?? [];
-      list.push({ id, label });
-      sectionsByPerf.set(perfId, list);
-    }
-
-    const insEvents = db.prepare(
-      'INSERT INTO chord_events (performance_id, data, verified) VALUES (?, ?, ?)',
-    );
-    for (const c of legacyChords) {
-      insEvents.run(String(c.performance_id), String(c.data), asBool(c.verified) ? 1 : 0);
-    }
-
-    // Re-run the auto-matcher against the (now song-level) chart — DEC-56.
-    const insMap = db.prepare(
-      `INSERT INTO section_part_map (section_id, performance_id, part_label, part_ordinal, is_instrumental, accepted, confidence, source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'auto')`,
-    );
-    for (const p of legacyPerformances) {
-      const perfId = String(p.id);
-      const secs = sectionsByPerf.get(perfId) ?? [];
-      if (secs.length === 0) continue;
-      const songRow = db.prepare('SELECT chordpro FROM local_songs WHERE id = ?').get(String(p.local_song_id)) as
-        | { chordpro: string }
-        | undefined;
-      const targets = mapSectionsToPartRefs(secs.map((s) => s.label), songRow?.chordpro ?? '');
-      secs.forEach((sec, i) => {
-        const target = targets[i] ?? null;
-        if (target === null) return; // unaligned: no row
-        if (target === 'instrumental') {
-          insMap.run(sec.id, perfId, null, null, 1, 1, 1);
-          return;
-        }
-        insMap.run(sec.id, perfId, target.label, target.ordinal, 0, 1, HEURISTIC_CONFIDENCE);
-      });
-    }
-  })();
-  db.pragma('foreign_keys = ON');
 }
 
 /** Label-classification matches inside a confirmed song: confident, auto-accepted. */

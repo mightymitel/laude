@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { VIEWPORT_CLASSES, type ViewportClass } from '../../viewports/contract'
 import styles from '../../routes/session.module.css'
 
-type ViewportType = 'audience' | 'instrument' | 'stage'
+const VIEWPORT_LABELS: Record<ViewportClass, string> = {
+    main: '🎤 Main',
+    stage: '🎸 Stage',
+    instrument: '🎹 Instrument',
+    subtitles: '💬 Subtitles',
+}
 
 /** Go-live share dialog: viewer QR/link per viewport + the presenter link. */
 export function ShareModal({
@@ -14,7 +20,7 @@ export function ShareModal({
     presenterUrl: string
     onClose: () => void
 }) {
-    const [selectedViewport, setSelectedViewport] = useState<ViewportType>('audience')
+    const [selectedViewport, setSelectedViewport] = useState<ViewportClass>('main')
     const viewerLink = `${shareUrl}?type=${selectedViewport}`
 
     return (
@@ -23,13 +29,13 @@ export function ShareModal({
                 <h2>Share Session</h2>
 
                 <div className={styles.viewportSelector}>
-                    {(['audience', 'instrument', 'stage'] as const).map((viewport) => (
+                    {VIEWPORT_CLASSES.map((viewport) => (
                         <button
                             key={viewport}
                             onClick={() => setSelectedViewport(viewport)}
                             className={`${styles.viewportBtn} ${selectedViewport === viewport ? styles.viewportBtnActive : ''}`}
                         >
-                            {viewport === 'audience' ? '🎤 Audience' : viewport === 'instrument' ? '🎹 Instrument' : '🎸 Stage'}
+                            {VIEWPORT_LABELS[viewport]}
                         </button>
                     ))}
                 </div>

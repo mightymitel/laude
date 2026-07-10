@@ -9,9 +9,9 @@
 import type { EmbeddedSong, SessionPlaylistItem } from './types';
 
 /**
- * v2 (WP-116): EmbeddedSong.originalKey became defaultKey (WP-111). v1 files
- * naming originalKey are EXPLICITLY migrated on import — never silently
- * aliased — so no two incompatible shapes share a version number.
+ * v2 (WP-116): EmbeddedSong.originalKey became defaultKey (WP-111). v2 is
+ * simply THE format — no v1 files exist outside dev machines, so there is no
+ * migration path (DEC-98); older versions are rejected with a clear error.
  */
 export const PLAYLIST_FORMAT_VERSION = 2;
 
@@ -41,16 +41,10 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
 
-function songOf(v: unknown, formatVersion: number): EmbeddedSong | undefined {
+function songOf(v: unknown): EmbeddedSong | undefined {
   if (!isRecord(v)) return undefined;
   if (typeof v.id !== 'string' || typeof v.title !== 'string') return undefined;
-  // v1 migration: the field was named originalKey before WP-111.
-  const defaultKey =
-    typeof v.defaultKey === 'string'
-      ? v.defaultKey
-      : formatVersion === 1 && typeof v.originalKey === 'string'
-        ? v.originalKey
-        : undefined;
+  const defaultKey = typeof v.defaultKey === 'string' ? v.defaultKey : undefined;
   if (defaultKey === undefined || !Array.isArray(v.parts)) return undefined;
   const parts: EmbeddedSong['parts'] = [];
   for (const [index, part] of v.parts.entries()) {
@@ -74,11 +68,11 @@ function songOf(v: unknown, formatVersion: number): EmbeddedSong | undefined {
 }
 
 /**
- * Validate + hydrate an imported envelope. v2 files parse losslessly; v1
- * files are explicitly migrated (originalKey → defaultKey); malformed
- * entries fail the whole import (an honest error beats a silently shortened
- * set). Imported songs STAY by-value — linking is offered elsewhere, never
- * automatic.
+ * Validate + hydrate an imported envelope. Exactly v2 parses; anything else
+ * is rejected with a clear error (DEC-98: no migrations while no production
+ * data exists); malformed entries fail the whole import (an honest error
+ * beats a silently shortened set). Imported songs STAY by-value — linking is
+ * offered elsewhere, never automatic.
  */
 export function parsePortable(data: unknown): ParseResult {
   if (!isRecord(data)) return { ok: false, error: 'Not a playlist file' };
@@ -88,6 +82,12 @@ export function parsePortable(data: unknown): ParseResult {
   if (data.format_version > PLAYLIST_FORMAT_VERSION) {
     return { ok: false, error: `Playlist format v${data.format_version} is newer than this app understands` };
   }
+  if (data.format_version < PLAYLIST_FORMAT_VERSION) {
+    return {
+      ok: false,
+      error: `Playlist format v${data.format_version} is no longer supported — re-export it from a current app`,
+    };
+  }
   if (!Array.isArray(data.songs)) return { ok: false, error: 'Playlist file has no songs' };
 
   const items: SessionPlaylistItem[] = [];
@@ -95,7 +95,7 @@ export function parsePortable(data: unknown): ParseResult {
     if (!isRecord(raw) || typeof raw.songId !== 'string') {
       return { ok: false, error: `Song #${i + 1} is malformed` };
     }
-    const song = songOf(raw.song, data.format_version);
+    const song = songOf(raw.song);
     if (raw.song !== undefined && song === undefined) {
       return { ok: false, error: `Song #${i + 1} has a malformed by-value payload` };
     }

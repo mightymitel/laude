@@ -95,12 +95,12 @@ test('portable playlist round-trips losslessly (by-value songs survive)', () => 
   }
 });
 
-test('portable playlist parse rejects junk and future versions', () => {
+test('portable playlist parse rejects junk and non-v2 versions', () => {
   assert.equal(parsePortable('nope').ok, false);
   assert.equal(parsePortable({}).ok, false);
   assert.equal(parsePortable({ format_version: 99, songs: [] }).ok, false);
-  assert.equal(parsePortable({ format_version: 1, songs: [{ nope: true }] }).ok, false);
-  const badSong = parsePortable({ format_version: 1, songs: [{ songId: 's', song: { id: 's' } }] });
+  assert.equal(parsePortable({ format_version: 2, songs: [{ nope: true }] }).ok, false);
+  const badSong = parsePortable({ format_version: 2, songs: [{ songId: 's', song: { id: 's' } }] });
   assert.equal(badSong.ok, false, 'malformed by-value payload fails the import honestly');
 });
 
@@ -118,7 +118,7 @@ test("'instrumental' is a first-class current.part value (DEC-62)", () => {
   assert.equal(session.state?.current.section_index, 0);
 });
 
-test('portable playlist v2: a v1 file naming originalKey is explicitly migrated (WP-116)', () => {
+test('portable playlist: v1 files are rejected with a clear error, not migrated (DEC-98)', () => {
   const v1File = {
     format_version: 1,
     name: 'Old export',
@@ -137,13 +137,10 @@ test('portable playlist v2: a v1 file naming originalKey is explicitly migrated 
     ],
   };
   const parsed = parsePortable(v1File);
-  assert.equal(parsed.ok, true);
-  if (parsed.ok) {
-    assert.equal(parsed.items[0]?.song?.defaultKey, 'G', 'originalKey migrated to defaultKey');
+  assert.equal(parsed.ok, false);
+  if (!parsed.ok) {
+    assert.match(parsed.error, /v1 is no longer supported/);
   }
-  // A modern export carries v2 and defaultKey; round-trips losslessly.
-  const modern = toPortable('New export', parsed.ok ? parsed.items : []);
-  assert.equal(modern.format_version, 2);
   // A v2 file using the OLD field name is malformed — no silent alias.
   const badV2 = { ...v1File, format_version: 2 };
   const rejected = parsePortable(badV2);

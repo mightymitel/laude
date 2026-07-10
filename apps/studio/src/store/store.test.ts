@@ -182,7 +182,7 @@ test('toDegreeChart converts letter charts once and leaves degree charts alone',
   assert.equal(toDegreeChart(degrees, 'A'), degrees, 'already-degrees passes through');
 });
 
-// --- v1 → v2 migration ------------------------------------------------------
+// --- legacy v1 rejection (DEC-98: no migrations without production data) ----
 
 const V1_SCHEMA = `
 CREATE TABLE local_songs (
@@ -223,7 +223,7 @@ CREATE TABLE audio_files (
 );
 `;
 
-test('v1 DBs migrate in place: chart hoists to the song as degrees; mapping is re-derived', () => {
+test('v1 DBs are rejected with a re-seed instruction, never migrated (DEC-98)', () => {
   const dbPath = freshPath();
   const raw = new Database(dbPath);
   raw.exec(V1_SCHEMA);
@@ -231,44 +231,7 @@ test('v1 DBs migrate in place: chart hoists to the song as degrees; mapping is r
     `INSERT INTO local_songs (id, global_song_id, title, language, original_key, default_bpm, preferred_performance_id, verified, created_at)
      VALUES ('song-old', 'global-old', 'Old Song', 'ro', 'G', 72, 'perf-old', 1, ?)`,
   ).run(NOW);
-  raw.prepare(
-    `INSERT INTO performances (id, local_song_id, service_id, youtube_id, start_s, end_s, key, bpm, chordpro, lrc, verified, created_at)
-     VALUES ('perf-old', 'song-old', 'svc-old', 'ytOLD', 0, 180, 'A', 74, ?, '[]', 0, ?)`,
-  ).run('{start_of_verse: Verse 1}\n[A]veche [D]cale\n{end_of_verse}\n{start_of_chorus}\n[E]na [A]na\n{end_of_chorus}', NOW);
-  raw.prepare(`INSERT INTO services (id, date, title, youtube_id) VALUES ('svc-old', '2026-07-01', 'Old service', 'ytOLD')`).run();
-  const insSec = raw.prepare(
-    `INSERT INTO sections (performance_id, idx, label, start_s, end_s, start_bar, end_bar, work_part_index) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-  );
-  insSec.run('perf-old', 0, 'Intro', 0, 10, 0, 2, null);
-  insSec.run('perf-old', 1, 'Strofa 1', 10, 90, 2, 20, 0);
-  insSec.run('perf-old', 2, 'Refren', 90, 180, 20, 40, 1);
-  raw.prepare(`INSERT INTO performance_chords (performance_id, data, verified) VALUES ('perf-old', '[{"start_s":0,"chord":"A"}]', 1)`).run();
   raw.close();
 
-  const store = new LocalStore(dbPath);
-  const song = store.getLocalSong('song-old');
-  assert.ok(song);
-  assert.equal(song.link_state, 'linked');
-  assert.equal(song.analysis_key, 'A', 'analysis key comes from the chart-bearing performance');
-  assert.match(song.chordpro, /\{key: A\}/, 'hoisted chart is degrees + reference key');
-  assert.match(song.chordpro, /\[1\]veche \[4\]cale/);
-
-  const perf = store.getPerformance('perf-old');
-  assert.equal(perf?.detected_key, 'A');
-  assert.equal(perf?.source_uri, 'ytOLD');
-
-  const detail = store.getPerformanceDetail('perf-old');
-  assert.ok(detail);
-  assert.equal(detail.chord_events.length, 1, 'performance_chords ported to chord_events');
-  assert.deepEqual(detail.sections.map((s) => s.label), ['Intro', 'Strofa 1', 'Refren']);
-  // The matcher re-ran (DEC-56): RO labels map to the chart's parts.
-  assert.equal(detail.sections[0]?.part, null);
-  assert.deepEqual(detail.sections[1]?.part, { label: 'Verse 1', ordinal: 1 });
-  assert.deepEqual(detail.sections[2]?.part, { label: 'Chorus', ordinal: 1 });
-
-  // Re-opening a migrated DB is a no-op.
-  store.close();
-  const again = new LocalStore(dbPath);
-  assert.equal(again.listCatalog().length, 1);
-  again.close();
+  assert.throws(() => new LocalStore(dbPath), /no migration path exists \(DEC-98\)/);
 });
