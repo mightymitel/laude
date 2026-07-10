@@ -26,19 +26,19 @@ export const VIEWPORT_PRESETS: Record<ViewportClass, ViewportPreset> = {
     class: 'main',
     label: '🎤 Main / Lyrics',
     shows: { chords: false, nextPart: false, oneLine: false },
-    defaults: { notation: 'english', showChords: false, fontScale: 1, background: 'dark' },
+    defaults: { notation: 'english', showChords: false, fontScale: 1, background: 'dark', fitToScreen: true, capo: 0 },
   },
   stage: {
     class: 'stage',
     label: '🎸 Stage',
     shows: { chords: true, nextPart: true, oneLine: false },
-    defaults: { notation: 'english', showChords: true, fontScale: 1, background: 'dark' },
+    defaults: { notation: 'english', showChords: true, fontScale: 1, background: 'dark', fitToScreen: true, capo: 0 },
   },
   instrument: {
     class: 'instrument',
     label: '🎹 Instrument',
     shows: { chords: true, nextPart: true, oneLine: false },
-    defaults: { notation: 'english', showChords: true, fontScale: 1, background: 'dark' },
+    defaults: { notation: 'english', showChords: true, fontScale: 1, background: 'dark', fitToScreen: true, capo: 0 },
   },
   // Subtitles: the CLASS is registered (directives apply); the dedicated
   // authored renderer is deferred — the preset renders minimal one-line text.
@@ -46,7 +46,7 @@ export const VIEWPORT_PRESETS: Record<ViewportClass, ViewportPreset> = {
     class: 'subtitles',
     label: '📺 Subtitles',
     shows: { chords: false, nextPart: false, oneLine: true },
-    defaults: { notation: 'english', showChords: false, fontScale: 1, background: 'transparent' },
+    defaults: { notation: 'english', showChords: false, fontScale: 1, background: 'transparent', fitToScreen: false, capo: 0 },
   },
 };
 
@@ -68,6 +68,11 @@ export function loadViewportOptions(cls: ViewportClass): ViewportStyleOptions {
         p.background === 'light' || p.background === 'transparent' || p.background === 'dark'
           ? p.background
           : defaults.background,
+      fitToScreen: typeof p.fitToScreen === 'boolean' ? p.fitToScreen : defaults.fitToScreen,
+      capo:
+        typeof p.capo === 'number' && Number.isInteger(p.capo) && p.capo >= 0 && p.capo <= 11
+          ? p.capo
+          : defaults.capo,
     };
   } catch {
     return defaults;

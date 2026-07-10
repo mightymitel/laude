@@ -8,6 +8,8 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSongs, useSong } from '@/hooks/useSongs'
 import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
+import { api } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { useSavedSession } from '@/hooks/useSavedSessions'
 import { effectiveKeyOf, songChangeKey } from '@laude/session'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
@@ -25,7 +27,11 @@ function embed(song: Song): EmbeddedSong {
     }
 }
 
-export function useSessionSongState(playlistId: string | undefined, savedSessionId?: string) {
+export function useSessionSongState(
+    playlistId: string | undefined,
+    savedSessionId?: string,
+    seedSongId?: string,
+) {
     // Search
     const [searchQuery, setSearchQuery] = useState('')
     const { data: searchResults } = useSongs({ search: searchQuery || undefined })
@@ -97,6 +103,43 @@ export function useSessionSongState(playlistId: string | undefined, savedSession
             setPlaylistLoaded(true)
         }
     }, [savedSession, playlistLoaded, session])
+
+    // Quick session from one library song (WP-146): seed it as the only
+    // playlist entry and make it current — same by-value add rule as any
+    // other add; authed fetch first, community fallback for guests.
+    const [songSeeded, setSongSeeded] = useState(false)
+    const { loading: authLoading } = useAuth()
+    useEffect(() => {
+        // Wait for Firebase to restore the sign-in — an early authed fetch
+        // 401s and would mis-route a signed-in user to the public fallback.
+        if (!seedSongId || songSeeded || authLoading) return
+        let cancelled = false
+        const seed = (song: Song) => {
+            if (cancelled) return
+            const item = {
+                id: `seed-${song.id}`,
+                songId: song.id,
+                key: song.defaultKey,
+                song: embed(song),
+            }
+            session.send({
+                sessionPlaylist: [item],
+                current: { song_id: song.id, section_index: 0, effective_key: song.defaultKey },
+                currentSong: item.song,
+            })
+            setSongSeeded(true)
+        }
+        api.get<Song>(`/api/songs/${seedSongId}`)
+            .then(seed)
+            .catch(() =>
+                api.get<Song>(`/api/community/songs/${seedSongId}`, { skipAuth: true })
+                    .then(seed)
+                    .catch((err: unknown) => console.warn('song seed failed', err)),
+            )
+        return () => {
+            cancelled = true
+        }
+    }, [seedSongId, songSeeded, session, authLoading])
 
     // === UPDATE HELPERS (single write path, any transport) ===
     const setCurrentSongId = useCallback(

@@ -58,7 +58,10 @@ router.get('/songs/:id', async (req, res) => {
         }
 
         const song = doc.data();
-        if (!song?.isPublic) {
+        // Match the songs-route read rule: public or official is fetchable.
+        // (The old check read `isPublic` — a field that never existed — so
+        // this endpoint 403'd every song, including for presenter search.)
+        if (song?.visibility !== 'public' && song?.libraryType !== 'official') {
             return res.status(403).json({ error: 'Song is not public' });
         }
 

@@ -57,7 +57,7 @@ test('debug playlist sync', async ({ browser }) => {
 
     // 5. Check Presenter View
     await presenterPage.goto(`/present/${code}`);
-    await expect(presenterPage.locator('text=Presenter View')).toBeVisible();
+    await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible();
 
     // DEBUG: Wait longer to see if it's just slow
     await presenterPage.waitForTimeout(5000);

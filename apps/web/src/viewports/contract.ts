@@ -39,4 +39,10 @@ export interface ViewportStyleOptions {
   /** rem multiplier applied to the preset's base size. */
   fontScale: number;
   background: 'dark' | 'light' | 'transparent';
+  /** Scale + centre the rendered slice to fill the viewport (WP-148). */
+  fitToScreen: boolean;
+  /** Capo/shape offset in semitones (WP-147) — a per-device DISPLAY layer:
+   * shapes render in transposeKeyName(effective_key, -capo); the sounding
+   * key is untouched session state. */
+  capo: number;
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useSongs } from '@/hooks/useSongs'
 import { Song, SongPart } from '@laudasist/shared'
@@ -23,6 +23,7 @@ function LibraryPage() {
         )
     }
 
+    const navigate = useNavigate()
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ marginBottom: '2rem' }}>
@@ -191,7 +192,7 @@ function LibraryPage() {
                                     marginTop: 'auto',
                                 }}
                             >
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                     <span
                                         style={{
                                             background: 'var(--bg-tertiary)',
@@ -201,6 +202,25 @@ function LibraryPage() {
                                     >
                                         {song.defaultKey}
                                     </span>
+                                    <button
+                                        title="Start a session with this song"
+                                        onClick={(e) => {
+                                            // The card is a Link — this action must not navigate to the song view.
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            void navigate({ to: '/session', search: { guest: false, songId: song.id } })
+                                        }}
+                                        style={{
+                                            background: 'var(--primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            padding: '0.2rem 0.6rem',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        ▶
+                                    </button>
                                 </div>
                                 <span>{new Date(song.createdAt).toLocaleDateString()}</span>
                             </div>

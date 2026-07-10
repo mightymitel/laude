@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useSong, useUpdateSong } from '@/hooks/useSongs'
 import { useAuth } from '@/contexts/AuthContext'
 import { SongViewer } from '@/components/songs/SongViewer'
@@ -11,6 +11,7 @@ export const Route = createFileRoute('/library/$id/')({
 
 function SongDetailPage() {
     const { id } = Route.useParams()
+    const navigate = useNavigate()
     const { data: song, isLoading, error } = useSong(id)
     const { firebaseUser } = useAuth()
     const updateSong = useUpdateSong(id)
@@ -33,6 +34,18 @@ function SongDetailPage() {
                     ← Back to Library
                 </Link>
                 <div className={layout.pageActions}>
+                    <button
+                        className={styles.editButton}
+                        data-testid="start-session-with-song"
+                        onClick={() =>
+                            void navigate({
+                                to: '/session',
+                                search: { guest: false, songId: id },
+                            })
+                        }
+                    >
+                        ▶ Start session with this song
+                    </button>
                     {isOwner && (
                         <button
                             className={styles.editButton}

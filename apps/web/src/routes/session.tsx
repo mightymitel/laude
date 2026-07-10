@@ -11,16 +11,22 @@ import { WorshipPad } from '@/components/WorshipPad'
 import { DirectivesBar } from '@/components/session/DirectivesBar'
 import { SessionSidebar } from '@/components/session/SessionSidebar'
 import { ShareModal } from '@/components/session/ShareModal'
-import { SongPartsView, type ChordDisplay } from '@/components/session/SongPartsView'
+import { OwnerSongView } from '@/components/session/OwnerSongView'
+import { type ChordDisplay } from '@/components/session/SongPartsView'
 
 export const Route = createFileRoute('/session')({
     component: SessionPage,
-    validateSearch: (search: Record<string, unknown>) => {
+    validateSearch: (
+        search: Record<string, unknown>,
+    ): { guest: boolean; playlistId?: string; savedSessionId?: string; songId?: string } => {
         return {
             guest: search.guest === 'true' || search.guest === true,
-            playlistId: typeof search.playlistId === 'string' ? search.playlistId : undefined,
-            savedSessionId:
-                typeof search.savedSessionId === 'string' ? search.savedSessionId : undefined,
+            ...(typeof search.playlistId === 'string' ? { playlistId: search.playlistId } : {}),
+            ...(typeof search.savedSessionId === 'string'
+                ? { savedSessionId: search.savedSessionId }
+                : {}),
+            // WP-146: quick session seeded from one library song.
+            ...(typeof search.songId === 'string' ? { songId: search.songId } : {}),
         }
     },
 })
@@ -34,7 +40,7 @@ function SessionPage() {
 }
 
 function SessionPageContent() {
-    const { guest: isGuest, playlistId, savedSessionId } = Route.useSearch()
+    const { guest: isGuest, playlistId, savedSessionId, songId: seedSongId } = Route.useSearch()
     const navigate = useNavigate()
 
     const {
@@ -59,7 +65,7 @@ function SessionPageContent() {
         djLocalSongs,
         requestDjSong,
         savedSessionName,
-    } = useSessionSongState(playlistId, savedSessionId)
+    } = useSessionSongState(playlistId, savedSessionId, seedSongId)
 
     const { session, state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
 
@@ -177,9 +183,10 @@ function SessionPageContent() {
                 />
 
                 <main className={styles.mainContent}>
-                    {currentSong ? (
-                        <SongPartsView
-                            song={currentSong}
+                    {state?.currentSong ? (
+                        <OwnerSongView
+                            state={state}
+                            librarySong={currentSong ?? null}
                             currentPartIndex={currentPartIndex}
                             displayKey={displayKey}
                             chordStyle={chordStyle}

@@ -69,31 +69,24 @@ function GuestViewPage() {
         return () => document.removeEventListener('fullscreenchange', handler)
     }, [])
 
-    // Auto-hide toolbar in fullscreen
+    // Auto-hide the toolbar EVERYWHERE (WP-148: minimal chrome — it floats
+    // over the fitted slice, so it must get out of the way); any activity
+    // brings it back for a few seconds.
     const handleUserActivity = useCallback(() => {
         setShowToolbar(true)
         if (hideTimeoutRef.current) {
             clearTimeout(hideTimeoutRef.current)
         }
-        if (isFullscreen) {
-            hideTimeoutRef.current = setTimeout(() => {
-                setShowToolbar(false)
-            }, 3000)
-        }
-    }, [isFullscreen])
+        hideTimeoutRef.current = setTimeout(() => {
+            setShowToolbar(false)
+        }, 3500)
+    }, [])
 
     useEffect(() => {
-        if (isFullscreen) {
-            document.addEventListener('mousemove', handleUserActivity)
-            document.addEventListener('touchstart', handleUserActivity)
-            document.addEventListener('keydown', handleUserActivity)
-            handleUserActivity() // Start the initial timer
-        } else {
-            setShowToolbar(true)
-            if (hideTimeoutRef.current) {
-                clearTimeout(hideTimeoutRef.current)
-            }
-        }
+        document.addEventListener('mousemove', handleUserActivity)
+        document.addEventListener('touchstart', handleUserActivity)
+        document.addEventListener('keydown', handleUserActivity)
+        handleUserActivity() // Start the initial timer
         return () => {
             document.removeEventListener('mousemove', handleUserActivity)
             document.removeEventListener('touchstart', handleUserActivity)
@@ -102,7 +95,7 @@ function GuestViewPage() {
                 clearTimeout(hideTimeoutRef.current)
             }
         }
-    }, [isFullscreen, handleUserActivity])
+    }, [handleUserActivity])
 
     if (error) {
         return <div className={styles.container}>Session not found or connection failed</div>
@@ -163,8 +156,29 @@ function GuestViewPage() {
                             />
                             Chords
                         </label>
+                        <select
+                            className={styles.select}
+                            value={options.capo}
+                            onChange={(e) => updateOptions({ capo: Number(e.target.value) })}
+                            title="Capo / shape offset — display only; the band still sounds in the session key"
+                            data-testid="capo-select"
+                        >
+                            {Array.from({ length: 12 }, (_, i) => (
+                                <option key={i} value={i}>
+                                    {i === 0 ? 'No capo' : `Capo ${i}`}
+                                </option>
+                            ))}
+                        </select>
                     </>
                 )}
+                <label className={styles.toolbarToggle} title="Scale the content to fill the screen">
+                    <input
+                        type="checkbox"
+                        checked={options.fitToScreen}
+                        onChange={(e) => updateOptions({ fitToScreen: e.target.checked })}
+                    />
+                    Fit
+                </label>
                 <select
                     className={styles.select}
                     value={options.background}

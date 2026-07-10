@@ -1,9 +1,11 @@
 /* Viewport presets — shared frame styles. Background variants per options. */
 .viewport {
-    min-height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    padding: 2rem;
+    /* Edge-to-edge on phones, breathing room on projectors (WP-148/149). */
+    padding: clamp(0.5rem, 2vmin, 2rem);
+    overflow: hidden;
 }
 
 .dark {
@@ -110,4 +112,41 @@
     align-items: center;
     text-align: center;
     padding-bottom: 3rem;
+}
+
+/* Capo/shape indicator (WP-147): the SOUNDING key stays visible whenever a
+ * shape offset is active. */
+.capoBar {
+    flex-shrink: 0;
+    align-self: center;
+    padding: 0.25em 0.9em;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-bottom: 0.4rem;
+}
+
+/* The next part's leading chord (WP-151) — always on, stage class. */
+.nextChord {
+    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    font-weight: 800;
+    color: #7aa2ff;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 1.25em;
+}
+
+.light .nextChord {
+    color: #2450c4;
+}
+
+/* Long chord/lyric lines must wrap, never scroll sideways (WP-149). */
+.line > div {
+    overflow-wrap: anywhere;
+}
+
+.chords {
+    max-width: 100%;
+    overflow: hidden;
 }
