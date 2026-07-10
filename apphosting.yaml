@@ -21,7 +21,11 @@ scripts:
   # (that's exactly how the first rollout burned its 1h budget).
   # The install is scoped to the deployed workspaces: studio (native sqlite
   # build) and laudj are not part of this backend.
-  buildCommand: npm ci --include=dev -w apps/web -w apps/api -w packages/shared && npm run build:hosting
+  # Scoped install first (fast: no studio native builds, no laudj), falling
+  # back to the full install (slow but proven in this environment) — the
+  # buildpack's nested npm run can carry npm_config_* env that breaks
+  # workspace filtering, which is also why build:hosting uses --prefix.
+  buildCommand: (npm ci --include=dev --workspaces true -w web -w @laudasist/api -w @laudasist/shared || npm ci --include=dev) && npm run build:hosting
   runCommand: npm start -w apps/api
 
 env:

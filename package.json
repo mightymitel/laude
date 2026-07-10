@@ -19,7 +19,7 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "test": "npm run check:boundaries && npm run test --workspaces --if-present",
     "test:e2e": "npx tsx scripts/e2e-runner.ts",
-    "build:hosting": "npm run build -w @laudasist/shared && npm run build -w web && npm run build -w @laudasist/api",
+    "build:hosting": "npm run build --prefix packages/shared && npm run build --prefix apps/web && npm run build --prefix apps/api",
     "test:rules": "npx tsx scripts/rules-test.ts"
   },
   "devDependencies": {
