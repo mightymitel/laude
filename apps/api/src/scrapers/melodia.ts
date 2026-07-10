@@ -23,8 +23,10 @@ export const melodiaScraper: Scraper = {
         const html = await response.text();
         const $ = cheerio.load(html);
 
-        // Extract title from h1 (remove key suffix if present)
-        const h1Text = $('h1').first().text().trim();
+        // Extract title from h1 (remove key suffix if present). The page
+        // nests the key-selector dropdown inside the h1, so keep only the
+        // first non-empty line of its text.
+        const h1Text = ($('h1').first().text().split('\n').find((l) => l.trim() !== '') ?? '').trim();
         const title = h1Text.replace(/\s+[CDEFGAB][b#]?\s*$/, '').trim();
 
         // Extract author/composer from metadata

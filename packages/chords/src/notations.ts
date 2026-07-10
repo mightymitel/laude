@@ -100,8 +100,11 @@ function createMappedNotation(def: NotationDef, builtIn = false): Notation {
         if (!bassHit) return null;
         bass = bassHit.pc;
       }
+      const flatName = flat[hit.pc];
       const accidental: 'sharp' | 'flat' =
-        flat[hit.pc] !== sharp[hit.pc] && head.startsWith(flat[hit.pc]) ? 'flat' : 'sharp';
+        flatName !== undefined && flatName !== sharp[hit.pc] && head.startsWith(flatName)
+          ? 'flat'
+          : 'sharp';
       return { root: hit.pc, quality, bass, accidental };
     },
   };

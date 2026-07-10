@@ -1,10 +1,37 @@
 import { Response } from 'express';
 import { Timestamp } from 'firebase-admin/firestore';
+import { partsToChordPro, renderChordPro } from '@laude/chords';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { getSongsCollection, SongDocument } from '../models/Song.js';
+import { getSongLyricsCollection, songLyricsDocId } from '../models/SongLyrics.js';
+import { invalidateLyricsIndex } from '../search/lyricsIndex.js';
 import type { LibraryType, Visibility, SongPart, SongLine } from '../shared/index.js';
 
-// Helper to handle async errors would be nice, but standard try/catch for now
+type Lang = 'ro' | 'en';
+
+function asLang(value: unknown): Lang {
+    return value === 'en' ? 'en' : 'ro';
+}
+
+/**
+ * Build + parse-check the degree chart from the song's embedded parts, then
+ * upsert the denormalized song_lyrics doc (DEC-32/46). Throws on a chart the
+ * renderer can't parse back — an honest 400 beats storing junk.
+ */
+async function syncSongLyrics(
+    songId: string,
+    song: { title: string; defaultKey: string; language: Lang; parts: SongPart[]; visibility: Visibility; verified: boolean },
+): Promise<void> {
+    const chordpro = partsToChordPro(song.parts, song.defaultKey, song.title);
+    renderChordPro(chordpro, { notation: 'nashville' }); // round-trip check (DEC-46)
+    await getSongLyricsCollection().doc(songLyricsDocId(songId, song.language)).set({
+        song_id: songId,
+        lang: song.language,
+        chordpro,
+        visibility: song.visibility,
+        verified: song.verified,
+    });
+}
 
 export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -149,6 +176,9 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
             arrangements,
             parts,
             tags,
+            language,
+            // Imports and new songs land PRIVATE (DEC-108); publishing to
+            // community is a separate, owner-only visibility flip.
             visibility = 'private',
         } = req.body;
 
@@ -157,9 +187,18 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
             return;
         }
 
+        const lang = asLang(language);
         const newSong: SongDocument = {
+            // Platform contract (@laude/song-model Song)
+            canonical_title: title,
+            default_key: defaultKey,
+            language: lang,
+            verified: false, // imported/typed content is unverified until curation
+            created_at: new Date().toISOString(),
+            // Laudasist fields (the shape the current UI reads)
             title,
-            author,
+            // Firestore rejects literal undefined values — omit absent author.
+            ...(author !== undefined ? { author } : {}),
             defaultKey,
             defaultArrangement: defaultArrangement || [],
             arrangements: arrangements || [],
@@ -173,7 +212,29 @@ export const createSong = async (req: AuthenticatedRequest, res: Response) => {
             updatedAt: new Date(),
         };
 
+        try {
+            // Chart first: if the parts don't survive the degree round-trip
+            // (DEC-46) nothing is written at all.
+            const probe = partsToChordPro(parts, defaultKey, title);
+            renderChordPro(probe, { notation: 'nashville' });
+        } catch (err) {
+            res.status(400).json({
+                error: 'Chart does not parse as a degree chordpro',
+                message: err instanceof Error ? err.message : String(err),
+            });
+            return;
+        }
+
         const docRef = await getSongsCollection().add(newSong);
+        await syncSongLyrics(docRef.id, {
+            title,
+            defaultKey,
+            language: lang,
+            parts,
+            visibility: newSong.visibility,
+            verified: newSong.verified,
+        });
+        invalidateLyricsIndex();
 
         res.status(201).json({
             id: docRef.id,
@@ -222,9 +283,17 @@ export const updateSong = async (req: AuthenticatedRequest, res: Response) => {
             updatedAt: new Date(),
         };
 
-        if (title) updateData.title = title;
+        // Platform mirrors ride along with the Laudasist fields (one doc,
+        // two readers — the merged shape the seeder writes).
+        if (title) {
+            updateData.title = title;
+            updateData.canonical_title = title;
+        }
         if (author !== undefined) updateData.author = author;
-        if (defaultKey) updateData.defaultKey = defaultKey;
+        if (defaultKey) {
+            updateData.defaultKey = defaultKey;
+            updateData.default_key = defaultKey;
+        }
         if (defaultArrangement) updateData.defaultArrangement = defaultArrangement;
         if (arrangements) updateData.arrangements = arrangements;
         if (parts) updateData.parts = parts;
@@ -232,10 +301,43 @@ export const updateSong = async (req: AuthenticatedRequest, res: Response) => {
         if (visibility) updateData.visibility = visibility;
         if (relatedSongs) updateData.relatedSongs = relatedSongs;
 
+        const chartChanged = Boolean(title || defaultKey || parts || visibility);
+        if (chartChanged) {
+            try {
+                const probe = partsToChordPro(
+                    parts ?? song.parts,
+                    defaultKey ?? song.defaultKey,
+                    title ?? song.title,
+                );
+                renderChordPro(probe, { notation: 'nashville' });
+            } catch (err) {
+                res.status(400).json({
+                    error: 'Chart does not parse as a degree chordpro',
+                    message: err instanceof Error ? err.message : String(err),
+                });
+                return;
+            }
+        }
+
         await docRef.update(updateData);
 
         const updatedDoc = await docRef.get();
         const updatedSong = updatedDoc.data() as SongDocument;
+
+        // Keep the denormalized song_lyrics copy in step — chart content AND
+        // visibility (DEC-32: rules query the copy, so a publish flip must
+        // reach it atomically-enough for the demo scale).
+        if (chartChanged) {
+            await syncSongLyrics(updatedDoc.id, {
+                title: updatedSong.title,
+                defaultKey: updatedSong.defaultKey,
+                language: asLang(updatedSong.language),
+                parts: updatedSong.parts,
+                visibility: updatedSong.visibility,
+                verified: updatedSong.verified ?? false,
+            });
+            invalidateLyricsIndex();
+        }
 
         res.json({
             id: updatedDoc.id,
@@ -266,6 +368,13 @@ export const deleteSong = async (req: AuthenticatedRequest, res: Response) => {
         }
 
         await docRef.delete();
+        // The denormalized chart goes with the song (id convention + a
+        // song_id query for safety — legacy docs may predate the convention).
+        const lyricsRef = getSongLyricsCollection();
+        await lyricsRef.doc(songLyricsDocId(doc.id, asLang(song.language))).delete();
+        const strays = await lyricsRef.where('song_id', '==', doc.id).get();
+        await Promise.all(strays.docs.map((d) => d.ref.delete()));
+        invalidateLyricsIndex();
 
         res.json({ success: true });
     } catch (error) {

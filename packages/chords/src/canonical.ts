@@ -59,8 +59,8 @@ export function semitonesBetweenKeys(fromKey: string, toKey: string): number | n
 }
 
 export function keyRootPc(key: string): PitchClass | null {
-  const m = key.trim().match(/^([A-G][#b]?)/);
-  return m ? pitchClassOf(m[1]) : null;
+  const root = key.trim().match(/^([A-G][#b]?)/)?.[1];
+  return root === undefined ? null : pitchClassOf(root);
 }
 
 export function keyIsMinor(key: string): boolean {
