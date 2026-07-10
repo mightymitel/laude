@@ -28,11 +28,14 @@ if (typeof window !== 'undefined') { // Vite is always client-side, but this che
     db = getFirestore(app);
     storage = getStorage(app);
 
-    // Emulator Suite wiring (PoC runs against demo-laude, never a real project).
+    // Emulator Suite wiring (dev runs against demo-laude, never a real
+    // project). The emulator host follows the PAGE's host so LAN devices
+    // (a phone on the wifi) reach the dev box's emulators, not themselves.
     if (import.meta.env.VITE_USE_EMULATOR === '1') {
-        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-        connectFirestoreEmulator(db, '127.0.0.1', 8080);
-        connectStorageEmulator(storage, '127.0.0.1', 9199);
+        const emulatorHost = window.location.hostname;
+        connectAuthEmulator(auth, `http://${emulatorHost}:9099`, { disableWarnings: true });
+        connectFirestoreEmulator(db, emulatorHost, 8080);
+        connectStorageEmulator(storage, emulatorHost, 9199);
     }
 }
 
