@@ -19,7 +19,7 @@ import {
 } from '@laude/tuner';
 
 export type TuningMode = 'chromatic' | 'guitar';
-export type MicStatus = 'requesting' | 'listening' | 'denied' | 'error';
+export type MicStatus = 'requesting' | 'listening' | 'denied' | 'error' | 'insecure';
 
 export interface TunerTarget {
     idle: boolean;
@@ -96,6 +96,13 @@ export function useTuner(mode: TuningMode) {
     }, [mode]);
 
     useEffect(() => {
+        // Browsers expose the mic API only in SECURE contexts (https or
+        // localhost) — over plain http on a LAN IP it simply doesn't exist.
+        if (navigator.mediaDevices?.getUserMedia === undefined) {
+            setStatus('insecure');
+            return;
+        }
+
         let cancelled = false;
         let stream: MediaStream | null = null;
         const detector = createPitchDetector();

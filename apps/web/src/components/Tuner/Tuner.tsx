@@ -47,6 +47,8 @@ const STATUS_TEXT = {
     requesting: 'Requesting microphone…',
     denied: 'Microphone access was denied. Allow the microphone for this site in your browser settings, then reopen the tuner.',
     error: 'Could not access the microphone. Check that one is connected and not in use by another app.',
+    insecure:
+        'The browser only allows microphone access on secure pages (HTTPS or localhost). Open the app over HTTPS — or on the dev box itself — to use the tuner.',
 } as const;
 
 function NoteReadout({ target, notationId }: { target: TunerTarget; notationId: string }) {

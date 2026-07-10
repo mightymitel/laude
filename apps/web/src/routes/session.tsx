@@ -134,9 +134,6 @@ function SessionPageContent() {
                         ))}
                     {error !== null && <span className={styles.guestIndicator}>⚠️ {error}</span>}
                     {isGuest && <span className={styles.guestIndicator}>👤 Guest Mode</span>}
-                    <Link to="/tuner" className={styles.shareBtn} title="Tune up (browser mic)">
-                        🎸 Tuner
-                    </Link>
                 </div>
             </header>
 
