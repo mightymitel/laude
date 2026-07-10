@@ -56,6 +56,10 @@ function PresenterPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const { results: searchResults } = useLyricsSearch(searchQuery)
 
+  // Phone-first: playlist + search live in an off-canvas drawer, closed by
+  // default; on ≥1024px the CSS pins the sidebar open and hides the toggle.
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
   // --- ACTIONS ---
 
   const selectSong = useCallback((item: SessionPlaylistItem) => {
@@ -68,6 +72,7 @@ function PresenterPage() {
       },
       currentSong: item.song,
     })
+    setDrawerOpen(false)
   }, [client])
 
   const goToPart = useCallback((index: number) => {
@@ -92,6 +97,7 @@ function PresenterPage() {
 
   const selectCommunitySong = (song: Song) => {
     setSearchQuery('')
+    setDrawerOpen(false)
     client?.send({
       current: { song_id: song.id, section_index: 0, key: song.defaultKey },
       currentSong: embed(song),
@@ -132,15 +138,30 @@ function PresenterPage() {
       )}
 
       <header className={styles.header}>
-        <h1>Presenter View</h1>
+        <button
+          className={styles.drawerToggle}
+          onClick={() => setDrawerOpen((v) => !v)}
+          aria-expanded={drawerOpen}
+          data-testid="presenter-drawer-toggle"
+        >
+          📋 Songs
+        </button>
+        <h1>Presenter</h1>
         <div className={styles.sessionInfo}>
-          <span>Viewer Code: <strong>{session.accessCode}</strong></span>
+          <span>Viewers: <strong>{session.accessCode}</strong></span>
         </div>
       </header>
 
       <div className={styles.layout}>
-        {/* Sidebar with Playlist and Search */}
-        <aside className={styles.sidebar}>
+        {drawerOpen && (
+          <button
+            className={styles.backdrop}
+            aria-label="Close song list"
+            onClick={() => setDrawerOpen(false)}
+          />
+        )}
+        {/* Playlist + search: off-canvas drawer on phones, pinned on desktop */}
+        <aside className={`${styles.sidebar} ${drawerOpen ? styles.sidebarOpen : ''}`}>
           <div className={styles.searchPanel}>
             <input
               type="text"
@@ -158,7 +179,7 @@ function PresenterPage() {
                     onClick={() => selectSearchHit(hit.song_id)}
                   >
                     <span>{hit.title}</span>
-                    <span className={styles.songKey}>{hit.snippet}</span>
+                    <span className={styles.searchSnippet}>{hit.snippet}</span>
                   </button>
                 ))}
               </div>
@@ -198,16 +219,7 @@ function PresenterPage() {
                 </div>
               </div>
 
-              <div className={styles.partsNav}>
-                <button onClick={prevPart} disabled={currentPartIndex === 0}>
-                  ← Prev
-                </button>
-                <span>Part {currentPartIndex + 1} of {currentSong.parts.length}</span>
-                <button onClick={nextPart} disabled={currentPartIndex >= currentSong.parts.length - 1}>
-                  Next →
-                </button>
-              </div>
-
+              {/* One thumb-scrollable row of part chips (grid on desktop) */}
               <div className={styles.partsGrid}>
                 {currentSong.parts.map((part, index) => (
                   <button
@@ -217,7 +229,7 @@ function PresenterPage() {
                   >
                     <div className={styles.partType}>{part.type}</div>
                     <div className={styles.partPreview}>
-                      {part.lines.slice(0, 2).map((line, i) => {
+                      {part.lines.slice(0, 1).map((line, i) => {
                         const { text: cleanText } = extractChordsFromLine(line.text)
                         return (
                           <div key={i} className={styles.previewLine}>
@@ -230,9 +242,9 @@ function PresenterPage() {
                 ))}
               </div>
 
-              {/* Current Part Display */}
+              {/* Current part owns the screen; scrolls internally */}
               <div className={styles.currentPart}>
-                <h3>{currentSong.parts[currentPartIndex]?.type}</h3>
+                <h3>{currentSong.parts[currentPartIndex]?.type ?? 'instrumental'}</h3>
                 <div className={styles.lyrics}>
                   {currentSong.parts[currentPartIndex]?.lines.map((line, i) => {
                     const { text: cleanText, chords } = extractChordsFromLine(line.text)
@@ -250,6 +262,19 @@ function PresenterPage() {
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Sticky bottom bar: Prev/Next in thumb reach */}
+              <div className={styles.partsNav}>
+                <button onClick={prevPart} disabled={currentPartIndex <= 0}>
+                  ← Prev
+                </button>
+                <span className={styles.partsNavLabel}>
+                  {currentPartIndex + 1} / {currentSong.parts.length}
+                </span>
+                <button onClick={nextPart} disabled={currentPartIndex >= currentSong.parts.length - 1}>
+                  Next →
+                </button>
               </div>
             </>
           ) : (

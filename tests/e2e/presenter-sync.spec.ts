@@ -109,7 +109,7 @@ test.describe('Presenter Sync Workflow', () => {
         await presenterPage.waitForLoadState('networkidle');
 
         // Wait for presenter view to load
-        await expect(presenterPage.locator('text=Presenter View')).toBeVisible({ timeout: 10000 });
+        await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible({ timeout: 10000 });
 
         // === Step 6: Presenter sees the 2 songs in playlist ===
         const presenterPlaylistItems = presenterPage.locator('[class*="playlistItem"]');
@@ -163,7 +163,7 @@ test.describe('Presenter Sync Workflow', () => {
 
         // Presenter opens and selects song
         await presenterPage.goto(`/present/${presenterCode}`);
-        await expect(presenterPage.locator('text=Presenter View')).toBeVisible({ timeout: 10000 });
+        await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible({ timeout: 10000 });
 
         // Wait for playlist to sync
         const presenterPlaylistItem = presenterPage.locator('[class*="playlistItem"]').first();
@@ -202,7 +202,7 @@ test.describe('Presenter Sync Workflow', () => {
 
         // Presenter opens view
         await presenterPage.goto(`/present/${presenterCode}`);
-        await expect(presenterPage.locator('text=Presenter View')).toBeVisible({ timeout: 10000 });
+        await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible({ timeout: 10000 });
 
         // Owner clicks on playlist item
         const ownerPlaylistItem = ownerPage.locator('[class*="playlistItem"]').first();
@@ -241,7 +241,7 @@ test.describe('Presenter Sync Workflow', () => {
 
         // Presenter opens view - should immediately see the current song from initial fetch
         await presenterPage.goto(`/present/${presenterCode}`);
-        await expect(presenterPage.locator('text=Presenter View')).toBeVisible({ timeout: 10000 });
+        await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible({ timeout: 10000 });
 
         // Wait for initial data fetch to complete
         await presenterPage.waitForTimeout(3000);
@@ -310,7 +310,7 @@ test.describe('Presenter Sync Workflow', () => {
         // Now have presenter also open and make a change
         const presenterCode = await getPresenterCode(ownerPage);
         await presenterPage.goto(`/present/${presenterCode}`);
-        await expect(presenterPage.locator('text=Presenter View')).toBeVisible({ timeout: 10000 });
+        await expect(presenterPage.getByRole('heading', { name: 'Presenter', exact: true })).toBeVisible({ timeout: 10000 });
 
         // Wait for presenter to sync
         await presenterPage.waitForTimeout(6000);

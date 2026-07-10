@@ -69,7 +69,10 @@ function SessionPageContent() {
     const [chordDisplay, setChordDisplay] = useState<ChordDisplay>('above')
 
     const [showQR, setShowQR] = useState(false)
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+    // Phones start with the drawer CLOSED — the set list must not bury the song.
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(
+        () => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
+    )
     const [showTuner, setShowTuner] = useState(false)
 
     // Auto-scroll to active part
@@ -195,7 +198,7 @@ function SessionPageContent() {
                     ) : (
                         <div className={styles.emptyState}>
                             <h2>Ready to Worship</h2>
-                            <p>Select a song from the left to begin.</p>
+                            <p>Open 🎵 Songs to search and pick a song.</p>
                         </div>
                     )}
                 </main>

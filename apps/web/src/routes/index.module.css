@@ -161,7 +161,7 @@
 }
 
 .divider {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 

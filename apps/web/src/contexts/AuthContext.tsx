@@ -12,6 +12,7 @@ import {
     signInWithPopup,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendEmailVerification,
     signOut as firebaseSignOut,
     AuthProvider as FirebaseAuthProvider,
 } from 'firebase/auth';
@@ -101,7 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const signUpWithEmail = async (email: string, password: string) => {
         setError(null);
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            // Firebase does NOT send this automatically — signup only creates
+            // the account. (No-op delivery on the emulator; real mail in prod.)
+            await sendEmailVerification(cred.user);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Sign up failed');
             throw err;

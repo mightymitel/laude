@@ -7,8 +7,8 @@
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #f1f3f5;
   --text-primary: #171717;
-  --text-secondary: #666666;
-  --text-muted: #999999;
+  --text-secondary: #555555;
+  --text-muted: #6b7280;
 
   /* Brand Colors */
   --primary: #0070f3;
@@ -34,6 +34,19 @@
   /* Legacy compatibility */
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
+
+  /* Alias vocabulary used by older module css — resolves through the tokens
+   * above, so both themes work without touching those files. */
+  --color-surface: var(--bg-secondary);
+  --color-surface-elevated: var(--bg-tertiary);
+  --color-text: var(--text-primary);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-transparent: color-mix(in srgb, var(--primary) 15%, transparent);
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --primary-dark: var(--primary-hover);
+  --primary-rgb: 0, 112, 243;
 }
 
 /* Dark mode via system preference */
@@ -43,8 +56,8 @@
     --bg-secondary: #141414;
     --bg-tertiary: #1e1e1e;
     --text-primary: #ededed;
-    --text-secondary: #a0a0a0;
-    --text-muted: #666666;
+    --text-secondary: #b3b3b3;
+    --text-muted: #8f8f8f;
 
     --primary: #3291ff;
     --primary-hover: #0070f3;
@@ -57,6 +70,7 @@
 
     --background: var(--bg-primary);
     --foreground: var(--text-primary);
+    --primary-rgb: 50, 145, 255;
   }
 }
 
@@ -66,8 +80,8 @@
   --bg-secondary: #141414;
   --bg-tertiary: #1e1e1e;
   --text-primary: #ededed;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666666;
+  --text-secondary: #b3b3b3;
+  --text-muted: #8f8f8f;
 
   --primary: #3291ff;
   --primary-hover: #0070f3;
@@ -80,6 +94,7 @@
 
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
+  --primary-rgb: 50, 145, 255;
 }
 
 /* Light mode override */
@@ -88,8 +103,8 @@
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #f1f3f5;
   --text-primary: #171717;
-  --text-secondary: #666666;
-  --text-muted: #999999;
+  --text-secondary: #555555;
+  --text-muted: #6b7280;
 
   --primary: #0070f3;
   --primary-hover: #0060df;
@@ -144,6 +159,20 @@ button {
 /* Mobile: < 640px */
 /* Tablet: 640px - 1024px */
 /* Desktop: > 1024px */
+
+/* Mobile form fields at 16px — anything smaller makes iOS zoom the page on
+ * focus, which is the single most disorienting thing in the live views. */
+@media (max-width: 900px) {
+  input[type='text'],
+  input[type='search'],
+  input[type='email'],
+  input[type='password'],
+  input[type='url'],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
 
 .container {
   max-width: 1200px;

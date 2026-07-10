@@ -1,5 +1,5 @@
 .container {
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     background: var(--background);
@@ -60,34 +60,68 @@
     width: 48px;
 }
 
-/* Mobile: Sidebar becomes slide-out panel */
+/* Mobile: the sidebar is an off-canvas drawer (collapsed by default — the
+ * page defaults it closed on small screens) with a backdrop. */
 @media (max-width: 768px) {
     .sidebar {
         position: fixed;
         left: 0;
-        top: 60px;
+        top: 0;
         bottom: 0;
-        width: 320px;
+        width: min(85vw, 340px);
         z-index: 100;
         transform: translateX(0);
         transition: transform 0.3s ease;
-        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.35);
     }
 
     .sidebarCollapsed {
-        transform: translateX(-100%);
-        width: 320px;
-    }
-
-    .sidebarToggle {
-        position: fixed;
-        left: 0.5rem;
-        top: 70px;
-        z-index: 101;
+        transform: translateX(-105%);
+        width: min(85vw, 340px);
     }
 
     .sidebarCollapsed+.mainContent {
         margin-left: 0;
+    }
+}
+
+.sidebarBackdrop {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .sidebarBackdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* Floating opener in thumb reach while the drawer is closed. */
+    .drawerOpener {
+        position: fixed;
+        left: 0.75rem;
+        bottom: calc(0.9rem + env(safe-area-inset-bottom));
+        z-index: 60;
+        min-height: 52px;
+        padding: 0 1.1rem;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--primary);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+    }
+}
+
+@media (min-width: 769px) {
+    .drawerOpener {
+        display: none;
     }
 }
 
@@ -719,39 +753,26 @@
 
 /* Responsive Breakpoints */
 @media (max-width: 768px) {
+    /* One compact header row that wraps; never a 3-row stack. */
     .header {
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
-
-    .headerLeft,
-    .headerRight {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .layout {
-        flex-direction: column;
-    }
-
-    .sidebar {
-        width: 100%;
         height: auto;
-        max-height: 40vh;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+        min-height: 52px;
+        gap: 0.4rem;
+        padding: 0.4rem 0.6rem;
+        flex-wrap: wrap;
     }
 
-    .sidebarCollapsed {
-        width: 100%;
-        height: 48px;
-        max-height: 48px;
+    .headerLeft {
+        gap: 0.6rem;
     }
 
-    .sidebarToggle {
-        top: 0.5rem;
-        right: 0.5rem;
+    .headerLeft h1 {
+        font-size: 1rem;
+    }
+
+    .headerRight {
+        gap: 0.4rem;
+        flex-wrap: wrap;
     }
 
     .mainContent {

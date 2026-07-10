@@ -14,14 +14,14 @@
 }
 
 .modal {
-    background: var(--bg-card, #1e1e1e);
+    background: var(--bg-secondary);
     border-radius: 12px;
     padding: 0;
     min-width: 320px;
     max-width: 90vw;
     max-height: 90vh;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border-color, #333);
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     animation: slideIn 0.2s ease-out;
@@ -29,7 +29,7 @@
 
 .header {
     padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color, #333);
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -39,13 +39,13 @@
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--text-primary, #fff);
+    color: var(--text-primary);
 }
 
 .closeBtn {
     background: none;
     border: none;
-    color: var(--text-secondary, #888);
+    color: var(--text-secondary);
     font-size: 24px;
     line-height: 1;
     cursor: pointer;
@@ -55,7 +55,7 @@
 }
 
 .closeBtn:hover {
-    color: var(--text-primary, #fff);
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
 }
 

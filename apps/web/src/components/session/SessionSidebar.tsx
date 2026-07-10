@@ -27,11 +27,29 @@ interface SessionSidebarProps {
     savedSessionName?: string
 }
 
-/** Search + results + the session playlist (left panel of the session page). */
+/** Search + results + the session playlist (left panel of the session page;
+ * off-canvas drawer with a backdrop on phones). */
 export function SessionSidebar(props: SessionSidebarProps) {
     const { collapsed, searchQuery, songs } = props
 
     return (
+        <>
+            {!collapsed && (
+                <button
+                    className={styles.sidebarBackdrop}
+                    aria-label="Close song panel"
+                    onClick={props.onToggleCollapsed}
+                />
+            )}
+            {collapsed && (
+                <button
+                    className={styles.drawerOpener}
+                    onClick={props.onToggleCollapsed}
+                    data-testid="open-song-panel"
+                >
+                    🎵 Songs
+                </button>
+            )}
         <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
             <button
                 className={styles.sidebarToggle}
@@ -146,5 +164,6 @@ export function SessionSidebar(props: SessionSidebarProps) {
                 </>
             )}
         </aside>
+        </>
     )
 }

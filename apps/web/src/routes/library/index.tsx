@@ -29,7 +29,7 @@ function LibraryPage() {
                 <Link
                     to="/dashboard"
                     style={{
-                        color: '#666',
+                        color: 'var(--text-secondary)',
                         textDecoration: 'none',
                         display: 'flex',
                         alignItems: 'center',
@@ -69,7 +69,7 @@ function LibraryPage() {
                             style={{
                                 padding: '0.75rem',
                                 borderRadius: '4px',
-                                border: '1px solid #ddd',
+                                border: '1px solid var(--border)', background: 'var(--bg-primary)', color: 'var(--text-primary)',
                                 maxWidth: '300px',
                                 width: '100%',
                             }}
@@ -78,7 +78,7 @@ function LibraryPage() {
                             to="/library/new"
                             style={{
                                 padding: '0.75rem 1.5rem',
-                                background: '#0070f3',
+                                background: 'var(--primary)',
                                 color: 'white',
                                 borderRadius: '4px',
                                 textDecoration: 'none',
@@ -96,16 +96,16 @@ function LibraryPage() {
                     style={{
                         textAlign: 'center',
                         padding: '4rem',
-                        background: '#f5f5f5',
+                        background: 'var(--bg-tertiary)',
                         borderRadius: '8px',
                     }}
                 >
-                    <p style={{ color: '#666', marginBottom: '1rem' }}>No songs found.</p>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>No songs found.</p>
                     {search ? (
                         <button
                             onClick={() => setSearch('')}
                             style={{
-                                color: '#0070f3',
+                                color: 'var(--primary)',
                                 background: 'none',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -114,7 +114,7 @@ function LibraryPage() {
                             Clear search
                         </button>
                     ) : (
-                        <Link to="/library/new" style={{ color: '#0070f3' }}>
+                        <Link to="/library/new" style={{ color: 'var(--primary)' }}>
                             Create your first song
                         </Link>
                     )}
@@ -133,11 +133,11 @@ function LibraryPage() {
                             to="/library/$id"
                             params={{ id: song.id }}
                             style={{
-                                background: 'white',
+                                background: 'var(--bg-secondary)',
                                 padding: '1.5rem',
                                 borderRadius: '8px',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                border: '1px solid #eee',
+                                border: '1px solid var(--border)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '0.5rem',
@@ -160,7 +160,7 @@ function LibraryPage() {
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
                                     {song.title}
                                 </h3>
-                                <p style={{ color: '#666', fontSize: '0.9rem' }}>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                     {song.author || 'Unknown Author'}
                                 </p>
                             </div>
@@ -168,11 +168,11 @@ function LibraryPage() {
                             {/* Lyrics Snippet */}
                             <div
                                 style={{
-                                    background: '#f9f9f9',
+                                    background: 'var(--bg-tertiary)',
                                     padding: '0.75rem',
                                     borderRadius: '4px',
                                     fontSize: '0.85rem',
-                                    color: '#555',
+                                    color: 'var(--text-secondary)',
                                     fontStyle: 'italic',
                                     lineHeight: '1.4',
                                     flex: 1,
@@ -187,14 +187,14 @@ function LibraryPage() {
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                     fontSize: '0.8rem',
-                                    color: '#888',
+                                    color: 'var(--text-muted)',
                                     marginTop: 'auto',
                                 }}
                             >
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <span
                                         style={{
-                                            background: '#eee',
+                                            background: 'var(--bg-tertiary)',
                                             padding: '0.2rem 0.5rem',
                                             borderRadius: '4px',
                                         }}
@@ -215,11 +215,11 @@ function LibraryPage() {
 function getLyricsSnippet(song: Song, searchTerm: string) {
     if (!song.parts) return null
 
-    // Flatten all lines
+    // Flatten all lines — snippets are for READING, so chord tokens go.
     const allLines: string[] = []
     song.parts.forEach((p: SongPart) => {
         p.lines.forEach((l) => {
-            allLines.push(l.text)
+            allLines.push(l.text.replace(/\[[^\]]*\]/g, ''))
         })
     })
 
@@ -276,7 +276,7 @@ function HighlightedText({
                 part.toLowerCase() === highlight.toLowerCase() ? (
                     <span
                         key={i}
-                        style={{ backgroundColor: '#fff0b3', fontWeight: 'bold' }}
+                        style={{ backgroundColor: '#fff0b3', color: '#1a1a1a', fontWeight: 'bold' }}
                     >
                         {part}
                     </span>

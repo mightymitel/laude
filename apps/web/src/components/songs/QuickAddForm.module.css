@@ -27,7 +27,7 @@
 
 .helpText {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 0.5rem;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .previewPlaceholder {
-    color: #888;
+    color: var(--text-muted);
 }
 
 .previewPart {
