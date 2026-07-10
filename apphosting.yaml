@@ -21,18 +21,20 @@ scripts:
   # (that's exactly how the first rollout burned its 1h budget).
   # The install is scoped to the deployed workspaces: studio (native sqlite
   # build) and laudj are not part of this backend.
-  # Scoped install first (fast: no studio native builds, no laudj), falling
-  # back to the full install (slow but proven in this environment) — the
-  # buildpack's nested npm run can carry npm_config_* env that breaks
-  # workspace filtering, which is also why build:hosting uses --prefix.
-  buildCommand: (npm ci --include=dev --workspaces true -w web -w @laudasist/api -w @laudasist/shared || npm ci --include=dev) && npm run build:hosting
+  # FULL install on purpose: workspace-scoped `npm ci -w …` skips the
+  # selected workspaces' devDependencies under the buildpack (vite etc.
+  # missing → tsc fails). The full ci is slower cold (~30min, cached after)
+  # but semantically bulletproof. build:hosting drives the three builds via
+  # --prefix — immune to any inherited npm workspace config.
+  buildCommand: npm ci --include=dev && npm run build:hosting
   runCommand: npm start -w apps/api
 
 env:
+  # RUNTIME only: NODE_ENV=production during BUILD makes npm treat dev
+  # dependencies as omittable — and the build needs them (vite, tsc).
   - variable: NODE_ENV
     value: production
     availability:
-      - BUILD
       - RUNTIME
 
   # The web bundle's Firebase client config (public web-app values).
