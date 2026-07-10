@@ -17,6 +17,9 @@ on:
       - 'firestore.indexes.json'
       - 'tests/rules/**'
       - '.github/workflows/release-rules.yml'
+  # For the FIRST deploy (and recovery): a deliberate manual trigger — still
+  # the same gated pipeline, still never `firebase deploy` by hand.
+  workflow_dispatch:
 
 jobs:
   rules:
