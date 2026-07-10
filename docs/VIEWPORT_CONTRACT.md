@@ -33,7 +33,7 @@ holes.
 | --- | --- | --- |
 | `{{song_title}}` | `currentSong.title` | no current song |
 | `{{song_author}}` | `currentSong.author` | author unset |
-| `{{key}}` | `current.key ?? currentSong.originalKey` | no current song |
+| `{{key}}` | `current.key ?? currentSong.defaultKey` | no current song |
 | `{{section_name}}` | `currentSong.parts[current.section_index].type` | out of range or `'instrumental'` |
 | `{{lyrics}}` | current part lines, chord tokens stripped | no current song |
 | `{{chords}}` | current part chord row | song has no chords / chords hidden |
