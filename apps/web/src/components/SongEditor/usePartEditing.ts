@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, useCallback } from 'react';
-import { Song, SongPart, PartType, approximateChordsFromPart } from '@laudasist/shared';
+import { approximateChordsFromPart } from '@laude/chords';
+import { Song, SongPart, PartType } from '@laudasist/shared';
 import { autoSplitParts, generatePartId, parseRawSong } from './songEditorModel';
 
 /**
@@ -157,11 +158,8 @@ export function usePartEditing(setEditingSong: Dispatch<SetStateAction<Partial<S
 
             if (!sourcePart || !targetPart) return prev;
 
-            // Approximate chords from source to target
-            const updatedPart = approximateChordsFromPart(sourcePart, targetPart, {
-                useSyllables: false, // Use character-based for now
-                language: 'ro',
-            });
+            // Approximate chords from source to target (character-proportional)
+            const updatedPart = approximateChordsFromPart(sourcePart, targetPart);
 
             parts[targetPartIndex] = updatedPart;
 
