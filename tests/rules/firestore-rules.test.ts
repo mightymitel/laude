@@ -56,6 +56,11 @@ before(async () => {
       name: 'Duminică',
       items: [],
     });
+    await setDoc(doc(db, 'sessions/sess-alice'), {
+      ownerId: 'alice',
+      name: 'Seara de rugăciune',
+      items: [],
+    });
   });
 });
 
@@ -108,8 +113,28 @@ test('an authed non-owner cannot overwrite someone else\'s song (WP-114 rules ha
   await assertFails(updateDoc(doc(bob, 'songs/song-public'), { title: 'defaced' }));
 });
 
-test('no allow-all fallthrough: unknown collections deny (the old sessions rule is gone)', async () => {
+test('saved sessions are owner-scoped INCLUDING reads — items embed private songs (DEC-96)', async () => {
   const alice = env.authenticatedContext('alice').firestore();
+  const bob = env.authenticatedContext('bob').firestore();
+  const anon = env.unauthenticatedContext().firestore();
+
+  await assertSucceeds(getDoc(doc(alice, 'sessions/sess-alice')));
+  await assertSucceeds(updateDoc(doc(alice, 'sessions/sess-alice'), { name: 'Vineri' }));
+  await assertFails(getDoc(doc(bob, 'sessions/sess-alice')));
+  await assertFails(updateDoc(doc(bob, 'sessions/sess-alice'), { name: 'hijacked' }));
+  await assertFails(getDoc(doc(anon, 'sessions/sess-alice')));
+
+  await assertSucceeds(
+    setDoc(doc(bob, 'sessions/sess-bob'), { ownerId: 'bob', name: 'Mine', items: [] }),
+  );
+  await assertFails(
+    setDoc(doc(bob, 'sessions/sess-fake'), { ownerId: 'alice', name: 'Spoofed', items: [] }),
+  );
+});
+
+test('no allow-all fallthrough: unknown collections deny; sessions requires an owned doc', async () => {
+  const alice = env.authenticatedContext('alice').firestore();
+  // The old allow-all sessions rule is gone: a doc without ownerId==uid denies.
   await assertFails(setDoc(doc(alice, 'sessions/main'), { anything: true }));
   await assertFails(getDoc(doc(alice, 'performances/perf-1')));
   await assertFails(setDoc(doc(alice, 'random_collection/x'), { y: 1 }));

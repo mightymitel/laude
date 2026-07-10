@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TunerRouteImport } from './routes/tuner'
 import { Route as StudioRouteImport } from './routes/studio'
+import { Route as SessionsRouteImport } from './routes/sessions'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as PlaylistsRouteImport } from './routes/playlists'
 import { Route as LoginRouteImport } from './routes/login'
@@ -33,6 +34,11 @@ const TunerRoute = TunerRouteImport.update({
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
   path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsRoute = SessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionRoute = SessionRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
+  '/sessions': typeof SessionsRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
+  '/sessions': typeof SessionsRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/playlists': typeof PlaylistsRoute
   '/session': typeof SessionRoute
+  '/sessions': typeof SessionsRoute
   '/studio': typeof StudioRoute
   '/tuner': typeof TunerRoute
   '/debug/song-editor': typeof DebugSongEditorRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/sessions'
     | '/studio'
     | '/tuner'
     | '/debug/song-editor'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/sessions'
     | '/studio'
     | '/tuner'
     | '/debug/song-editor'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/playlists'
     | '/session'
+    | '/sessions'
     | '/studio'
     | '/tuner'
     | '/debug/song-editor'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PlaylistsRoute: typeof PlaylistsRoute
   SessionRoute: typeof SessionRoute
+  SessionsRoute: typeof SessionsRoute
   StudioRoute: typeof StudioRoute
   TunerRoute: typeof TunerRoute
   DebugSongEditorRoute: typeof DebugSongEditorRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/studio'
       fullPath: '/studio'
       preLoaderRoute: typeof StudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions': {
+      id: '/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof SessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session': {
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PlaylistsRoute: PlaylistsRoute,
   SessionRoute: SessionRoute,
+  SessionsRoute: SessionsRoute,
   StudioRoute: StudioRoute,
   TunerRoute: TunerRoute,
   DebugSongEditorRoute: DebugSongEditorRoute,

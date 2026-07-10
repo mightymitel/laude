@@ -41,11 +41,14 @@ test.describe('Live Session QR Code and Viewport Features', () => {
         await expect(shareModal).toBeVisible();
 
         // Verify viewport selector buttons are present (scoped to the modal —
-        // the session header's directives bar also has stage/instrument buttons)
+        // the session header's directives bar also has stage/instrument buttons).
+        // The modal offers the four CONTRACT classes ('audience' died with its
+        // alias — DEC-98 cleanup, session #5).
         const modal = page.locator('[class*="qrModal"]');
-        await expect(modal.locator('button:has-text("Audience")')).toBeVisible();
+        await expect(modal.locator('button:has-text("Main")')).toBeVisible();
         await expect(modal.locator('button:has-text("Instrument")')).toBeVisible();
         await expect(modal.locator('button:has-text("Stage")')).toBeVisible();
+        await expect(modal.locator('button:has-text("Subtitles")')).toBeVisible();
 
         // Close modal
         await page.click('button:has-text("Close")', { force: true });

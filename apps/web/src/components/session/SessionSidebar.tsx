@@ -22,6 +22,9 @@ interface SessionSidebarProps {
     /** The DJ's local-only songs — requestable, transmitted by-value. */
     djLocalSongs: DjManifestEntry[]
     onRequestDjSong: (localSongId: string) => void
+    /** Set when the page was opened from a persisted session (DEC-96). */
+    savedSessionId?: string
+    savedSessionName?: string
 }
 
 /** Search + results + the session playlist (left panel of the session page). */
@@ -137,6 +140,8 @@ export function SessionSidebar(props: SessionSidebarProps) {
                         onRemoveSong={props.onPlaylistRemove}
                         onUpdateItem={props.onPlaylistUpdate}
                         onSelectSong={props.onPlaylistSelect}
+                        savedSessionId={props.savedSessionId}
+                        savedSessionName={props.savedSessionName}
                     />
                 </>
             )}

@@ -78,9 +78,17 @@ service cloud.firestore {
         && request.resource.data.ownerId == request.auth.uid;
     }
 
-    // NO client `sessions` collection: the live session is owned by the
-    // session relay (authoritative in-memory state; socket/REST transport).
-    //
+    // The PERSISTED session, narrow (DEC-96/99): {name, items-by-value},
+    // strictly owner-scoped — reads too, because items may embed PRIVATE
+    // songs by-value. The LIVE session stays with the relay (authoritative
+    // in-memory state; socket/REST transport), never a client collection.
+    match /sessions/{sessionId} {
+      allow read, update, delete: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerId == request.auth.uid;
+    }
+
     // NO personal-domain collections (performances, sections, beatgrid,
     // chords, recorded_services, segments): that data lives in LaudStudio's
     // local store, never in Firestore — default deny by omission.

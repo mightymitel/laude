@@ -18,6 +18,8 @@ export const Route = createFileRoute('/session')({
         return {
             guest: search.guest === 'true' || search.guest === true,
             playlistId: typeof search.playlistId === 'string' ? search.playlistId : undefined,
+            savedSessionId:
+                typeof search.savedSessionId === 'string' ? search.savedSessionId : undefined,
         }
     },
 })
@@ -31,7 +33,7 @@ function SessionPage() {
 }
 
 function SessionPageContent() {
-    const { guest: isGuest, playlistId } = Route.useSearch()
+    const { guest: isGuest, playlistId, savedSessionId } = Route.useSearch()
 
     const {
         live,
@@ -54,7 +56,8 @@ function SessionPageContent() {
         djAudioSongIds,
         djLocalSongs,
         requestDjSong,
-    } = useSessionSongState(playlistId)
+        savedSessionName,
+    } = useSessionSongState(playlistId, savedSessionId)
 
     const { session, state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
 
@@ -151,6 +154,8 @@ function SessionPageContent() {
                         if (key) setDisplayKey(asKey(key))
                         setCurrentPartIndex(0)
                     }}
+                    savedSessionId={savedSessionId}
+                    savedSessionName={savedSessionName}
                 />
 
                 <main className={styles.mainContent}>

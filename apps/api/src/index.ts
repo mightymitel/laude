@@ -73,6 +73,10 @@ app.use('/api/community', communityRouter);
 import playlistsRouter from './routes/playlists.js';
 app.use('/api/playlists', authMiddleware, playlistsRouter);
 
+// Persisted sessions, narrow (DEC-96/99) — owner-scoped, require auth.
+import savedSessionsRouter from './routes/savedSessions.js';
+app.use('/api/saved-sessions', authMiddleware, savedSessionsRouter);
+
 // Lyrics search (WP-105): optional auth — anonymous sees public+official,
 // authed additionally sees own private songs. Always-warm process by design.
 import searchRouter from './routes/search.js';

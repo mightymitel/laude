@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSongs, useSong } from '@/hooks/useSongs'
 import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
+import { useSavedSession } from '@/hooks/useSavedSessions'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
 import type { Key, Song } from '@laudasist/shared'
 import { asKey } from '@/lib/keys'
@@ -22,12 +23,13 @@ function embed(song: Song): EmbeddedSong {
     }
 }
 
-export function useSessionSongState(playlistId: string | undefined) {
+export function useSessionSongState(playlistId: string | undefined, savedSessionId?: string) {
     // Search
     const [searchQuery, setSearchQuery] = useState('')
     const { data: searchResults } = useSongs({ search: searchQuery || undefined })
     const { data: allSongsData } = useSongs({})
     const { data: initialPlaylist } = usePlaylist(playlistId || '')
+    const { data: savedSession } = useSavedSession(savedSessionId || '')
 
     // Recently played persists per device (Flow 1) — never session state.
     const [recentlyPlayed, setRecentlyPlayed] = useState<string[]>(() => {
@@ -74,6 +76,23 @@ export function useSessionSongState(playlistId: string | undefined) {
             setPlaylistLoaded(true)
         }
     }, [initialPlaylist, playlistLoaded, session])
+
+    // Open a PERSISTED session (DEC-96): its by-value items become the
+    // session's working playlist — a copy, same clone-in rule as playlists.
+    useEffect(() => {
+        if (savedSession && !playlistLoaded) {
+            session.setPlaylist(
+                savedSession.items.map((item) => ({
+                    id: item.id,
+                    songId: item.songId,
+                    ...(item.key !== undefined ? { key: item.key } : {}),
+                    ...(item.arrangement !== undefined ? { arrangement: item.arrangement } : {}),
+                    ...(item.song !== undefined ? { song: item.song } : {}),
+                })),
+            )
+            setPlaylistLoaded(true)
+        }
+    }, [savedSession, playlistLoaded, session])
 
     // === UPDATE HELPERS (single write path, any transport) ===
     const setCurrentSongId = useCallback(
@@ -212,5 +231,6 @@ export function useSessionSongState(playlistId: string | undefined) {
         setSessionPlaylist,
         pickSong,
         embed,
+        savedSessionName: savedSession?.name,
     }
 }

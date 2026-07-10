@@ -120,6 +120,9 @@ function DashboardPage() {
                         <Link to="/playlists" className={styles.link}>
                             📋 Manage Playlists
                         </Link>
+                        <Link to="/sessions" className={styles.link}>
+                            📅 My Sessions
+                        </Link>
                         {/* <Link to="/services" className={styles.link}>
                             Manage Services (Coming Soon)
                         </Link>

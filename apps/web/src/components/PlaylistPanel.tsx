@@ -4,6 +4,7 @@ import { useSong } from '@/hooks/useSongs';
 import { POSSIBLE_KEYS } from '@/lib/keys';
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session';
 import { PlaylistPortability } from './session/PlaylistPortability';
+import { SavedSessionBar } from './session/SavedSessionBar';
 import styles from './PlaylistPanel.module.css';
 
 // Session content types now live in @laude/session (by-value path).
@@ -16,6 +17,9 @@ interface PlaylistPanelProps {
     onUpdateItem: (itemId: string, updates: Partial<SessionPlaylistItem>) => void;
     onSelectSong: (songId: string, key?: string) => void;
     currentSongId: string | null;
+    /** Set when the page was opened from a persisted session (DEC-96). */
+    savedSessionId?: string;
+    savedSessionName?: string;
 }
 
 // Component to display a single playlist item with song title
@@ -84,6 +88,8 @@ export function PlaylistPanel({
     onUpdateItem,
     onSelectSong,
     currentSongId,
+    savedSessionId,
+    savedSessionName,
 }: PlaylistPanelProps) {
     const [showLoadModal, setShowLoadModal] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -146,6 +152,12 @@ export function PlaylistPanel({
             <PlaylistPortability
                 items={sessionPlaylist}
                 onImport={(imported) => imported.forEach((item) => onAddSong(item))}
+            />
+
+            <SavedSessionBar
+                items={sessionPlaylist}
+                savedSessionId={savedSessionId}
+                savedSessionName={savedSessionName}
             />
 
             {sessionPlaylist.length === 0 ? (
