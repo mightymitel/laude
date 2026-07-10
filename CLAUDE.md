@@ -22,10 +22,9 @@ and the Decision Log).
 
 ## Repo layout
 - `apps/web` — Laudasist frontend (React 19 + Vite + TanStack Router/Query).
-- `apps/api` — Laudasist backend (Express, Firebase Admin, REST only).
-- `apps/relay` — stateful session relay (Express + socket.io, :3003).
-  DEC-52 wants it re-fused as `packages/relay`; until that ticket lands it
-  stays a workspace app.
+- `apps/api` — Laudasist backend (Express + Firebase Admin). Mounts the
+  session relay (`@laude/relay`, DEC-52): one process, REST + socket.io on
+  :3001; in production it also serves the built web bundle (DEC-103).
 - `apps/laudj` — LauDJ engine + control panel (web now, Tauri shell later).
 - `apps/studio` — LaudStudio: local SQLite store + HTTP service (:3002),
   seeders, ingest, editor. (Folder renamed from `laudstudio`; product name is
@@ -37,11 +36,19 @@ and the Decision Log).
 `apps/web` and `apps/api` may never import from `apps/laudj` or `apps/studio`.
 Laudasist is complete alone; Studio and LauDJ are power-ups (DEC-64).
 
-## The frozen laudasist repo
+## The frozen laudasist repo & deployment
 The old `laudasist` repo (github.com/mightymitel/laudasist) is **FROZEN**: its
-main branch auto-deploys laudasist.ro against the old Firebase project and is
-the rollback. Never commit to it, never push to it, never wire
-`apphosting.yaml` from here without an explicit ticket.
+backend is an **archive** (target: old.laudasist.ro, unmaintained, no
+functional promise — it WILL break as new rules land, DEC-100). Never commit
+or push to it. The rollback story is App Hosting rollback + relay LAN mode
+(DEC-101), never the frozen app.
+
+THIS repo deploys (DEC-100/102/103): one App Hosting backend `laudasist`
+(project `laudasist-1c1d2`, europe-west4) tracking the **`release`** branch —
+merging `main → release` IS the deploy act; `main` stays free for agents.
+Firestore rules/indexes deploy ONLY via `.github/workflows/release-rules.yml`
+(gated on `npm run test:rules`) — never `firebase deploy --only
+firestore:rules` by hand. Dev remains **emulator only** (`demo-laude`).
 
 ## Commands (npm everywhere; Node via nvm)
 - Install: `npm i` · One-command dev stack: `npm run poc`
