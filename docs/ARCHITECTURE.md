@@ -86,7 +86,10 @@ graph LR
 - **Shell:** vite-plugin-pwa (Workbox) precaches JS/CSS/HTML/fonts/icons ONLY;
   no runtime caching — the SW must never cache Firestore/API song responses.
   Update flow is an in-app "refresh to update" prompt, never a silent reload.
-- **Song data offline:** `@laude/local-library` (IndexedDB) owns it. Two
+- **Song data offline:** `@laude/local-library` (IndexedDB) owns it. A
+  downloaded/recent row carries the FULL song document (`source_doc`) so the
+  offline render is identical to online (arrangements, all part types);
+  the chordpro container is written alongside as the interop work chart. Two
   retention classes: `pinned` (user download, never auto-evicted) and `cached`
   (recents, LRU cap 20 in `retention.ts`). Only `origin: 'downloaded'` rows are
   eviction candidates; guest-authored content is permanent.
