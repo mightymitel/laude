@@ -6,7 +6,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { MemoryLocalLibrary } from './memory';
-import type { LocalLibrary, LocalLibrarySong } from './types';
+import { pinSong, removeDownload, touchRecent } from './retention';
+import { chordproToEmbedded, embeddedToChordpro, type LocalLibrary, type LocalLibrarySong } from './types';
 
 function guestSong(id: string): LocalLibrarySong {
   const now = '2026-07-09T00:00:00.000Z';
@@ -93,7 +94,102 @@ function contractSuite(name: string, make: () => LocalLibrary): void {
     assert.deepEqual(await lib.listFavorites(), []);
     assert.equal(await lib.getSyncState('local-4'), null);
   });
+
+  // === Retention (WP-158): pinned downloads + cached recents LRU ===
+
+  function downloadedSong(id: string, title = `Song ${id}`): LocalLibrarySong {
+    return { ...guestSong(id), title, origin: 'downloaded', global_song_id: `g-${id}`, link_state: 'linked' };
+  }
+
+  test(`${name}: recents LRU evicts oldest cached past the cap`, async () => {
+    const lib = make();
+    for (let i = 1; i <= 4; i++) {
+      await lib.saveSong(downloadedSong(`d${i}`));
+      await touchRecent(lib, `d${i}`, `2026-07-11T00:0${i}:00.000Z`, 3);
+    }
+    assert.equal(await lib.getSong('d1'), null, 'oldest evicted past cap 3');
+    assert.ok(await lib.getSong('d2'));
+    assert.ok(await lib.getSong('d4'));
+    const klasses = (await lib.listRetention()).map((r) => r.klass);
+    assert.deepEqual([...new Set(klasses)], ['cached']);
+  });
+
+  test(`${name}: pinned is never evicted by the recents LRU`, async () => {
+    const lib = make();
+    await lib.saveSong(downloadedSong('pin'));
+    await pinSong(lib, 'pin', '2026-07-11T00:00:00.000Z'); // oldest timestamp of all
+    for (let i = 1; i <= 3; i++) {
+      await lib.saveSong(downloadedSong(`d${i}`));
+      await touchRecent(lib, `d${i}`, `2026-07-11T00:0${i}:00.000Z`, 2);
+    }
+    assert.ok(await lib.getSong('pin'), 'pinned survives');
+    assert.equal((await lib.listRetention()).find((r) => r.song_id === 'pin')?.klass, 'pinned');
+    assert.equal(await lib.getSong('d1'), null, 'cached beyond cap still evicts');
+  });
+
+  test(`${name}: opening a pinned song does not demote it to cached`, async () => {
+    const lib = make();
+    await lib.saveSong(downloadedSong('pin2'));
+    await pinSong(lib, 'pin2', '2026-07-11T00:00:00.000Z');
+    await touchRecent(lib, 'pin2', '2026-07-11T01:00:00.000Z', 5);
+    assert.equal((await lib.listRetention()).find((r) => r.song_id === 'pin2')?.klass, 'pinned');
+  });
+
+  test(`${name}: authored songs never enter the evictable class`, async () => {
+    const lib = make();
+    await lib.saveSong(guestSong('mine')); // origin 'authored'
+    await touchRecent(lib, 'mine', '2026-07-11T00:00:00.000Z', 1);
+    assert.deepEqual(await lib.listRetention(), [], 'no retention row for the only copy');
+    assert.ok(await lib.getSong('mine'));
+  });
+
+  test(`${name}: remove-download deletes the downloaded copy but only unpins other origins`, async () => {
+    const lib = make();
+    await lib.saveSong(downloadedSong('dl'));
+    await pinSong(lib, 'dl', '2026-07-11T00:00:00.000Z');
+    await removeDownload(lib, 'dl');
+    assert.equal(await lib.getSong('dl'), null);
+
+    await lib.saveSong(guestSong('own'));
+    await lib.setRetention({ song_id: 'own', klass: 'pinned', last_opened_at: '2026-07-11T00:00:00.000Z' });
+    await removeDownload(lib, 'own');
+    assert.ok(await lib.getSong('own'), 'authored content survives remove-download');
+    assert.deepEqual(await lib.listRetention(), []);
+  });
 }
+
+test('chordpro round-trip: embedded → chart container → embedded', () => {
+  const embedded = {
+    id: 'g-1',
+    title: 'Round Trip',
+    author: 'Echipa',
+    defaultKey: 'D',
+    parts: [
+      { type: 'verse', lines: [{ text: '[1]rând unu' }, { text: 'rând [4]doi' }] },
+      { type: 'chorus', lines: [{ text: '[5]refren' }] },
+      { type: 'bridge', lines: [{ text: '[6m]punte' }] },
+    ],
+  };
+  const chordpro = embeddedToChordpro(embedded);
+  const back = chordproToEmbedded({
+    id: 'local-x',
+    global_song_id: 'g-1',
+    title: 'Round Trip',
+    author: 'Echipa',
+    analysis_key: 'D',
+    chordpro,
+  });
+  assert.equal(back.id, 'g-1');
+  assert.equal(back.defaultKey, 'D');
+  assert.deepEqual(
+    back.parts.map((p) => p.type),
+    ['verse', 'chorus', 'bridge'],
+  );
+  assert.deepEqual(
+    back.parts.map((p) => p.lines.map((l) => l.text)),
+    [['[1]rând unu', 'rând [4]doi'], ['[5]refren'], ['[6m]punte']],
+  );
+});
 
 contractSuite('memory', () => new MemoryLocalLibrary());
 // The IndexedDB adapter runs the SAME suite in a browser context; node has

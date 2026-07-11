@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test('smoke test - homepage loads', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle(/LaudAsist|Worship|web/);
+    await expect(page).toHaveTitle(/Laudasist/);
 });
 
 test('library page renders for a signed-in user (regression: React #310)', async ({ page }) => {

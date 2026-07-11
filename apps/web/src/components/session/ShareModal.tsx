@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { VIEWPORT_CLASSES, type ViewportClass } from '../../viewports/contract'
+import { ShareButton } from '@/components/ShareButton'
 import styles from '../../routes/session.module.css'
 
 const VIEWPORT_LABELS: Record<ViewportClass, string> = {
@@ -51,26 +52,52 @@ export function ShareModal({
 
                 <p className={styles.qrUrl}>{viewerLink}</p>
 
-                <button
-                    onClick={() => {
-                        navigator.clipboard.writeText(viewerLink)
-                    }}
-                    className={styles.qrCopyBtn}
-                >
-                    📋 Copy Viewer Link
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <ShareButton
+                        testId="share-viewer-link"
+                        className={styles.qrCopyBtn}
+                        payload={{
+                            title: 'Laudasist worship session',
+                            text: 'Join our worship session — live now',
+                            url: viewerLink,
+                        }}
+                    >
+                        📤 Share Viewer Link
+                    </ShareButton>
+                    <button
+                        onClick={() => {
+                            void navigator.clipboard.writeText(viewerLink)
+                        }}
+                        className={styles.qrCopyBtn}
+                    >
+                        📋 Copy
+                    </button>
+                </div>
 
                 <div className={styles.presenterSection}>
                     <span className={styles.presenterLabel}>🎙️ Presenter Link</span>
                     <p className={styles.presenterUrl}>{presenterUrl}</p>
-                    <button
-                        onClick={() => {
-                            navigator.clipboard.writeText(presenterUrl)
-                        }}
-                        className={styles.qrCopyBtn}
-                    >
-                        📋 Copy Presenter Link
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                        <ShareButton
+                            testId="share-presenter-link"
+                            className={styles.qrCopyBtn}
+                            payload={{
+                                title: 'Present in our worship session',
+                                text: "You're invited to present in our worship session",
+                                url: presenterUrl,
+                            }}
+                        >
+                            📤 Share Presenter Link
+                        </ShareButton>
+                        <button
+                            onClick={() => {
+                                void navigator.clipboard.writeText(presenterUrl)
+                            }}
+                            className={styles.qrCopyBtn}
+                        >
+                            📋 Copy
+                        </button>
+                    </div>
                 </div>
 
                 <button onClick={onClose} className={styles.qrCloseBtn}>

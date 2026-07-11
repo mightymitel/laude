@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import type { ChordStyle } from '@laudasist/shared'
 import { useSessionSongState } from '@/hooks/useSessionSongState'
+import { useOnline } from '@/hooks/useOnline'
 import { auth } from '@/lib/firebase'
 import { asKey } from '@/lib/keys'
 import styles from './session.module.css'
@@ -68,6 +69,8 @@ function SessionPageContent() {
     } = useSessionSongState(playlistId, savedSessionId, seedSongId)
 
     const { session, state, isLive, isLoading, error, goLive, stopLive, getShareUrl, getPresenterUrl } = live
+    // Solo sessions run fully offline; GOING LIVE needs the relay (WP-157).
+    const online = useOnline()
 
     // Display preferences (always local)
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters')
@@ -135,10 +138,15 @@ function SessionPageContent() {
                                     }
                                     void goLive()
                                 }}
-                                disabled={isLoading}
+                                disabled={isLoading || !online}
+                                title={
+                                    online
+                                        ? undefined
+                                        : "You're offline — going live needs a connection. The solo session keeps working."
+                                }
                                 className={styles.goLiveBtn}
                             >
-                                {isLoading ? 'Starting...' : '🔴 Go Live'}
+                                {isLoading ? 'Starting...' : online ? '🔴 Go Live' : '🔴 Go Live (offline)'}
                             </button>
                         ))}
                     {error !== null && <span className={styles.guestIndicator}>⚠️ {error}</span>}

@@ -39,8 +39,9 @@ export const songKeys = {
 /**
  * Hook to fetch paginated song list
  */
-export function useSongs(params: SongListParams = {}) {
+export function useSongs(params: SongListParams = {}, options: { enabled?: boolean } = {}) {
     return useQuery({
+        enabled: options.enabled ?? true,
         queryKey: songKeys.list(params),
         queryFn: () => {
             const searchParams = new URLSearchParams();
@@ -59,11 +60,11 @@ export function useSongs(params: SongListParams = {}) {
 /**
  * Hook to fetch a single song
  */
-export function useSong(id: string) {
+export function useSong(id: string, options: { enabled?: boolean } = {}) {
     return useQuery({
         queryKey: songKeys.detail(id),
         queryFn: () => api.get<Song>(`/api/songs/${id}`),
-        enabled: !!id,
+        enabled: !!id && (options.enabled ?? true),
     });
 }
 

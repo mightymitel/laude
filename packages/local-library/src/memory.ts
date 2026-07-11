@@ -11,6 +11,7 @@ import {
   type LocalLibrary,
   type LocalLibrarySong,
   type LocalSongLink,
+  type RetentionRow,
   type SyncState,
 } from './types';
 
@@ -19,6 +20,7 @@ export class MemoryLocalLibrary implements LocalLibrary {
   private favorites = new Set<string>();
   private links: LocalSongLink[] = [];
   private sync = new Map<string, SyncState>();
+  private retention = new Map<string, RetentionRow>();
 
   async listSongs(): Promise<LocalLibrarySong[]> {
     return [...this.songs.values()].sort((a, b) => a.title.localeCompare(b.title));
@@ -36,6 +38,7 @@ export class MemoryLocalLibrary implements LocalLibrary {
     this.songs.delete(id);
     this.favorites.delete(id);
     this.sync.delete(id);
+    this.retention.delete(id);
   }
 
   async listFavorites(): Promise<string[]> {
@@ -64,6 +67,18 @@ export class MemoryLocalLibrary implements LocalLibrary {
 
   async setSyncState(state: SyncState): Promise<void> {
     this.sync.set(state.song_id, { ...state });
+  }
+
+  async listRetention(): Promise<RetentionRow[]> {
+    return [...this.retention.values()];
+  }
+
+  async setRetention(row: RetentionRow): Promise<void> {
+    this.retention.set(row.song_id, { ...row });
+  }
+
+  async deleteRetention(songId: string): Promise<void> {
+    this.retention.delete(songId);
   }
 
   async importEmbedded(song: EmbeddedSongLike, language: Lang): Promise<LocalLibrarySong> {

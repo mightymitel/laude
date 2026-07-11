@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useSongs } from '@/hooks/useSongs'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOnline } from '@/hooks/useOnline'
+import { useDownloadSong, useLocalLibraryView, useRemoveDownload } from '@/hooks/useLocalLibrary'
 import { Song, SongPart } from '@laudasist/shared'
 
 export const Route = createFileRoute('/library/')({
@@ -13,20 +15,36 @@ function LibraryPage() {
     // exactly React error #310 in production).
     const navigate = useNavigate()
     const { firebaseUser } = useAuth()
+    const online = useOnline()
     const [search, setSearch] = useState('')
-    const { data: songs, isLoading, error } = useSongs({ search })
+    // Offline (WP-157): the remote query never fires; the local library
+    // (downloads + recents + guest-authored) IS the library.
+    const { data: songs, isLoading, error } = useSongs({ search }, { enabled: online })
+    const { data: localView } = useLocalLibraryView()
+    const download = useDownloadSong()
+    const removeDownload = useRemoveDownload()
 
-    if (isLoading) {
+    if (online && isLoading) {
         return <div className="p-8">Loading library...</div>
     }
 
-    if (error) {
+    if (online && error) {
         return (
             <div className="p-8 text-red-500">
                 Error loading songs: {(error as Error).message}
             </div>
         )
     }
+
+    const searchLower = search.trim().toLowerCase()
+    const displayedSongs = online
+        ? songs?.data ?? []
+        : (localView?.songs ?? []).filter(
+              (s) =>
+                  searchLower === '' ||
+                  s.title.toLowerCase().includes(searchLower) ||
+                  (s.author ?? '').toLowerCase().includes(searchLower),
+          )
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
@@ -96,7 +114,25 @@ function LibraryPage() {
                 </div>
             </div>
 
-            {!songs?.data || songs.data.length === 0 ? (
+            {!online && (
+                <div
+                    data-testid="offline-banner"
+                    style={{
+                        marginBottom: '1rem',
+                        padding: '0.6rem 1rem',
+                        borderRadius: '8px',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border)',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.9rem',
+                    }}
+                >
+                    📴 You're offline — showing your local library (downloads, recents and your
+                    own songs). Community search needs a connection.
+                </div>
+            )}
+
+            {displayedSongs.length === 0 ? (
                 <div
                     style={{
                         textAlign: 'center',
@@ -132,7 +168,7 @@ function LibraryPage() {
                         gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                     }}
                 >
-                    {songs.data.map((song) => (
+                    {displayedSongs.map((song) => (
                         <Link
                             key={song.id}
                             to="/library/$id"
@@ -226,6 +262,13 @@ function LibraryPage() {
                                     >
                                         ▶
                                     </button>
+                                    <DownloadButton
+                                        song={song}
+                                        pinned={localView?.retention.get(song.id)?.klass === 'pinned'}
+                                        online={online}
+                                        onDownload={() => download.mutate(song)}
+                                        onRemove={() => removeDownload.mutate(song.id)}
+                                    />
                                 </div>
                                 <span>{new Date(song.createdAt).toLocaleDateString()}</span>
                             </div>
@@ -234,6 +277,52 @@ function LibraryPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+/**
+ * Download-for-offline toggle (WP-158): pinned copies never auto-evict.
+ * Downloading needs the content in hand, so it's online-only; removing a
+ * download works anywhere.
+ */
+function DownloadButton({
+    song,
+    pinned,
+    online,
+    onDownload,
+    onRemove,
+}: {
+    song: Song
+    pinned: boolean
+    online: boolean
+    onDownload: () => void
+    onRemove: () => void
+}) {
+    const act = (e: React.MouseEvent) => {
+        // Card is a Link — never navigate on this action.
+        e.preventDefault()
+        e.stopPropagation()
+        if (pinned) onRemove()
+        else onDownload()
+    }
+    if (!pinned && !online) return null
+    return (
+        <button
+            data-testid={`download-${song.id}`}
+            title={pinned ? 'Downloaded for offline — click to remove' : 'Download for offline'}
+            aria-pressed={pinned}
+            onClick={act}
+            style={{
+                background: pinned ? 'var(--bg-tertiary)' : 'none',
+                color: pinned ? 'var(--primary)' : 'var(--text-muted)',
+                border: '1px solid var(--border)',
+                borderRadius: '4px',
+                padding: '0.2rem 0.5rem',
+                cursor: 'pointer',
+            }}
+        >
+            {pinned ? '✓⬇' : '⬇'}
+        </button>
     )
 }
 

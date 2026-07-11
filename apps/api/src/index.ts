@@ -4,12 +4,15 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRelay } from '@laude/relay';
 import { Server as SocketServer } from 'socket.io';
 import { initializeFirebase } from './config/firebase.js';
 import { relayAdapters } from './relay/adapters.js';
+import { previewForPath, renderIndexHtml, type PreviewDeps } from './preview/linkPreview.js';
+import { getSongsCollection, type SongDocument } from './models/Song.js';
+import { getUsersCollection } from './models/User.js';
 import { authMiddleware } from './middleware/auth.js';
 import usersRouter from './routes/users.js';
 import songsRouter from './routes/songs.js';
@@ -111,13 +114,42 @@ async function start() {
         // starting us). Dev keeps using Vite on :5173 — no dist, no serving.
         const webDist = process.env.WEB_DIST ?? join(__dirname, '../../web/dist');
         if (existsSync(join(webDist, 'index.html'))) {
-            app.use(express.static(webDist));
+            // Never let the static layer serve index.html — the SPA fallback
+            // below templates per-route OG tags into it (WP-160).
+            app.use(express.static(webDist, { index: false }));
+            const indexHtml = readFileSync(join(webDist, 'index.html'), 'utf8');
+            const previewDeps: PreviewDeps = {
+                sessionByAccessCode: (code) => relay.store.activeByAccessCode(code),
+                sessionByPresenterCode: (code) => relay.store.activeByPresenterCode(code),
+                ownerName: async (uid) => {
+                    const doc = await getUsersCollection().doc(uid).get();
+                    const name: unknown = doc.exists ? doc.data()?.displayName : null;
+                    return typeof name === 'string' && name !== '' ? name : null;
+                },
+                publicSong: async (id) => {
+                    const doc = await getSongsCollection().doc(id).get();
+                    if (!doc.exists) return null;
+                    const song = doc.data() as SongDocument;
+                    if (song.visibility !== 'public' && song.libraryType !== 'official') return null;
+                    return { title: song.title, author: song.author ?? null };
+                },
+            };
             // SPA fallback for client-routed paths; API + socket paths keep 404ing honestly.
             app.get('*', (req, res, next) => {
                 if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io')) return next();
-                res.sendFile(join(webDist, 'index.html'));
+                const proto = req.get('x-forwarded-proto') ?? req.protocol;
+                const baseUrl = `${proto}://${req.get('host') ?? 'laudasist.ro'}`;
+                previewForPath(req.path, previewDeps)
+                    .catch((err: unknown) => {
+                        // A broken preview must never break the page itself.
+                        console.warn('link preview failed', err);
+                        return null;
+                    })
+                    .then((tags) => {
+                        res.type('html').send(renderIndexHtml(indexHtml, tags, baseUrl, req.path));
+                    });
             });
-            console.log(`serving web bundle from ${webDist}`);
+            console.log(`serving web bundle from ${webDist} (per-route link previews on)`);
         }
 
         httpServer.listen(PORT, () => {

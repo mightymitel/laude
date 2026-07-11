@@ -10,11 +10,13 @@ import type {
   LocalLibrary,
   LocalLibrarySong,
   LocalSongLink,
+  RetentionRow,
   SyncState,
 } from './types';
 
 const DB_NAME = 'laude-local-library';
-const DB_VERSION = 1;
+// v2 (WP-158): + retention store (pinned downloads / cached recents).
+const DB_VERSION = 2;
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -25,6 +27,7 @@ function openDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains('links')) db.createObjectStore('links', { keyPath: 'key' });
       if (!db.objectStoreNames.contains('favorites')) db.createObjectStore('favorites', { keyPath: 'id' });
       if (!db.objectStoreNames.contains('sync')) db.createObjectStore('sync', { keyPath: 'song_id' });
+      if (!db.objectStoreNames.contains('retention')) db.createObjectStore('retention', { keyPath: 'song_id' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error ?? new Error('indexedDB open failed'));
@@ -73,6 +76,7 @@ export class IndexedDbLocalLibrary implements LocalLibrary {
     await requestAsPromise((await this.store('songs', 'readwrite')).delete(id));
     await requestAsPromise((await this.store('favorites', 'readwrite')).delete(id));
     await requestAsPromise((await this.store('sync', 'readwrite')).delete(id));
+    await requestAsPromise((await this.store('retention', 'readwrite')).delete(id));
   }
 
   async listFavorites(): Promise<string[]> {
@@ -113,6 +117,20 @@ export class IndexedDbLocalLibrary implements LocalLibrary {
 
   async setSyncState(state: SyncState): Promise<void> {
     await requestAsPromise((await this.store('sync', 'readwrite')).put(state));
+  }
+
+  async listRetention(): Promise<RetentionRow[]> {
+    return requestAsPromise(
+      (await this.store('retention', 'readonly')).getAll() as IDBRequest<RetentionRow[]>,
+    );
+  }
+
+  async setRetention(row: RetentionRow): Promise<void> {
+    await requestAsPromise((await this.store('retention', 'readwrite')).put(row));
+  }
+
+  async deleteRetention(songId: string): Promise<void> {
+    await requestAsPromise((await this.store('retention', 'readwrite')).delete(songId));
   }
 
   async importEmbedded(song: EmbeddedSongLike, language: Lang): Promise<LocalLibrarySong> {

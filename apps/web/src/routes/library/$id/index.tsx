@@ -1,7 +1,13 @@
+import { useEffect, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import type { Song } from '@laudasist/shared'
 import { useSong, useUpdateSong } from '@/hooks/useSongs'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOnline } from '@/hooks/useOnline'
+import { useRecordRecent } from '@/hooks/useLocalLibrary'
+import { getLocalSongByGlobalId } from '@/lib/localLibrary'
 import { SongViewer } from '@/components/songs/SongViewer'
+import { ShareButton } from '@/components/ShareButton'
 import layout from '@/styles/Layout.module.css'
 import styles from './song-detail.module.css'
 
@@ -12,13 +18,50 @@ export const Route = createFileRoute('/library/$id/')({
 function SongDetailPage() {
     const { id } = Route.useParams()
     const navigate = useNavigate()
-    const { data: song, isLoading, error } = useSong(id)
+    const online = useOnline()
+    const { data: remoteSong, isLoading, error } = useSong(id, { enabled: online })
     const { firebaseUser } = useAuth()
     const updateSong = useUpdateSong(id)
+    const recordRecent = useRecordRecent()
 
-    if (isLoading) return <div className={layout.stateMessage}>Loading song...</div>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (error) return <div className={layout.errorMessage}>Error: {(error as any).message}</div>
+    // Recents (WP-158): opening a song caches it for offline (LRU class).
+    useEffect(() => {
+        if (remoteSong) recordRecent(remoteSong)
+        // recordRecent is a stable closure over the query client.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [remoteSong?.id, remoteSong?.updatedAt])
+
+    // Offline / fetch-failure fallback (WP-157): the local copy, if we have one.
+    const [localSong, setLocalSong] = useState<Song | null>(null)
+    const needLocal = !online || error !== null
+    useEffect(() => {
+        if (!needLocal) return
+        let cancelled = false
+        getLocalSongByGlobalId(id)
+            .then((s) => {
+                if (!cancelled) setLocalSong(s)
+            })
+            .catch((err: unknown) => console.warn('local song lookup failed', err))
+        return () => {
+            cancelled = true
+        }
+    }, [id, needLocal])
+
+    const song = remoteSong ?? (needLocal ? localSong : null)
+    const isLocalView = !remoteSong && localSong !== null
+
+    if (online && isLoading) return <div className={layout.stateMessage}>Loading song...</div>
+    if (!song && needLocal) {
+        return (
+            <div className={layout.stateMessage}>
+                📴 This song isn't available offline. Download it while online to keep it with
+                you. <Link to="/library">Back to Library</Link>
+            </div>
+        )
+    }
+    if (error && !isLocalView) {
+        return <div className={layout.errorMessage}>Error: {error instanceof Error ? error.message : 'failed to load'}</div>
+    }
     if (!song) return <div className={layout.stateMessage}>Song not found</div>
 
     // Publish to community (DEC-108): an owner-only visibility flip. The api
@@ -29,11 +72,39 @@ function SongDetailPage() {
 
     return (
         <div className={layout.pageContainer}>
+            {isLocalView && (
+                <div
+                    data-testid="offline-song-banner"
+                    style={{
+                        marginBottom: '1rem',
+                        padding: '0.6rem 1rem',
+                        borderRadius: '8px',
+                        background: 'var(--bg-tertiary)',
+                        border: '1px solid var(--border)',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.9rem',
+                    }}
+                >
+                    📴 Offline copy from your local library.
+                </div>
+            )}
             <div className={layout.pageHeader}>
                 <Link to="/library" className={styles.backLink}>
                     ← Back to Library
                 </Link>
                 <div className={layout.pageActions}>
+                    {/* Share only PUBLIC songs (WP-159) — imports default private (DEC-108). */}
+                    {song.visibility === 'public' && !isLocalView && (
+                        <ShareButton
+                            testId="share-song"
+                            className={styles.editButton}
+                            payload={{
+                                title: `${song.title} — Laudasist`,
+                                text: `${song.title}${song.author ? ` — ${song.author}` : ''} · on Laudasist`,
+                                url: `${window.location.origin}/library/${song.id}`,
+                            }}
+                        />
+                    )}
                     <button
                         className={styles.editButton}
                         data-testid="start-session-with-song"

@@ -46,6 +46,20 @@ export interface SyncState {
   synced_at: string | null;
 }
 
+/**
+ * Retention (WP-158): two classes, one store. 'pinned' = user-managed
+ * download, never auto-evicted. 'cached' = auto-populated recents, LRU past
+ * a cap. Only origin 'downloaded' rows are ever eviction candidates —
+ * guest-authored and imported songs are the only copy and are permanent.
+ */
+export type RetentionClass = 'pinned' | 'cached';
+
+export interface RetentionRow {
+  song_id: string;
+  klass: RetentionClass;
+  last_opened_at: string;
+}
+
 /** Minimal structural view of a session's by-value song (no dependency on
  * @laude/session — the shapes are structurally compatible). */
 export interface EmbeddedSongLike {
@@ -71,10 +85,57 @@ export interface LocalLibrary {
   getSyncState(songId: string): Promise<SyncState | null>;
   setSyncState(state: SyncState): Promise<void>;
 
+  listRetention(): Promise<RetentionRow[]>;
+  setRetention(row: RetentionRow): Promise<void>;
+  deleteRetention(songId: string): Promise<void>;
+
   /** Clone a by-value session/playlist song INTO the library (never a live
    * reference; origin 'imported'; keeps a global link when the blob has a
    * library identity). */
   importEmbedded(song: EmbeddedSongLike, language: Lang): Promise<LocalLibrarySong>;
+}
+
+/**
+ * Inverse of embeddedToChordpro: read the chart container back into the
+ * embedded shape for rendering. Part granularity beyond verse/chorus/bridge
+ * was normalized on the way in, so the round trip is verse/chorus/bridge.
+ */
+export function chordproToEmbedded(row: {
+  id: string;
+  global_song_id: string | null;
+  title: string;
+  author: string | null;
+  analysis_key: string;
+  chordpro: string;
+}): EmbeddedSongLike {
+  const parts: { type: string; lines: { text: string }[] }[] = [];
+  let current: { type: string; lines: { text: string }[] } | null = null;
+  for (const raw of row.chordpro.split('\n')) {
+    const line = raw.trimEnd();
+    const start = line.match(/^\{start_of_(verse|chorus|bridge)(?::.*)?\}$/);
+    if (start) {
+      current = { type: start[1]!, lines: [] };
+      parts.push(current);
+      continue;
+    }
+    if (/^\{end_of_(verse|chorus|bridge)\}$/.test(line)) {
+      current = null;
+      continue;
+    }
+    if (line.startsWith('{') || line === '') continue; // other directives / spacing
+    if (current === null) {
+      current = { type: 'verse', lines: [] };
+      parts.push(current);
+    }
+    current.lines.push({ text: line });
+  }
+  return {
+    id: row.global_song_id ?? row.id,
+    title: row.title,
+    ...(row.author !== null ? { author: row.author } : {}),
+    defaultKey: row.analysis_key,
+    parts,
+  };
 }
 
 /** Serialize an embedded song's parts back into a degree chart container. */

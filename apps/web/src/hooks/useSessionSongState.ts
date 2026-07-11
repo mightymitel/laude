@@ -6,6 +6,8 @@
  */
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSongs, useSong } from '@/hooks/useSongs'
+import { useOnline } from '@/hooks/useOnline'
+import { useLocalLibraryView, useRecordRecent } from '@/hooks/useLocalLibrary'
 import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import { api } from '@/lib/api'
@@ -32,10 +34,14 @@ export function useSessionSongState(
     savedSessionId?: string,
     seedSongId?: string,
 ) {
-    // Search
+    // Search — offline (WP-157), the local library (downloads + recents +
+    // guest-authored) replaces the remote catalogue.
+    const online = useOnline()
     const [searchQuery, setSearchQuery] = useState('')
-    const { data: searchResults } = useSongs({ search: searchQuery || undefined })
-    const { data: allSongsData } = useSongs({})
+    const { data: searchResults } = useSongs({ search: searchQuery || undefined }, { enabled: online })
+    const { data: allSongsData } = useSongs({}, { enabled: online })
+    const { data: localView } = useLocalLibraryView()
+    const recordRecent = useRecordRecent()
     const { data: initialPlaylist } = usePlaylist(playlistId || '')
     const { data: savedSession } = useSavedSession(savedSessionId || '')
 
@@ -230,8 +236,11 @@ export function useSessionSongState(
             })
             setSearchQuery('')
             setRecentlyPlayed((prev) => [song.id, ...prev.filter((id) => id !== song.id)].slice(0, 20))
+            // Recents content cache (WP-158): a song played in a session is
+            // one the user will want offline next time.
+            recordRecent(song)
         },
-        [session, sessionPlaylist, state, setSessionPlaylist],
+        [session, sessionPlaylist, state, setSessionPlaylist, recordRecent],
     )
 
     // Smart ordering for library view when search is empty
@@ -251,7 +260,18 @@ export function useSessionSongState(
         })
     }, [searchQuery, allSongsData, currentSong, recentlyPlayed])
 
-    const displaySongs = searchQuery ? searchResults?.data : orderedSongs
+    // Offline: search/browse over the local library instead.
+    const localSongs = useMemo(() => {
+        if (online) return null
+        const songs = localView?.songs ?? []
+        if (!searchQuery) return songs
+        const q = searchQuery.toLowerCase()
+        return songs.filter(
+            (s) => s.title.toLowerCase().includes(q) || (s.author ?? '').toLowerCase().includes(q),
+        )
+    }, [online, localView, searchQuery])
+
+    const displaySongs = localSongs ?? (searchQuery ? searchResults?.data : orderedSongs)
 
     // === DJ CAPABILITY MANIFEST (Flow 5) ===
     // Library songs the DJ can back with audio get a song-level marker; the
