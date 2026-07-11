@@ -138,7 +138,13 @@ async function start() {
             app.get('*', (req, res, next) => {
                 if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io')) return next();
                 const proto = req.get('x-forwarded-proto') ?? req.protocol;
-                const baseUrl = `${proto}://${req.get('host') ?? 'laudasist.ro'}`;
+                // Behind the App Hosting proxy, Host is the run.app service
+                // host; the user-facing domain rides x-forwarded-host.
+                const host =
+                    req.get('x-forwarded-host')?.split(',')[0]?.trim() ??
+                    req.get('host') ??
+                    'laudasist.ro';
+                const baseUrl = `${proto}://${host}`;
                 previewForPath(req.path, previewDeps)
                     .catch((err: unknown) => {
                         // A broken preview must never break the page itself.
