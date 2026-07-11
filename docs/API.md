@@ -52,7 +52,7 @@ Real-time communication and API endpoints.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/songs` | List songs (with filters) |
+| `GET` | `/api/songs` | List songs. Default scope (no filters) = own + community (public) + official, merged; explicit `ownerId`/`libraryType`/`visibility`/`tags` filters keep single-query semantics |
 | `POST` | `/api/songs` | Create new song |
 | `GET` | `/api/songs/:id` | Get song by ID |
 | `PUT` | `/api/songs/:id` | Update song |
