@@ -14,6 +14,20 @@ interface FetchOptions extends RequestInit {
 /**
  * API client with automatic auth token injection
  */
+const REQUEST_TIMEOUT_MS = 15_000;
+
+/** getIdToken talks to googleapis and can stall on flaky networks — nothing
+ * awaiting apiFetch may hang the UI forever, so both the token exchange and
+ * the request itself ride one deadline. */
+function withTimeout<T>(promise: Promise<T>, ms: number, what: string): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`${what} timed out after ${ms / 1000}s`)), ms),
+        ),
+    ]);
+}
+
 export async function apiFetch<T>(
     endpoint: string,
     options: FetchOptions = {}
@@ -27,14 +41,22 @@ export async function apiFetch<T>(
 
     // Add auth token if available and not skipped
     if (!skipAuth && auth?.currentUser) {
-        const token = await auth.currentUser.getIdToken();
+        const token = await withTimeout(auth.currentUser.getIdToken(), REQUEST_TIMEOUT_MS, 'auth token');
         (requestHeaders as Record<string, string>)['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...rest,
-        headers: requestHeaders,
-    });
+    const controller = new AbortController();
+    const abortTimer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response: Response;
+    try {
+        response = await fetch(`${API_URL}${endpoint}`, {
+            ...rest,
+            headers: requestHeaders,
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(abortTimer);
+    }
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ error: 'Request failed' }));

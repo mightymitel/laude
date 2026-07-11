@@ -59,7 +59,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
+        // Watchdog: with a persisted user, the SDK phones googleapis BEFORE
+        // firing the first auth event — on a stalled network that means an
+        // app stuck at "Loading…" forever. Render signed-out after 8s; the
+        // auth event still updates state whenever it eventually arrives.
+        const watchdog = setTimeout(() => {
+            console.warn('auth: no state event after 8s — rendering signed-out while it resolves');
+            setLoading(false);
+        }, 8000);
+
         const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+            clearTimeout(watchdog);
             setFirebaseUser(fbUser);
 
             if (fbUser) {
@@ -71,7 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            clearTimeout(watchdog);
+            unsubscribe();
+        };
     }, []);
 
     // Helper for social login
