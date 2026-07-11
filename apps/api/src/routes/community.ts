@@ -12,7 +12,9 @@ router.get('/songs', async (req, res) => {
         const { search, limit = 50 } = req.query;
 
         const query = getSongsCollection()
-            .where('isPublic', '==', true)
+            // visibility is the real field (isPublic never existed — same
+            // ghost the song-detail route had).
+            .where('visibility', '==', 'public')
             .orderBy('title')
             .limit(Number(limit));
 
