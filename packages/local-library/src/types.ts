@@ -31,6 +31,16 @@ export interface LocalLibrarySong {
   origin: 'authored' | 'downloaded' | 'imported';
   created_at: string;
   updated_at: string;
+  /**
+   * Full snapshot of the source document for FULL-FIDELITY offline rendering
+   * (per Mitel: a downloaded song must look exactly like the online one —
+   * every part type, arrangements, tags; only performance/studio data stays
+   * out). Opaque to this package — the caller owns the shape and its
+   * revival. The chordpro container above remains the canonical WORK chart
+   * for cross-app interop (Studio, guest authoring); this is the browser's
+   * fidelity copy.
+   */
+  source_doc?: unknown;
 }
 
 export interface LocalSongLink {

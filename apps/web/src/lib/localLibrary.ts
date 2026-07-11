@@ -3,11 +3,12 @@
  * instance, Song ↔ local-row conversion, and the download/recents
  * operations. The SW never caches song data — this store owns it.
  *
- * ⚠️ Downloads persist lyrics + chords through the ONE chart container
- * (chordpro degrees). Arrangements/viewport prefs are not persisted:
- * no rendering surface consumes arrangements today and viewport prefs are
- * per-device localStorage (DEC-42). Part types beyond verse/chorus/bridge
- * normalize to verse in the container (existing WP-109 behavior).
+ * Downloads carry the FULL song document as `source_doc` (per Mitel: an
+ * offline song must look exactly like the online one — every part type,
+ * arrangements, tags; only performance/studio data stays out). The chordpro
+ * container is still written alongside as the canonical WORK chart for
+ * cross-app interop; rendering prefers the snapshot and falls back to the
+ * container for rows that predate it (guest-authored / imported).
  */
 import {
     IndexedDbLocalLibrary,
@@ -49,6 +50,84 @@ function songToLocalRow(song: Song): LocalLibrarySong {
         origin: 'downloaded',
         created_at: now,
         updated_at: now,
+        // Dates become ISO strings; reviveSongSnapshot turns them back.
+        source_doc: JSON.parse(JSON.stringify(song)) as unknown,
+    }
+}
+
+// --- Snapshot revival: unknown → Song by honest narrowing (we wrote the
+// snapshot from a typed Song, so failures mean corruption → fall back to
+// the chordpro container rather than crash). ---
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+    return typeof v === 'object' && v !== null
+}
+
+function str(v: unknown, fallback = ''): string {
+    return typeof v === 'string' ? v : fallback
+}
+
+function reviveParts(v: unknown): SongPart[] | null {
+    if (!Array.isArray(v)) return null
+    const parts: SongPart[] = []
+    for (const [i, p] of v.entries()) {
+        if (!isRecord(p) || !Array.isArray(p.lines)) return null
+        const type = str(p.type)
+        parts.push({
+            id: str(p.id, `local-${i}`),
+            type: isPartType(type) ? type : 'verse',
+            index: typeof p.index === 'number' ? p.index : 0,
+            lines: p.lines.map((l): { text: string } => ({ text: isRecord(l) ? str(l.text) : '' })),
+        })
+    }
+    return parts
+}
+
+function reviveArrangements(v: unknown): Song['arrangements'] {
+    if (!Array.isArray(v)) return []
+    return v.flatMap((a) =>
+        isRecord(a)
+            ? [
+                  {
+                      id: str(a.id),
+                      name: str(a.name),
+                      order: Array.isArray(a.order) ? a.order.filter((o): o is string => typeof o === 'string') : [],
+                      isDefault: a.isDefault === true,
+                  },
+              ]
+            : [],
+    )
+}
+
+export function reviveSongSnapshot(v: unknown): Song | null {
+    if (!isRecord(v)) return null
+    const parts = reviveParts(v.parts)
+    if (typeof v.id !== 'string' || typeof v.title !== 'string' || parts === null) return null
+    return {
+        id: v.id,
+        title: v.title,
+        ...(typeof v.author === 'string' ? { author: v.author } : {}),
+        defaultKey: asKey(str(v.defaultKey)),
+        defaultArrangement: Array.isArray(v.defaultArrangement)
+            ? v.defaultArrangement.filter((o): o is string => typeof o === 'string')
+            : [],
+        arrangements: reviveArrangements(v.arrangements),
+        parts,
+        tags: Array.isArray(v.tags) ? v.tags.filter((t): t is string => typeof t === 'string') : [],
+        libraryType:
+            v.libraryType === 'official' || v.libraryType === 'community' || v.libraryType === 'church'
+                ? v.libraryType
+                : 'user',
+        ownerId: str(v.ownerId),
+        visibility: v.visibility === 'public' ? 'public' : 'private',
+        ...(typeof v.translationOf === 'string' ? { translationOf: v.translationOf } : {}),
+        ...(typeof v.clonedFrom === 'string' ? { clonedFrom: v.clonedFrom } : {}),
+        ...(Array.isArray(v.relatedSongs)
+            ? { relatedSongs: v.relatedSongs.filter((r): r is string => typeof r === 'string') }
+            : {}),
+        createdAt: new Date(str(v.createdAt) || 0),
+        updatedAt: new Date(str(v.updatedAt) || 0),
+        createdBy: str(v.createdBy),
     }
 }
 
@@ -56,8 +135,12 @@ function isPartType(value: string): value is PartType {
     return ['verse', 'chorus', 'bridge', 'pre-chorus', 'outro', 'intro', 'tag'].includes(value)
 }
 
-/** A local row rendered through the app's Song-shaped surfaces. */
+/** A local row rendered through the app's Song-shaped surfaces. Downloads
+ * revive their full-fidelity snapshot; container-only rows (guest-authored,
+ * imported) reconstruct from the chordpro chart. */
 export function localRowToSong(row: LocalLibrarySong): Song {
+    const revived = reviveSongSnapshot(row.source_doc)
+    if (revived !== null) return revived
     const embedded = chordproToEmbedded(row)
     const counters = new Map<string, number>()
     const parts: SongPart[] = embedded.parts.map((p, i) => {

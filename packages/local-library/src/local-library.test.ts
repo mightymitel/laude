@@ -95,6 +95,19 @@ function contractSuite(name: string, make: () => LocalLibrary): void {
     assert.equal(await lib.getSyncState('local-4'), null);
   });
 
+  test(`${name}: source_doc snapshot round-trips opaquely`, async () => {
+    const lib = make();
+    const snapshot = {
+      id: 'g-1',
+      parts: [{ type: 'pre-chorus', index: 2 }],
+      arrangements: [{ id: 'a1', name: 'Official', order: ['V1', 'C1'], isDefault: true }],
+      tags: ['closer'],
+    };
+    await lib.saveSong({ ...guestSong('snap-1'), source_doc: snapshot });
+    const row = await lib.getSong('snap-1');
+    assert.deepEqual(row?.source_doc, snapshot, 'stored verbatim, shape owned by the caller');
+  });
+
   // === Retention (WP-158): pinned downloads + cached recents LRU ===
 
   function downloadedSong(id: string, title = `Song ${id}`): LocalLibrarySong {
