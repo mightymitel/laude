@@ -408,7 +408,8 @@
 }
 
 .partLabel {
-    font-size: 0.85rem;
+    /* em, not rem: the owner panel zoom scales content via a wrapper font-size. */
+    font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--secondary);
@@ -421,8 +422,15 @@
 }
 
 .partContent {
-    font-size: 1.5rem;
     line-height: 2.2;
+}
+
+.capoBadge {
+    margin-left: 0.75rem;
+    font-size: 0.6em;
+    font-weight: 500;
+    color: var(--secondary);
+    white-space: nowrap;
 }
 
 .line {

@@ -45,38 +45,58 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
             limit = '20',
         } = req.query;
 
-        // Base query
-        let query = getSongsCollection().orderBy('createdAt', 'desc');
-
-        if (libraryType && typeof libraryType === 'string') {
-            query = query.where('libraryType', '==', libraryType);
-        }
-
-        if (ownerId && typeof ownerId === 'string') {
-            query = query.where('ownerId', '==', ownerId);
-        } else if (!libraryType) {
-            // Default: show my songs
-            query = query.where('ownerId', '==', req.userId!);
-        }
-
-        if (visibility && typeof visibility === 'string') {
-            query = query.where('visibility', '==', visibility);
-        }
-
-        if (tags && typeof tags === 'string') {
-            query = query.where('tags', 'array-contains-any', tags.split(','));
-        }
-
-        // Search Logic
-        let allDocs;
         const isSearching = search && typeof search === 'string' && search.length > 0;
+        const hasExplicitFilter =
+            (ownerId && typeof ownerId === 'string') ||
+            (libraryType && typeof libraryType === 'string') ||
+            (visibility && typeof visibility === 'string') ||
+            (tags && typeof tags === 'string');
 
-        if (isSearching) {
-            allDocs = (await query.get()).docs;
+        let allDocs;
+        if (!hasExplicitFilter) {
+            // Default scope: everything this user may sing from — their own
+            // songs, community (public) songs and the official library.
+            // Firestore has no OR across fields, so three indexed queries
+            // merged in memory (each composite with createdAt exists).
+            const base = () => getSongsCollection().orderBy('createdAt', 'desc').limit(500);
+            const [mine, community, official] = await Promise.all([
+                base().where('ownerId', '==', req.userId!).get(),
+                base().where('visibility', '==', 'public').get(),
+                base().where('libraryType', '==', 'official').get(),
+            ]);
+            const byId = new Map(
+                [...mine.docs, ...community.docs, ...official.docs].map(doc => [doc.id, doc]),
+            );
+            const millis = (v: unknown): number => {
+                if (v instanceof Date) return v.getTime();
+                if (v instanceof Timestamp) return v.toMillis();
+                return 0;
+            };
+            allDocs = [...byId.values()].sort(
+                (a, b) => millis(b.data().createdAt) - millis(a.data().createdAt),
+            );
         } else {
-            const pageNum = parseInt(page as string, 10);
-            const limitNum = Math.min(parseInt(limit as string, 10), 100);
-            query = query.offset((pageNum - 1) * limitNum).limit(limitNum);
+            // Explicit filters keep the single-query behavior.
+            let query = getSongsCollection().orderBy('createdAt', 'desc');
+
+            if (libraryType && typeof libraryType === 'string') {
+                query = query.where('libraryType', '==', libraryType);
+            }
+
+            if (ownerId && typeof ownerId === 'string') {
+                query = query.where('ownerId', '==', ownerId);
+            } else if (!libraryType) {
+                query = query.where('ownerId', '==', req.userId!);
+            }
+
+            if (visibility && typeof visibility === 'string') {
+                query = query.where('visibility', '==', visibility);
+            }
+
+            if (tags && typeof tags === 'string') {
+                query = query.where('tags', 'array-contains-any', tags.split(','));
+            }
+
             allDocs = (await query.get()).docs;
         }
 
@@ -89,6 +109,7 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
                 defaultKey: data.defaultKey,
                 tags: data.tags,
                 libraryType: data.libraryType,
+                ownerId: data.ownerId,
                 visibility: data.visibility,
                 parts: data.parts,
                 createdAt: data.createdAt instanceof Date ? data.createdAt : (data.createdAt as Timestamp)?.toDate(),
@@ -111,22 +132,19 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
             });
         }
 
-        const total = isSearching ? songs.length : 1000;
+        // Both branches now fetch the full scope, so paginate in memory.
+        const total = songs.length;
         const pageNum = parseInt(page as string, 10);
         const limitNum = Math.min(parseInt(limit as string, 10), 100);
-
-        let paginatedSongs = songs;
-        if (isSearching) {
-            const start = (pageNum - 1) * limitNum;
-            paginatedSongs = songs.slice(start, start + limitNum);
-        }
+        const start = (pageNum - 1) * limitNum;
+        const paginatedSongs = songs.slice(start, start + limitNum);
 
         res.json({
             data: paginatedSongs,
             total: total,
             page: pageNum,
             limit: limitNum,
-            hasMore: isSearching ? (pageNum * limitNum < total) : (allDocs.length === limitNum),
+            hasMore: pageNum * limitNum < total,
         });
     } catch (error) {
         console.error('Error listing songs:', error);

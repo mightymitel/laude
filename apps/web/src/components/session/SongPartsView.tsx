@@ -1,4 +1,5 @@
 import type { ChordStyle, Key, Song } from '@laudasist/shared'
+import { transposeKeyName } from '@laude/chords'
 import { SongLine } from '@/components/songs/SongLine'
 import { asChordStyle, asKey, POSSIBLE_KEYS } from '@/lib/keys'
 import styles from '../../routes/session.module.css'
@@ -17,6 +18,8 @@ interface SongPartsViewProps {
     chordDisplay: ChordDisplay
     showChords: boolean
     keyPolicy: 'adopt' | 'hold'
+    /** Capo / shape offset (WP-147) — display only; the key select stays the sounding key. */
+    capo?: number
     onSelectPart: (index: number) => void
     onDisplayKey: (key: Key) => void
     onChordStyle: (style: ChordStyle) => void
@@ -29,11 +32,21 @@ interface SongPartsViewProps {
 /** The song header controls + clickable parts list (main panel of /session). */
 export function SongPartsView(props: SongPartsViewProps) {
     const { song, currentPartIndex, displayKey, chordStyle, chordDisplay, showChords } = props
+    // Chords render in capo SHAPES; the badge keeps the sounding key visible.
+    const capo = props.capo ?? 0
+    const shapeKey = capo > 0 ? asKey(transposeKeyName(displayKey, -capo)) : displayKey
 
     return (
         <>
             <div className={styles.songHeader} data-testid="song-header">
-                <h2>{song.title}</h2>
+                <h2>
+                    {song.title}
+                    {capo > 0 && (
+                        <span className={styles.capoBadge}>
+                            {displayKey} · capo {capo} → {shapeKey} shapes
+                        </span>
+                    )}
+                </h2>
                 <div className={styles.controls}>
                     <select value={displayKey} onChange={(e) => props.onDisplayKey(asKey(e.target.value))} className={styles.select}>
                         {POSSIBLE_KEYS.map((k) => (
@@ -90,7 +103,7 @@ export function SongPartsView(props: SongPartsViewProps) {
                                 <SongLine
                                     key={lid}
                                     text={line.text}
-                                    displayKey={displayKey}
+                                    displayKey={shapeKey}
                                     chordStyle={chordStyle}
                                     showChords={showChords}
                                     chordPosition={chordDisplay}

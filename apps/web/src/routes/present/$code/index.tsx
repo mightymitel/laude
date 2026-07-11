@@ -6,7 +6,7 @@ import { loadPresenter } from '@/lib/presenter'
 import { api } from '@/lib/api'
 import { extractChordsFromLine, formatChord } from '@laudasist/shared'
 import type { Song } from '@laudasist/shared'
-import { effectiveKeyOf } from '@laude/session'
+import { effectiveKeyOf, songChangeKey } from '@laude/session'
 import type { EmbeddedSong, SessionPlaylistItem } from '@laude/session'
 import { asKey } from '@/lib/keys'
 import styles from './present.module.css'
@@ -65,16 +65,22 @@ function PresenterPage() {
 
   const selectSong = useCallback((item: SessionPlaylistItem) => {
     if (!item.song || !client) return
+    // Song-change key through the shared policy reader (WP-144/145): with
+    // 'hold' the current key survives; presenters must not bypass it.
     client.send({
       current: {
         song_id: item.song.id,
         section_index: 0,
-        effective_key: item.key || item.song.defaultKey,
+        effective_key: songChangeKey(
+          session?.key_policy ?? 'adopt',
+          session ? effectiveKeyOf(session) : null,
+          item.key || item.song.defaultKey,
+        ),
       },
       currentSong: item.song,
     })
     setDrawerOpen(false)
-  }, [client])
+  }, [client, session])
 
   const goToPart = useCallback((index: number) => {
     client?.setCurrent({ section_index: index })
@@ -101,7 +107,15 @@ function PresenterPage() {
     setSearchQuery('')
     setDrawerOpen(false)
     client?.send({
-      current: { song_id: song.id, section_index: 0, effective_key: song.defaultKey },
+      current: {
+        song_id: song.id,
+        section_index: 0,
+        effective_key: songChangeKey(
+          session?.key_policy ?? 'adopt',
+          session ? effectiveKeyOf(session) : null,
+          song.defaultKey,
+        ),
+      },
       currentSong: embed(song),
     })
   }

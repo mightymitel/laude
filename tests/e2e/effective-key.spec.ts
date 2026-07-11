@@ -113,6 +113,14 @@ test.describe('effective_key invariant', () => {
         await expect(stagePage.locator('[class*="meta"]')).toContainText(`Key: ${OVERRIDE}`);
         await expect(presenterPage.locator('[class*="keyBadge"]')).toContainText(OVERRIDE);
 
+        // Hold must survive a PRESENTER-driven song change too — presenters
+        // used to write effective_key directly, bypassing the policy.
+        await presenterPage.locator('[class*="playlistItem"]').first().click();
+        await presenterPage.waitForTimeout(800);
+        await expect(ownerPage.getByTestId('owner-key-select')).toHaveValue(OVERRIDE);
+        await expect(presenterPage.locator('[class*="keyBadge"]')).toContainText(OVERRIDE);
+        await expect(stagePage.locator('[class*="meta"]')).toContainText(`Key: ${OVERRIDE}`);
+
         await stagePage.close();
         await presenterPage.close();
     });

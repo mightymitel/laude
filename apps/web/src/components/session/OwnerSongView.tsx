@@ -147,29 +147,29 @@ export function OwnerSongView(props: OwnerSongViewProps) {
                         <option value="hold">Hold current key</option>
                     </select>
                     {prefs.mode === 'play' && (
-                        <>
-                            <select
-                                className={styles.control}
-                                value={prefs.notation}
-                                onChange={(e) => updatePrefs({ notation: e.target.value })}
-                                title="Chord notation (this device only)"
-                            >
-                                {listNotations().map((n) => (
-                                    <option key={n.id} value={n.id}>{n.label}</option>
-                                ))}
-                            </select>
-                            <select
-                                className={styles.control}
-                                value={prefs.capo}
-                                onChange={(e) => updatePrefs({ capo: Number(e.target.value) })}
-                                title="Capo / shape offset — display only; the band still sounds in the session key"
-                            >
-                                {Array.from({ length: 12 }, (_, i) => (
-                                    <option key={i} value={i}>{i === 0 ? 'No capo' : `Capo ${i}`}</option>
-                                ))}
-                            </select>
-                        </>
+                        <select
+                            className={styles.control}
+                            value={prefs.notation}
+                            onChange={(e) => updatePrefs({ notation: e.target.value })}
+                            title="Chord notation (this device only)"
+                        >
+                            {listNotations().map((n) => (
+                                <option key={n.id} value={n.id}>{n.label}</option>
+                            ))}
+                        </select>
                     )}
+                    {/* Capo applies in BOTH modes (WP-147) — the owner plays too. */}
+                    <select
+                        className={styles.control}
+                        value={prefs.capo}
+                        onChange={(e) => updatePrefs({ capo: Number(e.target.value) })}
+                        title="Capo / shape offset — display only; the band still sounds in the session key"
+                        data-testid="owner-capo-select"
+                    >
+                        {Array.from({ length: 12 }, (_, i) => (
+                            <option key={i} value={i}>{i === 0 ? 'No capo' : `Capo ${i}`}</option>
+                        ))}
+                    </select>
                     <button
                         className={styles.control}
                         onClick={() => updatePrefs({ zoom: Math.max(0.6, Math.round((prefs.zoom - 0.1) * 10) / 10) })}
@@ -197,6 +197,7 @@ export function OwnerSongView(props: OwnerSongViewProps) {
                             song={props.librarySong}
                             currentPartIndex={props.currentPartIndex}
                             displayKey={props.displayKey}
+                            capo={prefs.capo}
                             chordStyle={props.chordStyle}
                             chordDisplay={props.chordDisplay}
                             showChords={props.showChords}

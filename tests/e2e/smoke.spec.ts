@@ -13,6 +13,6 @@ test('library page renders for a signed-in user (regression: React #310)', async
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/(dashboard|session)/);
     await page.goto('/library');
-    await expect(page.getByRole('heading', { name: 'My Library' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Library', exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Something went wrong')).not.toBeVisible();
 });

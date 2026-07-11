@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useSongs } from '@/hooks/useSongs'
+import { useAuth } from '@/contexts/AuthContext'
 import { Song, SongPart } from '@laudasist/shared'
 
 export const Route = createFileRoute('/library/')({
@@ -11,6 +12,7 @@ function LibraryPage() {
     // Hooks before ANY early return (Rules of Hooks — a conditional hook is
     // exactly React error #310 in production).
     const navigate = useNavigate()
+    const { firebaseUser } = useAuth()
     const [search, setSearch] = useState('')
     const { data: songs, isLoading, error } = useSongs({ search })
 
@@ -53,7 +55,7 @@ function LibraryPage() {
                         gap: '1rem',
                     }}
                 >
-                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>My Library</h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>Library</h1>
 
                     <div
                         style={{
@@ -162,6 +164,7 @@ function LibraryPage() {
                             <div>
                                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
                                     {song.title}
+                                    <SourceBadge song={song} myUid={firebaseUser?.uid} />
                                 </h3>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                     {song.author || 'Unknown Author'}
@@ -231,6 +234,36 @@ function LibraryPage() {
                 </div>
             )}
         </div>
+    )
+}
+
+/** Where a song comes from: nothing for my own, a chip for shared sources. */
+function SourceBadge({ song, myUid }: { song: Song; myUid: string | undefined }) {
+    const label =
+        song.libraryType === 'official'
+            ? 'Official'
+            : song.visibility === 'public' && song.ownerId !== myUid
+              ? 'Community'
+              : null
+    if (label === null) return null
+    return (
+        <span
+            style={{
+                marginLeft: '0.5rem',
+                verticalAlign: 'middle',
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '0.15rem 0.45rem',
+                borderRadius: '999px',
+                background: label === 'Official' ? 'var(--primary)' : 'var(--bg-tertiary)',
+                color: label === 'Official' ? 'white' : 'var(--text-secondary)',
+                border: label === 'Official' ? 'none' : '1px solid var(--border)',
+            }}
+        >
+            {label}
+        </span>
     )
 }
 

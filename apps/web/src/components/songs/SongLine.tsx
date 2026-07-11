@@ -20,10 +20,10 @@ export function SongLine({
     showChords = true,
     className = '',
 }: SongLineProps) {
-    // Legacy support for Compact/Inline which don't use segments yet
-    // But we should use the hook for consistency if possible?
-    // Compact/Inline logic is different. Let's keep them separate for now or refactor later.
-    // The user specifically cared about "Above" mode matching editor.
+    // Hooks before ANY early return (Rules of Hooks): a song change can flip
+    // a reused line between chords/no-chords, and a conditional hook then
+    // crashes the whole tree with React error #310 in production.
+    const { segments } = useSongLineSegments(text, displayKey, chordStyle);
 
     // Quick Extract for non-above modes
     const { text: cleanText, chords } = extractChordsFromLine(text);
@@ -85,10 +85,7 @@ export function SongLine({
         return <div className={`${styles.line} ${className}`}>{segments}</div>;
     }
 
-    // ABOVE MODE (Default): Use shared segment logic
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { segments } = useSongLineSegments(text, displayKey, chordStyle);
-
+    // ABOVE MODE (Default): shared segment logic (hook called above).
     return (
         <div className={`${styles.lineAbove} ${className}`}>
             {segments.map((seg, i) => (
