@@ -8,6 +8,9 @@ export const Route = createFileRoute('/library/')({
 })
 
 function LibraryPage() {
+    // Hooks before ANY early return (Rules of Hooks — a conditional hook is
+    // exactly React error #310 in production).
+    const navigate = useNavigate()
     const [search, setSearch] = useState('')
     const { data: songs, isLoading, error } = useSongs({ search })
 
@@ -23,7 +26,6 @@ function LibraryPage() {
         )
     }
 
-    const navigate = useNavigate()
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ marginBottom: '2rem' }}>
