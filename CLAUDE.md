@@ -82,3 +82,23 @@ firestore:rules` by hand. Dev remains **emulator only** (`demo-laude`).
 - Unit: node:test/tsx in packages + studio; Vitest where already present.
 - E2E: Playwright against the **emulator** with seeded data — never real
   Firebase. Never weaken, skip, or delete a test to go green.
+
+## Starting a build session (/next — zero-paste handoff, DEC-139)
+When Mitel says `/next` or "pull the next brief":
+1. Query the Notion **Build Queue** (`collection://6bf7eb75-e777-4cc8-8547-30ce41afed82`)
+   for the top Status=**Ready** row by Priority.
+2. Read its body (the kickoff brief) + the linked Spec + its tickets.
+3. Set that row Status=**Running**.
+4. Run the pre-flight audit gate (delegate to the `preflight-auditor` agent),
+   then execute the brief autonomously.
+5. On finish: write the session report under **Code Sessions**
+   (page `3986a3293ac3819ea2adfd8f0b79d5af` — this project's "Build Session
+   Outputs"), link it on the row's `Session report` property, flip the row +
+   its tickets to Done, and leave any deviations stamped ⚠️ UNRECONCILED in
+   the spec.
+
+**NEVER start a build session without a Ready brief in the queue.**
+
+Model routing (committed in `.claude/agents/`): presence sweeps / searches /
+i18n extraction run on Haiku agents, post-change review on Sonnet — the main
+session spends its budget on judgement and the build itself.
