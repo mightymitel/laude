@@ -47,8 +47,11 @@ __pycache__/
 *.pyc
 .work/
 
-# Misc
-.claude/
+# Misc — Claude Code: local state stays out; agents + commands are
+# repo properties shared across machines (DEC-139).
+.claude/*
+!.claude/agents/
+!.claude/commands/
 
 # LaudStudio local-first store (personal domain, never committed)
 apps/studio/data/
