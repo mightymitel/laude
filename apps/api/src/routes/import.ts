@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getScraper } from '../scrapers/index.js';
+import { dedupeRepeatedParts } from '../scrapers/dedupeParts.js';
 
 const router = Router();
 
@@ -32,10 +33,19 @@ router.post('/preview', async (req, res) => {
             });
         }
 
-        // Scrape the page
+        // Scrape the page, then fold exact-repeat parts into one canonical
+        // part + a starting default arrangement (WP-174/DEC-149 — the
+        // import is a DRAFT; the editor's composer has full control).
         const result = await scraper.scrape(url);
+        const deduped = dedupeRepeatedParts(result.parts);
 
-        return res.json(result);
+        return res.json({
+            ...result,
+            parts: deduped.parts,
+            ...(deduped.defaultArrangement !== undefined
+                ? { defaultArrangement: deduped.defaultArrangement }
+                : {}),
+        });
     } catch (error) {
         console.error('Import error:', error);
         return res.status(500).json({
