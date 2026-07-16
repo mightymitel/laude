@@ -21,8 +21,11 @@ test('favorite key + notes: set on song view, seed solo play, never steer a live
     test.setTimeout(120_000);
     await login(page);
 
-    // --- Set a favorite key ≠ default on the first library song ---
+    // --- Set a favorite key ≠ default on a library song. Browse shows the
+    // personal working set only (DEC-145), so REACH the seeded official
+    // song through search — the intended on-ramp outward. ---
     await page.goto('/library');
+    await page.fill('input[placeholder*="Search"]', 'E2E');
     const firstCard = page.locator('a[href*="/library/"]:has(h3)').first();
     await firstCard.waitFor({ timeout: 15000 });
     const songTitle = (await firstCard.locator('h3').textContent())!
@@ -51,6 +54,11 @@ test('favorite key + notes: set on song view, seed solo play, never steer a live
     await expect(star).toHaveText('★');
 
     // --- Notes overlay: honest empty state → save → visible ---
+    // Idempotence: clear any note left by a previous run first.
+    if (await page.getByTestId('notes-text').isVisible().catch(() => false)) {
+        await page.getByTestId('notes-edit').click();
+        await page.getByTestId('notes-clear').click();
+    }
     await expect(page.getByTestId('personal-notes')).toContainText('No personal notes');
     await page.getByTestId('notes-edit').click();
     await page.getByTestId('notes-input').fill('capo 2, Andrei conduce');

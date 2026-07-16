@@ -49,23 +49,19 @@ test.describe('Song Editor', () => {
     const deleteZone = page.locator('[class*="deleteZone"]');
     await expect(deleteZone).not.toBeVisible();
 
-    // Find a chord badge to drag
+    // dnd-kit transport (WP-166): a real pointer drag of a PLACED chord.
     const chordBadge = page.locator('[class*="chordBadge"]').first();
     await expect(chordBadge).toBeVisible();
+    const box = (await chordBadge.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 30, box.y + 30, { steps: 4 });
 
-    // Start dragging using HTML5 drag event. A real DataTransfer is required —
-    // React ignores synthetic drag events without one.
-    const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
-    await chordBadge.dispatchEvent('dragstart', { dataTransfer });
-
-    // Delete zone should appear (has 'visible' class when active)
     await expect(deleteZone).toBeVisible({ timeout: 2000 });
     await expect(deleteZone).toContainText('Drop here to delete');
 
-    // Stop dragging
-    await chordBadge.dispatchEvent('dragend', { dataTransfer });
-
-    // Delete zone should disappear
+    // Release away from the zone: nothing deleted, zone disappears.
+    await page.mouse.up();
     await expect(deleteZone).not.toBeVisible();
   });
 
@@ -74,36 +70,44 @@ test.describe('Song Editor', () => {
 
     const chordBadge = page.locator('[class*="chordBadge"]').first();
     await expect(chordBadge).toBeVisible();
+    const box = (await chordBadge.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 30, box.y + 30, { steps: 4 });
 
-    // Start drag
-    await chordBadge.dispatchEvent('dragstart');
-
-    // Badge should have dragging class (opacity: 0.3, scale: 0.9)
-    await page.waitForTimeout(50);
+    // The source badge dims while its overlay follows the pointer.
     const className = await chordBadge.getAttribute('class');
     expect(className).toContain('dragging');
+    await page.mouse.up();
   });
 
-  test('should show caret only during drag', async ({ page }) => {
+  test('should show caret only during drag — character-exact live preview', async ({ page }) => {
     await page.goto('/debug/song-editor');
 
     // Caret should not be visible initially
     const caret = page.locator('[class*="dropCaret"]');
     await expect(caret).not.toBeVisible();
 
-    // Verify the toolbar chords are draggable
+    // Drag a toolbar chip over a lyric line: the caret preview appears at
+    // the pointer's insertion point (caret-from-point, WP-166) — the old
+    // HTML5 transport couldn't be driven from Playwright; this one can.
     const toolbarChord = page.locator('[class*="chordButton"]').first();
+    const segmentText = page.locator('[class*="segmentText"]').nth(1);
     await expect(toolbarChord).toBeVisible();
-    await expect(toolbarChord).toHaveAttribute('draggable', 'true');
-
-    // Verify the segment text is present for dropping
-    const segmentText = page.locator('[class*="segmentText"]').first();
     await expect(segmentText).toBeVisible();
 
-    // Note: Full drag-and-drop with caret positioning is difficult to test
-    // in Playwright because DragEvent construction with dataTransfer
-    // is not supported. The visual behavior works in real browsers.
-    // We verify the elements are set up correctly for drag operations.
+    const from = (await toolbarChord.boundingBox())!;
+    const to = (await segmentText.boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + 20, from.y + 20, { steps: 3 });
+    await page.mouse.move(to.x + to.width * 0.5, to.y + to.height / 2, { steps: 8 });
+
+    await expect(caret).toBeVisible({ timeout: 2000 });
+
+    // Drop; the caret goes away.
+    await page.mouse.up();
+    await expect(caret).not.toBeVisible();
   });
 
   test('should allow dragging chords', async ({ page }) => {
@@ -260,9 +264,9 @@ test.describe('Song Editor', () => {
     const count = await chordButtons.count();
     expect(count).toBeGreaterThanOrEqual(6); // At least major and minor chords
 
-    // All should be draggable
+    // All are dnd-kit draggables (keyboard-activatable, WP-166).
     for (let i = 0; i < Math.min(count, 6); i++) {
-      await expect(chordButtons.nth(i)).toHaveAttribute('draggable', 'true');
+      await expect(chordButtons.nth(i)).toHaveAttribute('aria-roledescription', 'draggable');
     }
   });
 

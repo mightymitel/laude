@@ -61,6 +61,11 @@ export function useChordDnd({ currentKey, chordStyle, setEditingSong }: UseChord
     // Immediate-feeling drag on touch AND mouse; 3px distinguishes taps.
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 3 } }));
 
+    // The drag layer needs to READ the current song during a move without
+    // making onDragMove depend on the whole editing state (would re-create
+    // the handler per keystroke): a peek ref updated by the editor.
+    const setEditingSongPeek = useMemo(() => ({ current: null as Partial<Song> | null }), []);
+
     const displayOf = useCallback(
         (chord: string) =>
             formatChord(parseNashville(chord) || { degree: 1, quality: '' }, currentKey, chordStyle),
@@ -201,13 +206,8 @@ export function useChordDnd({ currentKey, chordStyle, setEditingSong }: UseChord
                 });
             }
         },
-        [draggedChord, displayOf],
+        [draggedChord, displayOf, setEditingSongPeek],
     );
-
-    // The drag layer needs to READ the current song during a move without
-    // making onDragMove depend on the whole editing state (would re-create
-    // the handler per keystroke): a peek ref updated by the editor.
-    const setEditingSongPeek = useMemo(() => ({ current: null as Partial<Song> | null }), []);
 
     const onDragEnd = useCallback(
         (event: DragEndEvent) => {

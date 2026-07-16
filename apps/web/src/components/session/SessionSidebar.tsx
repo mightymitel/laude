@@ -1,5 +1,8 @@
 import type { Song } from '@laudasist/shared'
 import type { DjManifestEntry } from '@laude/session'
+import { useState } from 'react'
+import { LanguageFilter } from '@/components/LanguageFilter'
+import type { ContentLanguage } from '@/hooks/useLibraryResults'
 import { PlaylistPanel, type SessionPlaylistItem } from '@/components/PlaylistPanel'
 import styles from '../../routes/session.module.css'
 
@@ -31,6 +34,12 @@ interface SessionSidebarProps {
  * off-canvas drawer with a backdrop on phones). */
 export function SessionSidebar(props: SessionSidebarProps) {
     const { collapsed, searchQuery, songs } = props
+    // Content-language filter (WP-172/DEC-151): same component as the
+    // library; defaults to ALL; fails open on unlabelled songs.
+    const [language, setLanguage] = useState<ContentLanguage>('all')
+    const visibleSongs = songs?.filter(
+        (song) => language === 'all' || song.language === undefined || song.language === language,
+    )
 
     return (
         <>
@@ -72,7 +81,10 @@ export function SessionSidebar(props: SessionSidebarProps) {
                     </div>
 
                     <div className={styles.resultsList}>
-                        {songs?.map((song) => (
+                        <div style={{ padding: '0.4rem 0' }}>
+                            <LanguageFilter value={language} onChange={setLanguage} compact />
+                        </div>
+                        {visibleSongs?.map((song) => (
                             <div
                                 key={song.id}
                                 className={`${styles.resultItem} ${song.id === props.currentSongId ? styles.resultItemActive : ''}`}
