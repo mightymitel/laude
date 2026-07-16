@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { DndContext, DragOverlay, useDroppable } from '@dnd-kit/core';
+import { DndContext, DragOverlay, useDroppable, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Song, ChordStyle, formatChord, extractChordsFromLine } from '@laudasist/shared';
 import { SongEditorProps } from './types';
 import { createEmptySong, serializePartsToRaw } from './songEditorModel';
@@ -10,7 +11,8 @@ import { SongEditorToolbar } from './SongEditorToolbar';
 import { SongPartEditor } from './SongPartEditor';
 import { SongRawEditor } from './SongRawEditor';
 import { PartManager } from './PartManager';
-import { ArrangementPanel } from './ArrangementPanel';
+import { ArrangementComposer } from './ArrangementComposer';
+import { SortablePart, partSortId } from './SortablePart';
 import { ChordLoupe } from './ChordLoupe';
 import styles from './SongEditor.module.css';
 
@@ -50,6 +52,34 @@ export function SongEditor({
 
     const chordDrag = useChordDnd({ currentKey, chordStyle, setEditingSong });
     const partEditing = usePartEditing(setEditingSong);
+
+    // One DndContext, three drag types: chords (the layer above), part
+    // reorder, arrangement-chip reorder — discriminated by data.type.
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
+        const activeData = event.active.data.current;
+        const overData = event.over?.data.current;
+        if (activeData?.type === 'part-sort') {
+            if (overData?.type === 'part-sort' && typeof overData.index === 'number') {
+                partEditing.handleReorderParts(activeData.index as number, overData.index);
+            }
+            return;
+        }
+        if (activeData?.type === 'arr-sort') {
+            if (overData?.type === 'arr-sort' && typeof overData.position === 'number') {
+                setEditingSong(prev => {
+                    const order = [...(prev.defaultArrangement || [])];
+                    const from = activeData.position as number;
+                    const to = overData.position;
+                    if (from === to || from >= order.length || to >= order.length) return prev;
+                    const [moved] = order.splice(from, 1);
+                    order.splice(to, 0, moved!);
+                    return { ...prev, defaultArrangement: order };
+                });
+            }
+            return;
+        }
+        chordDrag.onDragEnd(event);
+    }, [partEditing, chordDrag, setEditingSong]);
     // The drag layer reads line text during onDragMove through this peek —
     // without making the handlers depend on the whole editing state.
     useEffect(() => {
@@ -102,7 +132,7 @@ export function SongEditor({
             sensors={chordDrag.sensors}
             onDragStart={chordDrag.onDragStart}
             onDragMove={chordDrag.onDragMove}
-            onDragEnd={chordDrag.onDragEnd}
+            onDragEnd={handleDragEnd}
             onDragCancel={chordDrag.onDragCancel}
         >
         <div ref={containerRef} className={containerClass}>
@@ -138,9 +168,13 @@ export function SongEditor({
             <div className={styles.content}>
                 {mode === 'visual' ? (
                     <>
+                        <SortableContext
+                            items={(editingSong.parts || []).map((_, i) => partSortId(i))}
+                            strategy={verticalListSortingStrategy}
+                        >
                         {(editingSong.parts || []).map((part, partIndex) => (
+                            <SortablePart key={`${part.id}-${partIndex}`} index={partIndex}>
                             <SongPartEditor
-                                key={part.id}
                                 part={part}
                                 partIndex={partIndex}
                                 currentKey={currentKey}
@@ -161,18 +195,16 @@ export function SongEditor({
                                     partEditing.handleApproximateChords(partIndex, sourcePartIndex)
                                 }
                             />
+                            </SortablePart>
                         ))}
+                        </SortableContext>
 
                         <PartManager onAddPart={partEditing.handleAddPart} />
 
-                        <ArrangementPanel
-                            arrangements={editingSong.arrangements || []}
+                        <ArrangementComposer
                             parts={editingSong.parts || []}
-                            defaultArrangement={editingSong.defaultArrangement || []}
-                            onAddArrangement={() => { }} // TODO
-                            onUpdateArrangement={() => { }} // TODO
-                            onRemoveArrangement={() => { }} // TODO
-                            onReferencePart={() => { }} // TODO
+                            order={editingSong.defaultArrangement || []}
+                            onChange={(order) => setEditingSong(prev => ({ ...prev, defaultArrangement: order }))}
                         />
                     </>
                 ) : (

@@ -44,7 +44,17 @@ export function usePartEditing(setEditingSong: Dispatch<SetStateAction<Partial<S
         });
     }, [setEditingSong]);
 
-    // TODO: Implement drag-and-drop part reordering UI (handleReorderParts)
+    // Part reorder via drag handles (WP-167).
+    const handleReorderParts = useCallback((from: number, to: number) => {
+        setEditingSong(prev => {
+            const parts = [...(prev.parts || [])];
+            if (from === to || from < 0 || to < 0 || from >= parts.length || to >= parts.length) return prev;
+            const [moved] = parts.splice(from, 1);
+            parts.splice(to, 0, moved!);
+            return { ...prev, parts };
+        });
+    }, [setEditingSong]);
+
 
     // Line handlers
     const handleUpdateLine = useCallback((partIndex: number, lineIndex: number, text: string) => {
@@ -174,6 +184,7 @@ export function usePartEditing(setEditingSong: Dispatch<SetStateAction<Partial<S
 
     return {
         handleAddPart,
+        handleReorderParts,
         handleRemovePart,
         handleUpdatePart,
         handleUpdateLine,

@@ -105,3 +105,18 @@ describe('officialArrangementOf', () => {
         expect(officialArrangementOf({ ...SONG, defaultArrangement: [], arrangements: [] })).toBeUndefined()
     })
 })
+
+describe('composer ref ↔ core resolver round-trip (WP-167)', () => {
+    it('refOfPart output resolves back to the same part via refToPartIndex', async () => {
+        const { refOfPart } = await import('@/components/SongEditor/ArrangementComposer')
+        for (let i = 0; i < SONG.parts.length; i++) {
+            const ref = refOfPart(SONG.parts, i)
+            expect(refToPartIndex(SONG.parts, ref)).toBe(i)
+        }
+        // Index-less (editor-created) parts resolve by occurrence.
+        const loose = SONG.parts.map((p) => ({ ...p, index: 0 }))
+        for (let i = 0; i < loose.length; i++) {
+            expect(refToPartIndex(loose, refOfPart(loose, i))).toBe(i)
+        }
+    })
+})
