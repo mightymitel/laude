@@ -1,0 +1,7698 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=Bb · style=caseSensitive 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "F",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "A#",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "g",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "F/a",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G#",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "d#",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "c",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=Bb · style=letters 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "F",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "A#",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "Gm",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "F/A",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G#dim",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "D#m",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "Cm",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "D#",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=Bb · style=nashville 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "1",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "6m",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5/7",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "b7",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4m",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "2m",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "5",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=Bb · style=roman 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "I",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "vi",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V/vii",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "bVII",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "iv",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "ii",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "V",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=C · style=caseSensitive 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "G",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "C",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "a",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "G/b",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "f",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "d",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=C · style=letters 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "G",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "C",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "Am",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "G/B",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "A#dim",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "Fm",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "Dm",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "F",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=C · style=nashville 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "1",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "6m",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5/7",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "b7",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4m",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "2m",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "5",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=C · style=roman 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "I",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "vi",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V/vii",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "bVII",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "iv",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "ii",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "V",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=F# · style=caseSensitive 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F#",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "C#",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "F#",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "d#",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "C#/f",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "E",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "b",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "g#",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F#",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C#",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=F# · style=letters 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F#",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "C#",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "F#",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "D#m",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "C#/F",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "Edim",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "Bm",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "G#m",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F#",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "B",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "C#",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=F# · style=nashville 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "1",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "6m",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5/7",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "b7",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4m",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "2m",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "5",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=F# · style=roman 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "I",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "vi",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V/vii",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "bVII",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "iv",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "ii",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "V",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=G · style=caseSensitive 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "D",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "G",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "e",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "D/f#",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "F",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "c",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "a",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "D",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=G · style=letters 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "D",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "G",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "Em",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "D/F#",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "Fdim",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "Cm",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "Am",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "G",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "C",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "D",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=G · style=nashville 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "1",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "6m",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "5/7",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "b7",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "4m",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "2m",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "1",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "4",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "5",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine A — useSongLineSegments (song view / session overview) > segments · key=G · style=roman 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "result": {
+      "pureText": "Amazing grace how sweet the sound",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Amazing ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 8,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 8,
+          "text": "grace how ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V",
+              "index": 18,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 18,
+          "text": "sweet the ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 3,
+              "display": "I",
+              "index": 28,
+              "originalChord": "1",
+            },
+          ],
+          "startIndex": 28,
+          "text": "sound",
+        },
+      ],
+    },
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "result": {
+      "pureText": "That saved a wretch like me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "That ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "vi",
+              "index": 5,
+              "originalChord": "6m",
+            },
+          ],
+          "startIndex": 5,
+          "text": "saved a ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 13,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 13,
+          "text": "wretch like ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "V/vii",
+              "index": 25,
+              "originalChord": "5/7",
+            },
+          ],
+          "startIndex": 25,
+          "text": "me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "result": {
+      "pureText": "Preamărit să fii, Doamne",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Prea",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "bVII",
+              "index": 4,
+              "originalChord": "b7",
+            },
+          ],
+          "startIndex": 4,
+          "text": "mărit să ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 1,
+              "display": "iv",
+              "index": 13,
+              "originalChord": "4m",
+            },
+          ],
+          "startIndex": 13,
+          "text": "fii, ",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 2,
+              "display": "ii",
+              "index": 18,
+              "originalChord": "2m",
+            },
+          ],
+          "startIndex": 18,
+          "text": "Doamne",
+        },
+      ],
+    },
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "result": {
+      "pureText": "The Lord has promised good to me",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "The Lord has promised good to me",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "result": {
+      "pureText": "Stacked chords on one syllable",
+      "segments": [
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "I",
+              "index": 0,
+              "originalChord": "1",
+            },
+            {
+              "chordIndex": 1,
+              "display": "IV",
+              "index": 0,
+              "originalChord": "4",
+            },
+          ],
+          "startIndex": 0,
+          "text": "Stacked chords on one syllable",
+        },
+      ],
+    },
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "result": {
+      "pureText": "Trailing tail with a late chord somewhere past column ten",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "Trailing tail with a late chord som",
+        },
+        {
+          "chords": [
+            {
+              "chordIndex": 0,
+              "display": "V",
+              "index": 35,
+              "originalChord": "5",
+            },
+          ],
+          "startIndex": 35,
+          "text": "ewhere past column ten",
+        },
+      ],
+    },
+  },
+  {
+    "line": "",
+    "result": {
+      "pureText": "",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "",
+        },
+      ],
+    },
+  },
+  {
+    "line": "[unknown]weird token line",
+    "result": {
+      "pureText": "[unknown]weird token line",
+      "segments": [
+        {
+          "chords": [],
+          "startIndex": 0,
+          "text": "[unknown]weird token line",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > formatChordToken spellings across the degree vocabulary 1`] = `
+[
+  {
+    "key": "G",
+    "notation": "english",
+    "spellings": [
+      "1→G",
+      "4→C",
+      "5→D",
+      "6m→Em",
+      "2m→Am",
+      "b7→F",
+      "4m→Cm",
+      "5/7→D/F#",
+      "b2→G#",
+      "D→D",
+      "F#m→F#m",
+    ],
+  },
+  {
+    "key": "G",
+    "notation": "german",
+    "spellings": [
+      "1→G",
+      "4→C",
+      "5→D",
+      "6m→Em",
+      "2m→Am",
+      "b7→F",
+      "4m→Cm",
+      "5/7→D/Fis",
+      "b2→Gis",
+      "D→D",
+      "F#m→Fism",
+    ],
+  },
+  {
+    "key": "G",
+    "notation": "solfege",
+    "spellings": [
+      "1→Sol",
+      "4→Do",
+      "5→Re",
+      "6m→Mim",
+      "2m→Lam",
+      "b7→Fa",
+      "4m→Dom",
+      "5/7→Re/Fa#",
+      "b2→Sol#",
+      "D→Re",
+      "F#m→Fa#m",
+    ],
+  },
+  {
+    "key": "G",
+    "notation": "nashville",
+    "spellings": [
+      "1→1",
+      "4→4",
+      "5→5",
+      "6m→6m",
+      "2m→2m",
+      "b7→b7",
+      "4m→4m",
+      "5/7→5/7",
+      "b2→b2",
+      "D→5",
+      "F#m→7m",
+    ],
+  },
+  {
+    "key": "F#",
+    "notation": "english",
+    "spellings": [
+      "1→F#",
+      "4→B",
+      "5→C#",
+      "6m→D#m",
+      "2m→G#m",
+      "b7→E",
+      "4m→Bm",
+      "5/7→C#/F",
+      "b2→G",
+      "D→D",
+      "F#m→F#m",
+    ],
+  },
+  {
+    "key": "F#",
+    "notation": "german",
+    "spellings": [
+      "1→Fis",
+      "4→H",
+      "5→Cis",
+      "6m→Dism",
+      "2m→Gism",
+      "b7→E",
+      "4m→Hm",
+      "5/7→Cis/F",
+      "b2→G",
+      "D→D",
+      "F#m→Fism",
+    ],
+  },
+  {
+    "key": "F#",
+    "notation": "solfege",
+    "spellings": [
+      "1→Fa#",
+      "4→Si",
+      "5→Do#",
+      "6m→Re#m",
+      "2m→Sol#m",
+      "b7→Mi",
+      "4m→Sim",
+      "5/7→Do#/Fa",
+      "b2→Sol",
+      "D→Re",
+      "F#m→Fa#m",
+    ],
+  },
+  {
+    "key": "F#",
+    "notation": "nashville",
+    "spellings": [
+      "1→1",
+      "4→4",
+      "5→5",
+      "6m→6m",
+      "2m→2m",
+      "b7→b7",
+      "4m→4m",
+      "5/7→5/7",
+      "b2→b2",
+      "D→b6",
+      "F#m→1m",
+    ],
+  },
+  {
+    "key": "Bb",
+    "notation": "english",
+    "spellings": [
+      "1→Bb",
+      "4→Eb",
+      "5→F",
+      "6m→Gm",
+      "2m→Cm",
+      "b7→Ab",
+      "4m→Ebm",
+      "5/7→F/A",
+      "b2→B",
+      "D→D",
+      "F#m→F#m",
+    ],
+  },
+  {
+    "key": "Bb",
+    "notation": "german",
+    "spellings": [
+      "1→B",
+      "4→Es",
+      "5→F",
+      "6m→Gm",
+      "2m→Cm",
+      "b7→As",
+      "4m→Esm",
+      "5/7→F/A",
+      "b2→H",
+      "D→D",
+      "F#m→Fism",
+    ],
+  },
+  {
+    "key": "Bb",
+    "notation": "solfege",
+    "spellings": [
+      "1→Sib",
+      "4→Mib",
+      "5→Fa",
+      "6m→Solm",
+      "2m→Dom",
+      "b7→Lab",
+      "4m→Mibm",
+      "5/7→Fa/La",
+      "b2→Si",
+      "D→Re",
+      "F#m→Fa#m",
+    ],
+  },
+  {
+    "key": "Bb",
+    "notation": "nashville",
+    "spellings": [
+      "1→1",
+      "4→4",
+      "5→5",
+      "6m→6m",
+      "2m→2m",
+      "b7→b7",
+      "4m→4m",
+      "5/7→5/7",
+      "b2→b2",
+      "D→3",
+      "F#m→b6m",
+    ],
+  },
+  {
+    "key": "C",
+    "notation": "english",
+    "spellings": [
+      "1→C",
+      "4→F",
+      "5→G",
+      "6m→Am",
+      "2m→Dm",
+      "b7→A#",
+      "4m→Fm",
+      "5/7→G/B",
+      "b2→C#",
+      "D→D",
+      "F#m→F#m",
+    ],
+  },
+  {
+    "key": "C",
+    "notation": "german",
+    "spellings": [
+      "1→C",
+      "4→F",
+      "5→G",
+      "6m→Am",
+      "2m→Dm",
+      "b7→B",
+      "4m→Fm",
+      "5/7→G/H",
+      "b2→Cis",
+      "D→D",
+      "F#m→Fism",
+    ],
+  },
+  {
+    "key": "C",
+    "notation": "solfege",
+    "spellings": [
+      "1→Do",
+      "4→Fa",
+      "5→Sol",
+      "6m→Lam",
+      "2m→Rem",
+      "b7→La#",
+      "4m→Fam",
+      "5/7→Sol/Si",
+      "b2→Do#",
+      "D→Re",
+      "F#m→Fa#m",
+    ],
+  },
+  {
+    "key": "C",
+    "notation": "nashville",
+    "spellings": [
+      "1→1",
+      "4→4",
+      "5→5",
+      "6m→6m",
+      "2m→2m",
+      "b7→b7",
+      "4m→4m",
+      "5/7→5/7",
+      "b2→b2",
+      "D→2",
+      "F#m→b5m",
+    ],
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=english · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Bb      Eb        F         Bb",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Gm      Eb          F/A",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Ab       Ebm  Cm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Bb Eb",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   F",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Bb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=english · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Ab      Db        Eb        Ab",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fm      Db          Eb/G",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Gb       Dbm  Bbm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Ab Db",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Eb",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Ab",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=english · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Gb      B         Db        Gb",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Ebm     B           Db/F",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    E        Bm   Abm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Gb B",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Db",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Gb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=german · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "B       Es        F         B",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Gm      Es          F/A",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    As       Esm  Cm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "B Es",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   F",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Bb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=german · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "As      Des       Es        As",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fm      Des         Es/G",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Ges      Desm Bm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "As Des",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Es",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Ab",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=german · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Ges     H         Des       Ges",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Esm     H           Des/F",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    E        Hm   Asm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Ges H",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Des",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Gb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=nashville · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Bb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=nashville · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Ab",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=nashville · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Gb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=solfege · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Sib     Mib       Fa        Sib",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Solm    Mib         Fa/La",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Lab      Mibm Dom",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Sib Mib",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Fa",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Bb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Bb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=solfege · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Lab     Reb       Mib       Lab",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fam     Reb         Mib/Sol",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Solb     Rebm Sibm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Lab Reb",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Mib",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Ab",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Ab",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=Bb · notation=solfege · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Solb    Si        Reb       Solb",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Mibm    Si          Reb/Fa",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Mi       Sim  Labm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Solb Si",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Reb",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "Gb",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "Gb",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=english · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "C       F         G         C",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Am      F           G/B",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    A#       Fm   Dm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "C F",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   G",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "C",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=english · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "A#      D#        F         A#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Gm      D#          F/A",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    G#       D#m  Cm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "A# D#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   F",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "A#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=english · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "G#      C#        D#        G#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fm      C#          D#/G",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    F#       C#m  A#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "G# C#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   D#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=german · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "C       F         G         C",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Am      F           G/H",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    B        Fm   Dm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "C F",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   G",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "C",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=german · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "B       Dis       F         B",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Gm      Dis         F/A",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Gis      Dism Cm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "B Dis",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   F",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "A#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=german · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Gis     Cis       Dis       Gis",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fm      Cis         Dis/G",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Fis      Cism Bm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Gis Cis",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Dis",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=nashville · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "C",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=nashville · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "A#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=nashville · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=solfege · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Do      Fa        Sol       Do",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Lam     Fa          Sol/Si",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    La#      Fam  Rem",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Do Fa",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Sol",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "C",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "C",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=solfege · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "La#     Re#       Fa        La#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Solm    Re#         Fa/La",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Sol#     Re#m Dom",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "La# Re#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Fa",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "A#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "A#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=C · notation=solfege · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Sol#    Do#       Re#       Sol#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Fam     Do#         Re#/Sol",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Fa#      Do#m La#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Sol# Do#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Re#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=english · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "F#      B         C#        F#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     D#m     B           C#/F",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    E        Bm   G#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "F# B",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   C#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=english · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "E       A         B         E",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     C#m     A           B/D#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    D        Am   F#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "E A",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   B",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "E",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=english · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "D       G         A         D",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Bm      G           A/C#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    C        Gm   Em",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "D G",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   A",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=german · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Fis     H         Cis       Fis",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Dism    H           Cis/F",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    E        Hm   Gism",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Fis H",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Cis",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=german · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "E       A         H         E",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Cism    A           H/Dis",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    D        Am   Fism",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "E A",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   H",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "E",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=german · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "D       G         A         D",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Hm      G           A/Cis",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    C        Gm   Em",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "D G",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   A",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=nashville · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=nashville · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "E",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=nashville · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=solfege · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Fa#     Si        Do#       Fa#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Re#m    Si          Do#/Fa",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Mi       Sim  Sol#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Fa# Si",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Do#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=solfege · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Mi      La        Si        Mi",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Do#m    La          Si/Re#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Re       Lam  Fa#m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Mi La",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Si",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "E",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "E",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=F# · notation=solfege · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Re      Sol       La        Re",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Sim     Sol         La/Do#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Do       Solm Mim",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Re Sol",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   La",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=english · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "G       C         D         G",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Em      C           D/F#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    F        Cm   Am",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "G C",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   D",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=english · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "F       Bb        C         F",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Dm      Bb          C/E",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Eb       Bbm  Gm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "F Bb",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   C",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=english · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "D#      G#        A#        D#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Cm      G#          A#/D",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    C#       G#m  Fm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "D# G#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   A#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=german · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "G       C         D         G",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Em      C           D/Fis",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    F        Cm   Am",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "G C",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   D",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=german · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "F       B         C         F",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Dm      B           C/E",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Es       Bm   Gm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "F B",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   C",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=german · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Dis     Gis       B         Dis",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Cm      Gis         B/D",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Cis      Gism Fm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Dis Gis",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   B",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=nashville · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=nashville · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=nashville · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "1       4         5         1",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     6m      4           5/7",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    b7       4m   2m",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "1 4",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   5",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=solfege · capo=0 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Sol     Do        Re        Sol",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Mim     Do          Re/Fa#",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Fa       Dom  Lam",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Sol Do",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Re",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "G",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "G",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=solfege · capo=2 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Fa      Sib       Do        Fa",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Rem     Sib         Do/Mi",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Mib      Sibm Solm",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Fa Sib",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   Do",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "F",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "F",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > renderLine · key=G · notation=solfege · capo=4 1`] = `
+[
+  {
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+    "rendered": {
+      "chordLine": "Re#     Sol#      La#       Re#",
+      "text": "Amazing grace how sweet the sound",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+    "rendered": {
+      "chordLine": "     Dom     Sol#        La#/Re",
+      "text": "That saved a wretch like me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+    "rendered": {
+      "chordLine": "    Do#      Sol#m Fam",
+      "text": "Preamărit să fii, Doamne",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "The Lord has promised good to me",
+    "rendered": {
+      "chordLine": "",
+      "text": "The Lord has promised good to me",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[1][4]Stacked chords on one syllable",
+    "rendered": {
+      "chordLine": "Re# Sol#",
+      "text": "Stacked chords on one syllable",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+    "rendered": {
+      "chordLine": "                                   La#",
+      "text": "Trailing tail with a late chord somewhere past column ten",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "",
+    "rendered": {
+      "chordLine": "",
+      "text": "",
+    },
+    "shapeKey": "D#",
+  },
+  {
+    "line": "[unknown]weird token line",
+    "rendered": {
+      "chordLine": "unknown",
+      "text": "weird token line",
+    },
+    "shapeKey": "D#",
+  },
+]
+`;
+
+exports[`engine B — viewports renderLine (+ capo shape keys) > stripChordTokens strips every token shape 1`] = `
+[
+  "Amazing grace how sweet the sound",
+  "That saved a wretch like me",
+  "Preamărit să fii, Doamne",
+  "The Lord has promised good to me",
+  "Stacked chords on one syllable",
+  "Trailing tail with a late chord somewhere past column ten",
+  "",
+  "weird token line",
+]
+`;
+
+exports[`engine C — SongLine markup (above / inline / compact), class-stripped > SongLine · position=above · key=G · letters 1`] = `
+[
+  {
+    "html": "<div><div><div><span>G</span></div><div>Amazing </div></div><div><div><span>C</span></div><div>grace how </div></div><div><div><span>D</span></div><div>sweet the </div></div><div><div><span>G</span></div><div>sound</div></div></div>",
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+  },
+  {
+    "html": "<div><div><div></div><div>That </div></div><div><div><span>Em</span></div><div>saved a </div></div><div><div><span>C</span></div><div>wretch like </div></div><div><div><span>D/F#</span></div><div>me</div></div></div>",
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+  },
+  {
+    "html": "<div><div><div></div><div>Prea</div></div><div><div><span>Fdim</span></div><div>mărit să </div></div><div><div><span>Cm</span></div><div>fii, </div></div><div><div><span>Am</span></div><div>Doamne</div></div></div>",
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+  },
+  {
+    "html": "<div>The Lord has promised good to me</div>",
+    "line": "The Lord has promised good to me",
+  },
+  {
+    "html": "<div><div><div><span>G</span><span>C</span></div><div>Stacked chords on one syllable</div></div></div>",
+    "line": "[1][4]Stacked chords on one syllable",
+  },
+  {
+    "html": "<div><div><div></div><div>Trailing tail with a late chord som</div></div><div><div><span>D</span></div><div>ewhere past column ten</div></div></div>",
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+  },
+  {
+    "html": "<div></div>",
+    "line": "",
+  },
+  {
+    "html": "<div>[unknown]weird token line</div>",
+    "line": "[unknown]weird token line",
+  },
+]
+`;
+
+exports[`engine C — SongLine markup (above / inline / compact), class-stripped > SongLine · position=compact · key=G · letters 1`] = `
+[
+  {
+    "html": "<div><span>G C D G</span><span>Amazing grace how sweet the sound</span></div>",
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+  },
+  {
+    "html": "<div><span>Em C D/F#</span><span>That saved a wretch like me</span></div>",
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+  },
+  {
+    "html": "<div><span>Fdim Cm Am</span><span>Preamărit să fii, Doamne</span></div>",
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+  },
+  {
+    "html": "<div>The Lord has promised good to me</div>",
+    "line": "The Lord has promised good to me",
+  },
+  {
+    "html": "<div><span>G C</span><span>Stacked chords on one syllable</span></div>",
+    "line": "[1][4]Stacked chords on one syllable",
+  },
+  {
+    "html": "<div><span>_ D</span><span>Trailing tail with a late chord somewhere past column ten</span></div>",
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+  },
+  {
+    "html": "<div></div>",
+    "line": "",
+  },
+  {
+    "html": "<div>[unknown]weird token line</div>",
+    "line": "[unknown]weird token line",
+  },
+]
+`;
+
+exports[`engine C — SongLine markup (above / inline / compact), class-stripped > SongLine · position=inline · key=G · letters 1`] = `
+[
+  {
+    "html": "<div><span>[G]</span><span>Amazing </span><span>[C]</span><span>grace how </span><span>[D]</span><span>sweet the </span><span>[G]</span><span>sound</span></div>",
+    "line": "[1]Amazing [4]grace how [5]sweet the [1]sound",
+  },
+  {
+    "html": "<div><span>That </span><span>[Em]</span><span>saved a </span><span>[C]</span><span>wretch like </span><span>[D/F#]</span><span>me</span></div>",
+    "line": "That [6m]saved a [4]wretch like [5/7]me",
+  },
+  {
+    "html": "<div><span>Prea</span><span>[Fdim]</span><span>mărit să </span><span>[Cm]</span><span>fii, </span><span>[Am]</span><span>Doamne</span></div>",
+    "line": "Prea[b7]mărit să [4m]fii, [2m]Doamne",
+  },
+  {
+    "html": "<div>The Lord has promised good to me</div>",
+    "line": "The Lord has promised good to me",
+  },
+  {
+    "html": "<div><span>[G]</span><span>[C]</span><span>Stacked chords on one syllable</span></div>",
+    "line": "[1][4]Stacked chords on one syllable",
+  },
+  {
+    "html": "<div><span>Trailing tail with a late chord som</span><span>[D]</span><span>ewhere past column ten</span></div>",
+    "line": "Trailing tail with a late chord som[5]ewhere past column ten",
+  },
+  {
+    "html": "<div></div>",
+    "line": "",
+  },
+  {
+    "html": "<div>[unknown]weird token line</div>",
+    "line": "[unknown]weird token line",
+  },
+]
+`;
