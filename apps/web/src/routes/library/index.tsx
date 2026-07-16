@@ -127,8 +127,8 @@ function LibraryPage() {
                         fontSize: '0.9rem',
                     }}
                 >
-                    📴 You're offline — showing your local library (downloads, recents and your
-                    own songs). Community search needs a connection.
+                    📴 Offline — showing your local library (downloads, recents and your own
+                    songs). Community search needs a connection.
                 </div>
             )}
 

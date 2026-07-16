@@ -110,15 +110,16 @@ export function Fader(props: {
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
 
+  const { onChange } = props;
   const setFromPointer = useCallback(
     (clientY: number) => {
       const el = trackRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const v = 1 - (clientY - rect.top) / rect.height;
-      props.onChange(Math.min(1, Math.max(0, v)));
+      onChange(Math.min(1, Math.max(0, v)));
     },
-    [props.onChange],
+    [onChange],
   );
 
   return (

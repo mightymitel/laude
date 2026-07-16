@@ -9,12 +9,19 @@ const KEYS: Key[] = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G'
 
 interface SongViewerProps {
     song: Song;
+    /** Seeds the transpose select (WP-162: the user's favoriteKey, else defaultKey). */
+    initialKey?: Key;
+    /** The stored favorite key, when signed in — drives the ★ affordance. */
+    favoriteKey?: Key | null;
+    /** Set (current key) / clear (null) the favorite. Omitted = affordance hidden. */
+    onFavoriteKeyChange?: (key: Key | null) => void;
 }
 
-export function SongViewer({ song }: SongViewerProps) {
-    const [transposeKey, setTransposeKey] = useState<Key>(song.defaultKey);
+export function SongViewer({ song, initialKey, favoriteKey, onFavoriteKeyChange }: SongViewerProps) {
+    const [transposeKey, setTransposeKey] = useState<Key>(initialKey ?? song.defaultKey);
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters');
     const [chordPosition, setChordPosition] = useState<'above' | 'inline' | 'compact'>('above');
+    const isFavoriteKey = favoriteKey != null && favoriteKey === transposeKey;
 
     return (
         <div className={styles.container}>
@@ -29,15 +36,40 @@ export function SongViewer({ song }: SongViewerProps) {
                     {/* Key Selector */}
                     <div className={styles.controlGroup}>
                         <label>TRANSPOSE</label>
-                        <select
-                            value={transposeKey}
-                            onChange={(e) => setTransposeKey(e.target.value as Key)}
-                            className={styles.select}
-                        >
-                            {KEYS.map(k => (
-                                <option key={k} value={k}>{k}</option>
-                            ))}
-                        </select>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <select
+                                value={transposeKey}
+                                onChange={(e) => setTransposeKey(e.target.value as Key)}
+                                className={styles.select}
+                            >
+                                {KEYS.map(k => (
+                                    <option key={k} value={k}>{k}</option>
+                                ))}
+                            </select>
+                            {onFavoriteKeyChange && (
+                                <button
+                                    data-testid="favorite-key-toggle"
+                                    title={
+                                        isFavoriteKey
+                                            ? `Favorite key (${transposeKey}) — click to clear`
+                                            : `Set ${transposeKey} as your favorite key for this song`
+                                    }
+                                    aria-pressed={isFavoriteKey}
+                                    onClick={() => onFavoriteKeyChange(isFavoriteKey ? null : transposeKey)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '1.2rem',
+                                        lineHeight: 1,
+                                        color: isFavoriteKey ? '#f59e0b' : 'var(--text-muted)',
+                                        padding: '0.2rem',
+                                    }}
+                                >
+                                    {isFavoriteKey ? '★' : '☆'}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Style Selector */}

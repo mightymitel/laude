@@ -8,6 +8,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSongs, useSong } from '@/hooks/useSongs'
 import { useOnline } from '@/hooks/useOnline'
 import { useLocalLibraryView, useRecordRecent } from '@/hooks/useLocalLibrary'
+import { useFavoriteKeyOf } from '@/hooks/useSongPrefs'
 import { useWorshipSession } from '@/hooks/useWorshipSession'
 import { usePlaylist } from '@/hooks/usePlaylists'
 import { api } from '@/lib/api'
@@ -42,6 +43,9 @@ export function useSessionSongState(
     const { data: allSongsData } = useSongs({}, { enabled: online })
     const { data: localView } = useLocalLibraryView()
     const recordRecent = useRecordRecent()
+    // favoriteKey (WP-162/DEC-133) seeds SOLO play only. In a live session
+    // effective_key stays session-authoritative — never per-user.
+    const favoriteKeyOf = useFavoriteKeyOf()
     const { data: initialPlaylist } = usePlaylist(playlistId || '')
     const { data: savedSession } = useSavedSession(savedSessionId || '')
 
@@ -122,15 +126,18 @@ export function useSessionSongState(
         let cancelled = false
         const seed = (song: Song) => {
             if (cancelled) return
+            // A quick session is solo by construction: the user's favorite
+            // key for this song (if any) seeds the initial sounding key.
+            const seedKey = favoriteKeyOf(song.id) ?? song.defaultKey
             const item = {
                 id: `seed-${song.id}`,
                 songId: song.id,
-                key: song.defaultKey,
+                key: seedKey,
                 song: embed(song),
             }
             session.send({
                 sessionPlaylist: [item],
-                current: { song_id: song.id, section_index: 0, effective_key: song.defaultKey },
+                current: { song_id: song.id, section_index: 0, effective_key: seedKey },
                 currentSong: item.song,
             })
             setSongSeeded(true)
@@ -145,7 +152,7 @@ export function useSessionSongState(
         return () => {
             cancelled = true
         }
-    }, [seedSongId, songSeeded, session, authLoading])
+    }, [seedSongId, songSeeded, session, authLoading, favoriteKeyOf])
 
     // === UPDATE HELPERS (single write path, any transport) ===
     const setCurrentSongId = useCallback(
@@ -212,6 +219,12 @@ export function useSessionSongState(
 
     const pickSong = useCallback(
         (song: Song) => {
+            // Solo: the user's favorite key seeds the pick (WP-162). Live:
+            // the incoming key stays the song's own — favorites are personal
+            // and never steer a shared session's sounding key.
+            const incomingKey = !live.isLive
+                ? asKey(favoriteKeyOf(song.id) ?? song.defaultKey)
+                : song.defaultKey
             // Not in the playlist yet → add as a temporary (by-value) item
             if (!sessionPlaylist.some((item) => item.songId === song.id)) {
                 setSessionPlaylist((prev) => [
@@ -219,7 +232,7 @@ export function useSessionSongState(
                     {
                         id: `temp-${Date.now()}-${song.id}`,
                         songId: song.id,
-                        key: song.defaultKey,
+                        key: incomingKey,
                         song: embed(song),
                         temporary: true,
                     },
@@ -228,7 +241,7 @@ export function useSessionSongState(
             const effective = songChangeKey(
                 state?.key_policy ?? 'adopt',
                 state ? effectiveKeyOf(state) : null,
-                song.defaultKey,
+                incomingKey,
             )
             session.send({
                 current: { song_id: song.id, section_index: 0, effective_key: effective },
@@ -240,7 +253,7 @@ export function useSessionSongState(
             // one the user will want offline next time.
             recordRecent(song)
         },
-        [session, sessionPlaylist, state, setSessionPlaylist, recordRecent],
+        [session, sessionPlaylist, state, setSessionPlaylist, recordRecent, live.isLive, favoriteKeyOf],
     )
 
     // Smart ordering for library view when search is empty

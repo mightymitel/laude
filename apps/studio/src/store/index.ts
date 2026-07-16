@@ -18,7 +18,6 @@ import type {
   LocalSectionWire,
   LocalSongDetail,
   LrcLine,
-  StemName,
   WorkPartRef,
 } from '@laude/song-model';
 import { ALL_STEMS } from '@laude/song-model';

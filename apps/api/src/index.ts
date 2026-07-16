@@ -8,7 +8,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createRelay } from '@laude/relay';
 import { Server as SocketServer } from 'socket.io';
+import rateLimit from 'express-rate-limit';
 import { initializeFirebase } from './config/firebase.js';
+import { corsOrigin } from './config/cors.js';
 import { relayAdapters } from './relay/adapters.js';
 import { previewForPath, renderIndexHtml, type PreviewDeps } from './preview/linkPreview.js';
 import { getSongsCollection, type SongDocument } from './models/Song.js';
@@ -28,37 +30,25 @@ import importRouter from './routes/import.js';
 const app = express();
 const httpServer = createServer(app);
 
-// Middleware
-app.use(cors({
-    origin: (origin, callback) => {
-        const allowed = [
-            process.env.FRONTEND_URL || 'http://localhost:3000',
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'https://laudasist.ro'
-        ];
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+// Behind the App Hosting proxy (one hop): real client IPs ride
+// X-Forwarded-For — required for per-IP rate limits and req.protocol.
+app.set('trust proxy', 1);
 
-        // Check against static whitelist
-        if (allowed.indexOf(origin) !== -1) return callback(null, true);
-
-        // Allow localhost and private-LAN origins (dev boxes + phones on the
-        // wifi hitting the dev stack — RFC1918 ranges only, never public).
-        if (/^http:\/\/(localhost|127\.0\.0\.1|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)) {
-            return callback(null, true);
-        }
-
-        // Allow any Firebase hosting domain (*.web.app, *.firebaseapp.com, *.hosted.app)
-        if (/^https:\/\/.*\.(web\.app|firebaseapp\.com|hosted\.app)$/.test(origin)) {
-            return callback(null, true);
-        }
-
-        return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-}));
+// Middleware — ONE origin policy for REST and sockets (WP-124).
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
+
+// Rate limits on the UNAUTHENTICATED surface (WP-128): link/code-based join
+// is the exposed door once share links circulate. Socket.io traffic and
+// authed routes are untouched; limits are per-IP per minute.
+const limiter = (max: number) =>
+    rateLimit({ windowMs: 60_000, max, standardHeaders: true, legacyHeaders: false });
+// Join lookups: brute-forcing session codes is the threat model.
+app.use('/api/sessions/join', limiter(30));
+app.use('/api/sessions/presenter', limiter(30));
+// Public search + community browse: as-you-type friendly, storm hostile.
+app.use('/api/search', limiter(120));
+app.use('/api/community', limiter(120));
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -100,7 +90,8 @@ async function start() {
         // Session relay: REST under /api/sessions + the socket fast path.
         const relay = createRelay(relayAdapters());
         app.use('/api/sessions', relay.router);
-        const io = new SocketServer(httpServer, { cors: { origin: true } });
+        // Same policy as REST — this transport used to be `origin: true`.
+        const io = new SocketServer(httpServer, { cors: { origin: corsOrigin, credentials: true } });
         relay.attach(io);
         // Bounded: a slow mirror must never block the relay from serving.
         const restored = await Promise.race([

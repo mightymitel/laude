@@ -19,6 +19,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated(); // Users can read other profiles (simplified)
       allow write: if isOwner(userId); // Only owner can edit their profile
+
+      // Per-song personal prefs (WP-162 / DEC-133): favoriteKey + notes.
+      // STRICTLY owner-only — unlike the profile above, these are private
+      // overlays and must not be readable by other authed users. The doc is
+      // extensible for DEC-138's personal arrangements (no migration).
+      match /song_prefs/{songId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Songs collection

@@ -1,0 +1,37 @@
+# CI gate (WP-126): lint + typecheck + test + build on every PR and on main.
+# Merge-blocking via branch protection (required check: "ci"); direct pushes
+# by the repo admin bypass protection, so the /next push-to-main flow keeps
+# working while PRs are gated. E2E stays out (needs emulators + browsers);
+# it runs locally per session and can join CI as a separate job later.
+# Absorbs the locale-parity check (ticket 70) when i18n lands.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint (react-hooks rule active — the #310 gate)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests + boundary check
+        run: npm run test
+
+      - name: Build (same entry as the App Hosting deploy)
+        run: npm run build:hosting

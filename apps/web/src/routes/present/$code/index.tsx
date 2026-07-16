@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState, useCallback } from 'react'
+import { ErrorFallback } from '@/components/ErrorFallback'
 import { useSessionConnection } from '@/hooks/useSessionConnection'
 import { useLyricsSearch } from '@/hooks/useLyricsSearch'
 import { loadPresenter } from '@/lib/presenter'
@@ -13,6 +14,8 @@ import styles from './present.module.css'
 
 export const Route = createFileRoute('/present/$code/')({
   component: PresenterPage,
+  // WP-125: a presenter-surface crash must be recoverable mid-service.
+  errorComponent: ErrorFallback,
 })
 
 function PlaylistItemRow({ item, isActive, onClick }: {

@@ -69,6 +69,89 @@ router.put('/me', async (req: AuthenticatedRequest, res: Response) => {
     }
 });
 
+// Per-song personal prefs (WP-162 / DEC-133): users/{uid}/song_prefs/{songId}
+// holds {favoriteKey, notes}. The record is deliberately extensible so
+// DEC-138's personal arrangements (a collection + favorite-arrangement
+// pointer) join THIS doc later with no migration (DEC-98).
+
+const VALID_KEYS = new Set([
+    'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B',
+]);
+const MAX_NOTES_LENGTH = 5000;
+
+function songPrefsCollection(userId: string) {
+    return getUsersCollection().doc(userId).collection('song_prefs');
+}
+
+/**
+ * GET /api/users/me/song-prefs - All of the caller's per-song prefs, as a
+ * map keyed by songId (small collection; one fetch feeds every surface).
+ */
+router.get('/me/song-prefs', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const snapshot = await songPrefsCollection(req.userId!).get();
+        const prefs: Record<string, { favoriteKey?: string; notes?: string }> = {};
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            prefs[doc.id] = {
+                ...(typeof data.favoriteKey === 'string' ? { favoriteKey: data.favoriteKey } : {}),
+                ...(typeof data.notes === 'string' ? { notes: data.notes } : {}),
+            };
+        }
+        res.json({ data: prefs });
+    } catch (error) {
+        console.error('Error fetching song prefs:', error);
+        res.status(500).json({ error: 'Failed to fetch song prefs' });
+    }
+});
+
+/**
+ * PUT /api/users/me/song-prefs/:songId - Upsert {favoriteKey?, notes?}.
+ * Passing null clears a field; a doc with no fields left is deleted.
+ */
+router.put('/me/song-prefs/:songId', async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { favoriteKey, notes } = req.body as { favoriteKey?: unknown; notes?: unknown };
+
+        if (favoriteKey !== undefined && favoriteKey !== null) {
+            if (typeof favoriteKey !== 'string' || !VALID_KEYS.has(favoriteKey)) {
+                res.status(400).json({ error: 'favoriteKey must be a valid key name' });
+                return;
+            }
+        }
+        if (notes !== undefined && notes !== null) {
+            if (typeof notes !== 'string' || notes.length > MAX_NOTES_LENGTH) {
+                res.status(400).json({ error: `notes must be a string of at most ${MAX_NOTES_LENGTH} characters` });
+                return;
+            }
+        }
+
+        const ref = songPrefsCollection(req.userId!).doc(req.params.songId!);
+        const update: Record<string, unknown> = { updatedAt: new Date() };
+        if (favoriteKey !== undefined) {
+            update.favoriteKey = favoriteKey === null ? FieldValue.delete() : favoriteKey;
+        }
+        if (notes !== undefined) {
+            update.notes = notes === null || notes === '' ? FieldValue.delete() : notes;
+        }
+        await ref.set(update, { merge: true });
+
+        const doc = await ref.get();
+        const data = doc.data() ?? {};
+        const remaining = {
+            ...(typeof data.favoriteKey === 'string' ? { favoriteKey: data.favoriteKey } : {}),
+            ...(typeof data.notes === 'string' ? { notes: data.notes } : {}),
+        };
+        if (Object.keys(remaining).length === 0) {
+            await ref.delete();
+        }
+        res.json({ songId: req.params.songId, ...remaining });
+    } catch (error) {
+        console.error('Error saving song prefs:', error);
+        res.status(500).json({ error: 'Failed to save song prefs' });
+    }
+});
+
 /**
  * GET /api/users/me/favorites - Get user's favorite songs
  */

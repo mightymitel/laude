@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { ErrorFallback, maybeDevCrash } from '@/components/ErrorFallback'
 import { listNotations } from '@laude/chords'
 import { useSessionConnection } from '@/hooks/useSessionConnection'
 import { loadViewerIdentity } from '@/lib/presenter'
@@ -14,6 +15,8 @@ import styles from './view.module.css'
 
 export const Route = createFileRoute('/view/$code/')({
     component: GuestViewPage,
+    // WP-125: a viewport crash mid-live-session must be recoverable.
+    errorComponent: ErrorFallback,
     validateSearch: (search: Record<string, unknown>) => {
         return {
             type: typeof search.type === 'string' ? search.type : undefined,
@@ -22,6 +25,7 @@ export const Route = createFileRoute('/view/$code/')({
 })
 
 function GuestViewPage() {
+    maybeDevCrash()
     const { code } = Route.useParams()
     const { type } = Route.useSearch()
     const navigate = useNavigate()

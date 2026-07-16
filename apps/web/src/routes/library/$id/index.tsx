@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import type { Song } from '@laudasist/shared'
+import type { Key, Song } from '@laudasist/shared'
 import { useSong, useUpdateSong } from '@/hooks/useSongs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOnline } from '@/hooks/useOnline'
 import { useRecordRecent } from '@/hooks/useLocalLibrary'
 import { getLocalSongByGlobalId } from '@/lib/localLibrary'
 import { SongViewer } from '@/components/songs/SongViewer'
+import { PersonalNotes } from '@/components/songs/PersonalNotes'
 import { ShareButton } from '@/components/ShareButton'
+import { useSaveSongPref, useSongPrefs } from '@/hooks/useSongPrefs'
+import { asKey } from '@/lib/keys'
 import layout from '@/styles/Layout.module.css'
 import styles from './song-detail.module.css'
 
@@ -23,6 +26,12 @@ function SongDetailPage() {
     const { firebaseUser } = useAuth()
     const updateSong = useUpdateSong(id)
     const recordRecent = useRecordRecent()
+
+    // Per-song personal overlay (WP-162): favoriteKey seeds the transpose
+    // select; notes render below the header. Signed-out users see neither.
+    const { data: songPrefs, isLoading: prefsLoading } = useSongPrefs()
+    const savePref = useSaveSongPref()
+    const pref = songPrefs?.[id]
 
     // Recents (WP-158): opening a song caches it for offline (LRU class).
     useEffect(() => {
@@ -54,8 +63,8 @@ function SongDetailPage() {
     if (!song && needLocal) {
         return (
             <div className={layout.stateMessage}>
-                📴 This song isn't available offline. Download it while online to keep it with
-                you. <Link to="/library">Back to Library</Link>
+                📴 This song is not available offline. Download it while online to keep it
+                with you. <Link to="/library">Back to Library</Link>
             </div>
         )
     }
@@ -141,7 +150,31 @@ function SongDetailPage() {
                 </div>
             </div>
 
-            <SongViewer song={song} />
+            {firebaseUser !== null && (
+                <PersonalNotes
+                    notes={pref?.notes}
+                    saving={savePref.isPending}
+                    onSave={(notes) => savePref.mutate({ songId: id, notes })}
+                />
+            )}
+
+            {/* Rendered once prefs settle so initialKey seeds from favoriteKey;
+                keyed per song so navigating songs re-seeds. ★ toggles update
+                the favoriteKey prop live without remounting. */}
+            {(firebaseUser === null || !prefsLoading) && (
+                <SongViewer
+                    key={song.id}
+                    song={song}
+                    initialKey={pref?.favoriteKey !== undefined ? asKey(pref.favoriteKey) : song.defaultKey}
+                    favoriteKey={pref?.favoriteKey !== undefined ? asKey(pref.favoriteKey) : null}
+                    {...(firebaseUser !== null
+                        ? {
+                              onFavoriteKeyChange: (key: Key | null) =>
+                                  savePref.mutate({ songId: id, favoriteKey: key }),
+                          }
+                        : {})}
+                />
+            )}
         </div>
     )
 }

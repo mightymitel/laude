@@ -7,7 +7,6 @@
  * playlists are owner-scoped, private songs are invisible to other accounts,
  * and there is no allow-all fallthrough anywhere.
  */
-import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { after, before, test } from 'node:test';
 import {
@@ -138,4 +137,23 @@ test('no allow-all fallthrough: unknown collections deny; sessions requires an o
   await assertFails(setDoc(doc(alice, 'sessions/main'), { anything: true }));
   await assertFails(getDoc(doc(alice, 'performances/perf-1')));
   await assertFails(setDoc(doc(alice, 'random_collection/x'), { y: 1 }));
+});
+
+test('song_prefs are STRICTLY owner-only — other authed users cannot even read (WP-162)', async () => {
+  const alice = env.authenticatedContext('alice').firestore();
+  const bob = env.authenticatedContext('bob').firestore();
+  const anon = env.unauthenticatedContext().firestore();
+
+  await assertSucceeds(
+    setDoc(doc(alice, 'users/alice/song_prefs/song-public'), { favoriteKey: 'F#', notes: 'capo 2' }),
+  );
+  await assertSucceeds(getDoc(doc(alice, 'users/alice/song_prefs/song-public')));
+
+  // The profile is readable by authed users ("simplified"), but the prefs
+  // overlay underneath must NOT be.
+  await assertFails(getDoc(doc(bob, 'users/alice/song_prefs/song-public')));
+  await assertFails(
+    setDoc(doc(bob, 'users/alice/song_prefs/song-public'), { favoriteKey: 'C' }),
+  );
+  await assertFails(getDoc(doc(anon, 'users/alice/song_prefs/song-public')));
 });

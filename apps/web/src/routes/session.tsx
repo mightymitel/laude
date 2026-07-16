@@ -4,8 +4,8 @@ import type { ChordStyle } from '@laudasist/shared'
 import { useSessionSongState } from '@/hooks/useSessionSongState'
 import { useOnline } from '@/hooks/useOnline'
 import { auth } from '@/lib/firebase'
-import { asKey } from '@/lib/keys'
 import styles from './session.module.css'
+import { ErrorFallback } from '@/components/ErrorFallback'
 import { Modal } from '@/components/Modal/Modal'
 import { Tuner } from '@/components/Tuner/Tuner'
 import { WorshipPad } from '@/components/WorshipPad'
@@ -17,6 +17,8 @@ import { type ChordDisplay } from '@/components/session/SongPartsView'
 
 export const Route = createFileRoute('/session')({
     component: SessionPage,
+    // WP-125: a crash on the owner surface must be recoverable mid-service.
+    errorComponent: ErrorFallback,
     validateSearch: (
         search: Record<string, unknown>,
     ): { guest: boolean; playlistId?: string; savedSessionId?: string; songId?: string } => {
