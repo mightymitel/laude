@@ -1,9 +1,10 @@
-import { useRef, useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { Key, ChordStyle } from '@laudasist/shared';
-import { DraggedChord } from './types';
 import styles from './SongEditor.module.css';
 import { useSongLineSegments } from '@/hooks/useSongLineSegments';
 import { EditableSongSegment } from './EditableSongSegment';
+import { lineDroppableId } from './useChordDnd';
 
 interface SongLineEditorProps {
     lineText: string;
@@ -12,18 +13,19 @@ interface SongLineEditorProps {
     currentKey: Key;
     chordStyle: ChordStyle;
     lyricsLocked: boolean;
-    draggedChord: DraggedChord | null;
+    isDragging: boolean;
     isDropTarget: boolean;
     dropCharIndex: number | null;
     onTextChange: (text: string) => void;
     onKeyDown: (e: React.KeyboardEvent) => void;
     onDeleteLine: () => void;
-    onDropPositionChange: (charIndex: number | null) => void;
-    onChordDrop: (dataTransfer?: DataTransfer) => void;
-    onChordDragStart: (chord: DraggedChord) => void;
-    onChordDragEnd: () => void;
 }
 
+/**
+ * ONE droppable per lyric line (WP-166 / DEC-143): dnd-kit evaluates every
+ * droppable per pointer move, so per-syllable targets would cliff on a
+ * phone; the character-exact offset comes from caret-from-point instead.
+ */
 export function SongLineEditor({
     lineText,
     partIndex,
@@ -31,47 +33,16 @@ export function SongLineEditor({
     currentKey,
     chordStyle,
     lyricsLocked,
-    draggedChord,
+    isDragging,
     isDropTarget,
     dropCharIndex,
     onTextChange,
     onKeyDown,
     onDeleteLine,
-    onDropPositionChange,
-    onChordDrop,
-    onChordDragStart,
-    onChordDragEnd,
 }: SongLineEditorProps) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [draggingChordIndex, setDraggingChordIndex] = useState<number | null>(null);
-    const [activeSegmentIndex, setActiveSegmentIndex] = useState<number | null>(null);
+    const { setNodeRef } = useDroppable({ id: lineDroppableId(partIndex, lineIndex) });
 
     const { pureText, segments } = useSongLineSegments(lineText, currentKey, chordStyle);
-
-    const handleSegmentHover = useCallback((segmentIndex: number, globalCharIndex: number | null) => {
-        setActiveSegmentIndex(segmentIndex);
-        onDropPositionChange(globalCharIndex);
-    }, [onDropPositionChange]);
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        // Only clear position when actually leaving the container,
-        // not when entering a child element (segment)
-        const relatedTarget = e.relatedTarget as Node | null;
-        if (containerRef.current && relatedTarget && containerRef.current.contains(relatedTarget)) {
-            // Moving to a child element, don't clear
-            return;
-        }
-        setActiveSegmentIndex(null);
-        onDropPositionChange(null);
-    }, [onDropPositionChange]);
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onChordDrop(e.dataTransfer);
-        setDraggingChordIndex(null);
-        setActiveSegmentIndex(null);
-    }, [onChordDrop]);
 
     const handleSegmentTextChange = useCallback((segmentIndex: number, newSegmentText: string) => {
         let newLine = '';
@@ -85,71 +56,35 @@ export function SongLineEditor({
         onTextChange(newLine);
     }, [segments, onTextChange]);
 
-    const handleChordDragStartWrapper = (e: React.DragEvent, chordIndex: number, formattedChord: string, originalChord: string, originalCharIndex: number) => {
-        setDraggingChordIndex(chordIndex);
-
-        const chordData: DraggedChord = {
-            chord: originalChord,
-            source: 'line',
-            originalPartIndex: partIndex,
-            originalLineIndex: lineIndex,
-            originalCharIndex: originalCharIndex,
-        };
-
-        // Store chord data in dataTransfer for reliable access during drop
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('application/x-chord', JSON.stringify(chordData));
-        e.dataTransfer.setData('text/plain', originalChord);
-
-        onChordDragStart(chordData);
-    };
-
     const handleNavigate = useCallback((_index: number, _dir: 'prev' | 'next') => {
         // Focus management placeholder
     }, []);
 
     return (
         <div
-            ref={containerRef}
+            ref={setNodeRef}
             className={styles.line}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onDragOver={(e) => {
-                e.preventDefault(); // Necessary to allow dropping
-                e.dataTransfer.dropEffect = 'move';
-            }}
+            data-part-index={partIndex}
+            data-line-index={lineIndex}
         >
-            <div
-                className={styles.visualLayer}
-                style={{
-                    pointerEvents: draggedChord ? 'auto' : 'auto'
-                }}
-            >
+            <div className={styles.visualLayer}>
                 {segments.map((seg, i) => (
                     <EditableSongSegment
                         key={i}
                         segment={seg}
                         segmentIndex={i}
                         totalSegments={segments.length}
-                        draggingChordIndex={draggingChordIndex}
-                        activeSegmentIndex={activeSegmentIndex}
+                        partIndex={partIndex}
+                        lineIndex={lineIndex}
                         isDropTarget={isDropTarget}
                         dropCharIndex={dropCharIndex}
-                        isDragging={!!draggedChord}
+                        isDragging={isDragging}
                         lyricsLocked={lyricsLocked}
                         lineIsEmpty={pureText.trim() === '' && segments.length === 1 && seg.chords.length === 0}
                         onTextChange={handleSegmentTextChange}
                         onNavigate={handleNavigate}
                         onKeyDown={onKeyDown}
                         onDeleteLine={onDeleteLine}
-                        onChordDragStart={(e, chordIndex, display, originalChord, originalCharIndex) =>
-                            handleChordDragStartWrapper(e, chordIndex, display, originalChord, originalCharIndex)
-                        }
-                        onChordDragEnd={() => {
-                            setDraggingChordIndex(null);
-                            onChordDragEnd();
-                        }}
-                        onHover={handleSegmentHover}
                     />
                 ))}
             </div>

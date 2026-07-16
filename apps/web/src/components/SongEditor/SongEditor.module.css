@@ -686,3 +686,47 @@
         min-height: 3rem;
     }
 }
+/* Chord-placement loupe (WP-166): magnifier above the touch point. */
+.loupe {
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--bg-primary, #111827);
+    border: 2px solid var(--primary, #4f46e5);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.loupeContent {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 12px;
+    font-family: 'Fira Code', 'SF Mono', monospace;
+    white-space: nowrap;
+}
+
+.loupeChords {
+    position: relative;
+    height: 1.2em;
+    color: var(--primary, #6366f1);
+    font-weight: 700;
+}
+
+.loupeText {
+    color: var(--text-primary, #f9fafb);
+}
+
+.loupeCaret {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    margin: 0 -1px;
+    vertical-align: text-bottom;
+    background: var(--primary, #6366f1);
+    animation: loupe-caret-blink 0.8s steps(1) infinite;
+}
+
+@keyframes loupe-caret-blink {
+    50% { opacity: 0.25; }
+}

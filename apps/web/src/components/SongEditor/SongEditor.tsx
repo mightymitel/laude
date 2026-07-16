@@ -1,8 +1,9 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { DndContext, DragOverlay, useDroppable } from '@dnd-kit/core';
 import { Song, ChordStyle, formatChord, extractChordsFromLine } from '@laudasist/shared';
 import { SongEditorProps } from './types';
 import { createEmptySong, serializePartsToRaw } from './songEditorModel';
-import { useChordDrag } from './useChordDrag';
+import { useChordDnd, DELETE_ZONE_ID } from './useChordDnd';
 import { usePartEditing } from './usePartEditing';
 import { SongEditorHeader } from './SongEditorHeader';
 import { SongEditorToolbar } from './SongEditorToolbar';
@@ -10,8 +11,18 @@ import { SongPartEditor } from './SongPartEditor';
 import { SongRawEditor } from './SongRawEditor';
 import { PartManager } from './PartManager';
 import { ArrangementPanel } from './ArrangementPanel';
-import { DragIndicator } from './DragIndicator';
+import { ChordLoupe } from './ChordLoupe';
 import styles from './SongEditor.module.css';
+
+/** Delete target while a chord is dragged (dnd-kit droppable). */
+function DeleteZone() {
+    const { setNodeRef, isOver } = useDroppable({ id: DELETE_ZONE_ID });
+    return (
+        <div ref={setNodeRef} className={`${styles.deleteZone} ${styles.visible} ${isOver ? styles.locked : ''}`}>
+            🗑️ Drop here to delete
+        </div>
+    );
+}
 
 export function SongEditor({
     song,
@@ -37,8 +48,13 @@ export function SongEditor({
 
     const currentKey = displayKey || editingSong.defaultKey || 'C';
 
-    const chordDrag = useChordDrag({ currentKey, chordStyle, setEditingSong });
+    const chordDrag = useChordDnd({ currentKey, chordStyle, setEditingSong });
     const partEditing = usePartEditing(setEditingSong);
+    // The drag layer reads line text during onDragMove through this peek —
+    // without making the handlers depend on the whole editing state.
+    useEffect(() => {
+        chordDrag.editingSongPeek.current = editingSong;
+    }, [editingSong, chordDrag.editingSongPeek]);
 
     // Extract all unique chords from the current song for the palette
     const songChords = useMemo(() => {
@@ -79,9 +95,16 @@ export function SongEditor({
 
     const rawContent = useMemo(() => serializePartsToRaw(editingSong.parts || []), [editingSong.parts]);
 
-    const containerClass = `${styles.container} ${styles[variant] || ''} ${chordDrag.isTouchDragging ? styles.isDragging : ''}`;
+    const containerClass = `${styles.container} ${styles[variant] || ''} ${chordDrag.draggedChord ? styles.isDragging : ''}`;
 
     return (
+        <DndContext
+            sensors={chordDrag.sensors}
+            onDragStart={chordDrag.onDragStart}
+            onDragMove={chordDrag.onDragMove}
+            onDragEnd={chordDrag.onDragEnd}
+            onDragCancel={chordDrag.onDragCancel}
+        >
         <div ref={containerRef} className={containerClass}>
             <SongEditorHeader
                 title={editingSong.title || ''}
@@ -105,8 +128,6 @@ export function SongEditor({
                     chordStyle={chordStyle}
                     lyricsLocked={lyricsLocked}
                     onLockToggle={() => setLyricsLocked(!lyricsLocked)}
-                    onChordDragStart={chordDrag.handleChordDragStart}
-                    onTouchDragStart={chordDrag.handleTouchDragStart}
                     customChords={chordDrag.customChords}
                     songChords={songChords}
                     onAddCustomChord={chordDrag.handleAddCustomChord}
@@ -136,10 +157,6 @@ export function SongEditor({
                                 onSplitPart={(atLineIndex) => partEditing.handleSplitPart(partIndex, atLineIndex)}
                                 onJoinWithNext={() => partEditing.handleJoinParts(partIndex)}
                                 hasNextPart={partIndex < (editingSong.parts?.length || 0) - 1}
-                                onDropPositionChange={chordDrag.handleDropPositionChange}
-                                onChordDrop={chordDrag.handleChordDrop}
-                                onChordDragStart={chordDrag.handleChordDragStart}
-                                onChordDragEnd={chordDrag.handleChordDragEnd}
                                 onApproximateChords={(sourcePartIndex) =>
                                     partEditing.handleApproximateChords(partIndex, sourcePartIndex)
                                 }
@@ -191,27 +208,23 @@ export function SongEditor({
                 </div>
             </div>
 
-            {/* Delete Drop Zone - Shows when dragging */}
-            {chordDrag.draggedChord && (
-                <div
-                    className={`${styles.deleteZone} ${styles.visible}`}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        e.dataTransfer.dropEffect = 'move';
-                    }}
-                    onDrop={chordDrag.handleDeleteZoneDrop}
-                >
-                    🗑️ Drop here to delete
-                </div>
-            )}
+            {/* Delete Drop Zone - shows when dragging a placed chord */}
+            {chordDrag.draggedChord?.source === 'line' && <DeleteZone />}
 
-            {/* Touch drag indicator */}
-            {chordDrag.isTouchDragging && chordDrag.touchDragPosition && chordDrag.touchDragChordDisplay && (
-                <DragIndicator
-                    chord={chordDrag.touchDragChordDisplay}
-                    position={chordDrag.touchDragPosition}
-                />
+            {/* The dragged chord follows the pointer (dnd-kit overlay). */}
+            <DragOverlay dropAnimation={null}>
+                {chordDrag.draggedChord ? (
+                    <span className={styles.chordBadge}>
+                        {chordDrag.displayOf(chordDrag.draggedChord.chord)}
+                    </span>
+                ) : null}
+            </DragOverlay>
+
+            {/* Magnifier loupe with insertion caret (touch only, WP-166). */}
+            {chordDrag.loupe && (
+                <ChordLoupe state={chordDrag.loupe} currentKey={currentKey} chordStyle={chordStyle} />
             )}
         </div>
+        </DndContext>
     );
 }

@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import { useDraggable } from '@dnd-kit/core';
 import { Key, ChordStyle, formatChord, parseNashville } from '@laudasist/shared';
 import { ChordAlterationMenu } from './ChordAlterationMenu';
 import { DraggedChord } from './types';
@@ -9,9 +10,7 @@ interface SongEditorToolbarProps {
     chordStyle: ChordStyle;
     lyricsLocked: boolean;
     onLockToggle: () => void;
-    onChordDragStart: (chord: DraggedChord) => void;
     onChordClick?: (chord: string) => void;  // Click/tap to insert at cursor
-    onTouchDragStart?: (chord: DraggedChord, e: React.TouchEvent) => void;
     customChords?: string[];
     songChords?: string[];  // Chords extracted from current song
     onAddCustomChord?: (chord: string) => void;
@@ -21,112 +20,70 @@ interface SongEditorToolbarProps {
 const MAJOR_CHORDS = ['1', '4', '5'];
 const MINOR_CHORDS = ['6m', '2m', '3m'];
 
+/**
+ * One palette chip = one dnd-kit draggable (WP-166). Tap still inserts
+ * (the 3px activation distance keeps clicks intact); drag places; the
+ * alteration menu stays on contextmenu (mouse right-click / stationary
+ * touch long-press).
+ */
+function ChordChip({
+    chord,
+    display,
+    className,
+    title,
+    onTap,
+    onMenu,
+}: {
+    chord: string;
+    display: string;
+    className: string;
+    title?: string;
+    onTap?: () => void;
+    onMenu?: (x: number, y: number) => void;
+}) {
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+        id: `toolbar-chord:${chord}:${className}`,
+        data: { chord, source: 'toolbar' } satisfies DraggedChord,
+    });
+    return (
+        <button
+            ref={setNodeRef}
+            className={`${className} ${isDragging ? styles.dragging : ''}`}
+            onClick={onTap}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                onMenu?.(e.clientX, e.clientY);
+            }}
+            data-chord={chord}
+            {...(title !== undefined ? { title } : {})}
+            {...attributes}
+            {...listeners}
+        >
+            {display}
+        </button>
+    );
+}
+
 export function SongEditorToolbar({
     currentKey,
     chordStyle,
     lyricsLocked,
     onLockToggle,
-    onChordDragStart,
     onChordClick,
-    onTouchDragStart,
     customChords = [],
     songChords = [],
     onAddCustomChord,
 }: SongEditorToolbarProps) {
     const [menuOpen, setMenuOpen] = useState<{ chord: string; x: number; y: number } | null>(null);
-    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-    const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-    const isDragging = useRef(false);
 
-    const handleDragStart = (e: React.DragEvent, chordDegree: string) => {
-        if (menuOpen) return; // Don't drag if menu is trying to open
-
-        e.dataTransfer.effectAllowed = 'move';
-        // Store chord data in dataTransfer for reliable access during drop
-        e.dataTransfer.setData('application/x-chord', JSON.stringify({
-            chord: chordDegree,
-            source: 'toolbar',
-        }));
-        e.dataTransfer.setData('text/plain', chordDegree);
-
-        onChordDragStart({
-            chord: chordDegree,
-            source: 'toolbar',
-        });
+    const formatChordForDisplay = (chordStr: string): string => {
+        const parsed = parseNashville(chordStr);
+        return parsed ? formatChord(parsed, currentKey, chordStyle) : chordStr;
     };
 
-    // Touch handlers: tap = insert, long press = menu, drag = move
-    const handleTouchStart = (e: React.TouchEvent, chord: string) => {
-        const touch = e.touches[0];
-        touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-        isDragging.current = false;
-
-        // Start long press timer for menu
-        longPressTimer.current = setTimeout(() => {
-            if (!isDragging.current) {
-                setMenuOpen({ chord, x: touch.clientX, y: touch.clientY });
-            }
-        }, 500);
-    };
-
-    const handleTouchMove = (e: React.TouchEvent, chord: string) => {
-        if (!touchStartPos.current) return;
-
-        const touch = e.touches[0];
-        const dx = touch.clientX - touchStartPos.current.x;
-        const dy = touch.clientY - touchStartPos.current.y;
-
-        // If moved more than 10px, it's a drag
-        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-            isDragging.current = true;
-            if (longPressTimer.current) {
-                clearTimeout(longPressTimer.current);
-                longPressTimer.current = null;
-            }
-
-            // Start touch drag if handler provided
-            if (onTouchDragStart && !menuOpen) {
-                onTouchDragStart({ chord, source: 'toolbar' }, e);
-            }
-        }
-    };
-
-    const handleTouchEnd = (chord: string) => {
-        if (longPressTimer.current) {
-            clearTimeout(longPressTimer.current);
-            longPressTimer.current = null;
-        }
-
-        // If no drag and no menu opened, it's a tap - insert chord
-        if (!isDragging.current && !menuOpen && onChordClick) {
-            onChordClick(chord);
-        }
-
-        touchStartPos.current = null;
-        isDragging.current = false;
-    };
-
-    const handleContextMenu = (e: React.MouseEvent, chord: string) => {
-        e.preventDefault();
-        setMenuOpen({ chord, x: e.clientX, y: e.clientY });
-    };
-
-    const formatChordForDisplay = (degree: string): string => {
-        try {
-            const parsed = parseNashville(degree);
-            if (parsed) {
-                const result = formatChord(parsed, currentKey, chordStyle);
-                return result || degree;
-            }
-        } catch {
-            // Fall through to default
-        }
-        return degree;
-    };
-
-    const handleMenuSelect = (chord: string) => {
+    const handleMenuSelect = (alteredChord: string) => {
         if (onAddCustomChord) {
-            onAddCustomChord(chord);
+            onAddCustomChord(alteredChord);
         }
         setMenuOpen(null);
     };
@@ -134,69 +91,43 @@ export function SongEditorToolbar({
     return (
         <div className={styles.toolbar}>
             <div className={styles.chordPalette}>
-                {/* Major chords */}
-                {MAJOR_CHORDS.map(chord => (
-                    <button
+                {MAJOR_CHORDS.map((chord) => (
+                    <ChordChip
                         key={chord}
+                        chord={chord}
+                        display={formatChordForDisplay(chord)}
                         className={styles.chordButton}
-                        draggable
-                        onClick={() => onChordClick?.(chord)}
-                        onDragStart={(e) => handleDragStart(e, chord)}
-                        onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchMove={(e) => handleTouchMove(e, chord)}
-                        onTouchEnd={() => handleTouchEnd(chord)}
-                        onContextMenu={(e) => handleContextMenu(e, chord)}
-                        data-chord={chord}
-                    >
-                        {formatChordForDisplay(chord)}
-                    </button>
+                        {...(onChordClick ? { onTap: () => onChordClick(chord) } : {})}
+                        onMenu={(x, y) => setMenuOpen({ chord, x, y })}
+                    />
                 ))}
-
-                {/* Minor chords */}
-                {MINOR_CHORDS.map(chord => (
-                    <button
+                {MINOR_CHORDS.map((chord) => (
+                    <ChordChip
                         key={chord}
+                        chord={chord}
+                        display={formatChordForDisplay(chord)}
                         className={`${styles.chordButton} ${styles.minor}`}
-                        draggable
-                        onClick={() => onChordClick?.(chord)}
-                        onDragStart={(e) => handleDragStart(e, chord)}
-                        onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchMove={(e) => handleTouchMove(e, chord)}
-                        onTouchEnd={() => handleTouchEnd(chord)}
-                        onContextMenu={(e) => handleContextMenu(e, chord)}
-                    >
-                        {formatChordForDisplay(chord)}
-                    </button>
+                        {...(onChordClick ? { onTap: () => onChordClick(chord) } : {})}
+                        onMenu={(x, y) => setMenuOpen({ chord, x, y })}
+                    />
                 ))}
-
-                {/* Chords from current song */}
                 {songChords.map((chord, i) => (
-                    <button
+                    <ChordChip
                         key={`song-${chord}-${i}`}
+                        chord={chord}
+                        display={formatChordForDisplay(chord)}
                         className={`${styles.chordButton} ${styles.songChord}`}
-                        draggable
-                        onClick={() => onChordClick?.(chord)}
-                        onDragStart={(e) => handleDragStart(e, chord)}
-                        onTouchStart={(e) => handleTouchStart(e, chord)}
-                        onTouchMove={(e) => handleTouchMove(e, chord)}
-                        onTouchEnd={() => handleTouchEnd(chord)}
-                        onContextMenu={(e) => handleContextMenu(e, chord)}
                         title="From this song"
-                    >
-                        {formatChordForDisplay(chord)}
-                    </button>
+                        {...(onChordClick ? { onTap: () => onChordClick(chord) } : {})}
+                    />
                 ))}
-
-                {/* Custom/Added chords */}
                 {customChords.map((chord, i) => (
-                    <button
+                    <ChordChip
                         key={`${chord}-${i}`}
+                        chord={chord}
+                        display={formatChordForDisplay(chord)}
                         className={`${styles.chordButton} ${styles.customChord}`}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, chord)}
-                    >
-                        {formatChordForDisplay(chord)}
-                    </button>
+                    />
                 ))}
 
                 {/* Custom chord button */}

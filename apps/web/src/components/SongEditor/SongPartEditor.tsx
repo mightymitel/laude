@@ -21,10 +21,7 @@ interface SongPartEditorProps {
     onSplitPart: (atLineIndex: number) => void;
     onJoinWithNext: () => void;
     hasNextPart: boolean;
-    onDropPositionChange: (position: DropPosition | null) => void;
-    onChordDrop: (position: DropPosition, dataTransfer?: DataTransfer) => void;
-    onChordDragStart: (chord: DraggedChord) => void;
-    onChordDragEnd: () => void;
+
     onApproximateChords?: (sourcePartIndex: number) => void;
 }
 
@@ -55,35 +52,9 @@ export function SongPartEditor({
     onSplitPart,
     onJoinWithNext,
     hasNextPart,
-    onDropPositionChange,
-    onChordDrop,
-    onChordDragStart,
-    onChordDragEnd,
     onApproximateChords,
 }: SongPartEditorProps) {
-    // Track last known drop position locally to handle race conditions
-    const lastDropPositionRef = useRef<DropPosition | null>(null);
     const [showChordSourceMenu, setShowChordSourceMenu] = useState(false);
-
-    const handleDropPositionChange = useCallback((lineIndex: number, charIndex: number | null) => {
-        if (charIndex !== null) {
-            const position = { partIndex, lineIndex, charIndex };
-            lastDropPositionRef.current = position;
-            onDropPositionChange(position);
-        } else {
-            // Don't clear ref immediately - keep it for drop
-            onDropPositionChange(null);
-        }
-    }, [partIndex, onDropPositionChange]);
-
-    const handleChordDrop = useCallback((lineIndex: number, dataTransfer?: DataTransfer) => {
-        // Use the most recent position we have
-        const position = dropPosition ?? lastDropPositionRef.current;
-        if (position && position.partIndex === partIndex && position.lineIndex === lineIndex) {
-            onChordDrop(position, dataTransfer);
-        }
-        lastDropPositionRef.current = null;
-    }, [dropPosition, partIndex, onChordDrop]);
 
     const defaultLabel = `${PART_TYPE_LABELS[part.type] || part.type} ${part.index || ''}`;
 
@@ -197,7 +168,7 @@ export function SongPartEditor({
                         currentKey={currentKey}
                         chordStyle={chordStyle}
                         lyricsLocked={lyricsLocked}
-                        draggedChord={draggedChord}
+                        isDragging={draggedChord !== null}
                         isDropTarget={
                             dropPosition?.partIndex === partIndex &&
                             dropPosition?.lineIndex === lineIndex
@@ -211,10 +182,6 @@ export function SongPartEditor({
                         onTextChange={(text) => onUpdateLine(lineIndex, text)}
                         onKeyDown={(e) => handleKeyDown(e, lineIndex, line.text)}
                         onDeleteLine={() => handleDeleteLine(lineIndex)}
-                        onDropPositionChange={(charIndex) => handleDropPositionChange(lineIndex, charIndex)}
-                        onChordDrop={(dataTransfer) => handleChordDrop(lineIndex, dataTransfer)}
-                        onChordDragStart={onChordDragStart}
-                        onChordDragEnd={onChordDragEnd}
                     />
                 ))}
             </div>
