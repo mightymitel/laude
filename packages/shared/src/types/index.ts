@@ -78,6 +78,10 @@ export interface Song {
     parts: SongPart[];
     tags: string[];
 
+    // Content language (WP-173/DEC-151): separate from UI locale, optional
+    // on legacy docs — consumers must fail open when absent.
+    language?: 'ro' | 'en';
+
     // Library ownership
     libraryType: LibraryType;
     ownerId: string;

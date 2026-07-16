@@ -2,8 +2,18 @@ import { useState } from 'react';
 import { Song, Key, ChordStyle, SongPart } from '@laudasist/shared';
 // Import unified line component
 import { SongLine } from './SongLine';
+import { officialArrangementOf, sequenceOf } from '@/rendering/core';
 
 import styles from './SongViewer.module.css';
+
+/** Per-device (DEC-120): the compact ⇄ arrangement toggle never touches
+ * session state. Viewports always render arrangement view — compact cannot
+ * disambiguate repeats (DEC-147); this toggle exists on the SONG VIEW only. */
+const VIEW_PREF_KEY = 'laudasist.songView.view';
+
+function loadViewPref(): 'compact' | 'arrangement' {
+    return localStorage.getItem(VIEW_PREF_KEY) === 'arrangement' ? 'arrangement' : 'compact';
+}
 
 const KEYS: Key[] = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'];
 
@@ -21,7 +31,20 @@ export function SongViewer({ song, initialKey, favoriteKey, onFavoriteKeyChange 
     const [transposeKey, setTransposeKey] = useState<Key>(initialKey ?? song.defaultKey);
     const [chordStyle, setChordStyle] = useState<ChordStyle>('letters');
     const [chordPosition, setChordPosition] = useState<'above' | 'inline' | 'compact'>('above');
+    const [view, setView] = useState<'compact' | 'arrangement'>(loadViewPref);
+    const [showChords, setShowChords] = useState(true);
     const isFavoriteKey = favoriteKey != null && favoriteKey === transposeKey;
+
+    // Render-by-part (DEC-147): parts are canonical; the sequence is ordered
+    // refs — in arrangement view a repeated part renders again per occurrence.
+    const arrangement = officialArrangementOf(song);
+    const sequence = sequenceOf(song.parts, view, arrangement);
+    const hasRepeats = arrangement !== undefined && arrangement.length > song.parts.length - 1;
+
+    const setViewPref = (v: 'compact' | 'arrangement') => {
+        setView(v);
+        localStorage.setItem(VIEW_PREF_KEY, v);
+    };
 
     return (
         <div className={styles.container}>
@@ -86,6 +109,19 @@ export function SongViewer({ song, initialKey, favoriteKey, onFavoriteKeyChange 
                         </select>
                     </div>
 
+                    <div className={styles.controlGroup}>
+                        <label>CHORDS</label>
+                        <button
+                            className={styles.select}
+                            aria-pressed={showChords}
+                            data-testid="toggle-chords"
+                            onClick={() => setShowChords((v) => !v)}
+                            title={showChords ? 'Hide chords (lyrics only)' : 'Show chords'}
+                        >
+                            {showChords ? 'On' : 'Off'}
+                        </button>
+                    </div>
+
                     {/* Position Selector */}
                     <div className={styles.controlGroup}>
                         <label>POSITION</label>
@@ -99,20 +135,54 @@ export function SongViewer({ song, initialKey, favoriteKey, onFavoriteKeyChange 
                             <option value="compact">Compact</option>
                         </select>
                     </div>
+                    {/* Compact ⇄ arrangement view (WP-168) — only offered when
+                        the song has an official arrangement to expand. */}
+                    {arrangement !== undefined && (
+                        <div className={styles.controlGroup}>
+                            <label>VIEW</label>
+                            <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                <button
+                                    className={styles.select}
+                                    aria-pressed={view === 'compact'}
+                                    data-testid="view-compact"
+                                    style={view === 'compact' ? { outline: '2px solid var(--primary)' } : {}}
+                                    onClick={() => setViewPref('compact')}
+                                    title="Each part once — lead-sheet shape"
+                                >
+                                    Compact
+                                </button>
+                                <button
+                                    className={styles.select}
+                                    aria-pressed={view === 'arrangement'}
+                                    data-testid="view-arrangement"
+                                    style={view === 'arrangement' ? { outline: '2px solid var(--primary)' } : {}}
+                                    onClick={() => setViewPref('arrangement')}
+                                    title="Parts repeated in performance order"
+                                >
+                                    Arrangement
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Song Content */}
+            {/* Song Content — parts rendered once, reused per occurrence. */}
             <div className={styles.content}>
-                {song.parts.map((part, i) => (
-                    <SongPartDisplay
-                        key={part.id || i}
-                        part={part}
-                        currentKey={transposeKey}
-                        style={chordStyle}
-                        position={chordPosition}
-                    />
-                ))}
+                {sequence.map((occ, i) => {
+                    const part = song.parts[occ.part]!;
+                    return (
+                        <SongPartDisplay
+                            key={`${part.id || occ.part}:${occ.occurrence}:${i}`}
+                            part={part}
+                            occurrence={view === 'arrangement' && hasRepeats ? occ.occurrence : 0}
+                            currentKey={transposeKey}
+                            style={chordStyle}
+                            position={chordPosition}
+                            showChords={showChords}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
@@ -120,19 +190,25 @@ export function SongViewer({ song, initialKey, favoriteKey, onFavoriteKeyChange 
 
 function SongPartDisplay({
     part,
+    occurrence,
     currentKey,
     style,
-    position
+    position,
+    showChords
 }: {
     part: SongPart;
+    /** >0 = which repeat of this part in the arrangement view. */
+    occurrence: number;
     currentKey: Key;
     style: ChordStyle;
     position: 'above' | 'inline' | 'compact';
+    showChords: boolean;
 }) {
     return (
         <div className={styles.part}>
             <h3 className={styles.partHeader}>
                 {part.type} {part.index > 0 ? part.index : ''}
+                {occurrence > 1 && <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> · repeat {occurrence}</span>}
             </h3>
 
             <div className={styles.linesContainer}>
@@ -143,6 +219,7 @@ function SongPartDisplay({
                         displayKey={currentKey}
                         chordStyle={style}
                         chordPosition={position}
+                        showChords={showChords}
                     />
                 ))}
             </div>

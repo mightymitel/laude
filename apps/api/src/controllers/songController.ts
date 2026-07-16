@@ -109,6 +109,7 @@ export const listSongs = async (req: AuthenticatedRequest, res: Response) => {
                 defaultKey: data.defaultKey,
                 tags: data.tags,
                 libraryType: data.libraryType,
+                language: data.language,
                 ownerId: data.ownerId,
                 visibility: data.visibility,
                 parts: data.parts,

@@ -533,6 +533,11 @@
     padding: 1rem;
     border-top: 1px solid var(--border);
     background: var(--bg-secondary);
+    /* WP-173: save pinned to the viewport — never a scroll to the bottom.
+       Stacking: content < footer (90) < delete zone (see below) < loupe (400). */
+    position: sticky;
+    bottom: 0;
+    z-index: 90;
 }
 
 .footerLeft {

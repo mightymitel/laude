@@ -41,6 +41,23 @@ export function SongEditor({
         song ? { ...song } : createEmptySong()
     );
 
+    // Dirty tracking (WP-173): the save button must not lie — disabled when
+    // clean, guard on navigate-away when dirty. Serialized-form comparison
+    // (songs are small); the baseline resets when a save is dispatched.
+    const [savedBaseline, setSavedBaseline] = useState(() => JSON.stringify(song ?? {}));
+    const isDirty = useMemo(
+        () => JSON.stringify(editingSong) !== savedBaseline,
+        [editingSong, savedBaseline],
+    );
+    useEffect(() => {
+        if (!isDirty) return;
+        const guard = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+        };
+        window.addEventListener('beforeunload', guard);
+        return () => window.removeEventListener('beforeunload', guard);
+    }, [isDirty]);
+
     // UI state
     const [mode, setMode] = useState<'visual' | 'raw'>(defaultMode);
     const [chordStyle, setChordStyle] = useState<ChordStyle>(initialChordStyle);
@@ -112,11 +129,17 @@ export function SongEditor({
         }
 
         setTitleError(false);
+        setSavedBaseline(JSON.stringify(editingSong));
 
         if (onSave) {
             onSave(editingSong as Song);
         }
     }, [editingSong, onSave]);
+
+    const handleCancel = useCallback(() => {
+        if (isDirty && !window.confirm('You have unsaved changes. Leave without saving?')) return;
+        onCancel?.();
+    }, [isDirty, onCancel]);
 
     const handleTitleChange = useCallback((title: string) => {
         setEditingSong(prev => ({ ...prev, title }));
@@ -147,6 +170,8 @@ export function SongEditor({
                 onAuthorChange={(author) => setEditingSong(prev => ({ ...prev, author }))}
                 keyLocked={keyLocked}
                 onKeyChange={(defaultKey) => setEditingSong(prev => ({ ...prev, defaultKey }))}
+                language={editingSong.language ?? 'ro'}
+                onLanguageChange={(language) => setEditingSong(prev => ({ ...prev, language }))}
                 onChordStyleChange={setChordStyle}
                 onModeChange={setMode}
             />
@@ -230,12 +255,18 @@ export function SongEditor({
 
                 <div className={styles.footerRight}>
                     {onCancel && (
-                        <button className={`${styles.button} ${styles.buttonSecondary}`} onClick={onCancel}>
+                        <button className={`${styles.button} ${styles.buttonSecondary}`} onClick={handleCancel}>
                             Cancel
                         </button>
                     )}
-                    <button className={`${styles.button} ${styles.buttonPrimary}`} onClick={handleSave}>
-                        Save
+                    <button
+                        className={`${styles.button} ${styles.buttonPrimary}`}
+                        onClick={handleSave}
+                        disabled={!isDirty}
+                        data-testid="editor-save"
+                        title={isDirty ? 'Save your changes' : 'No unsaved changes'}
+                    >
+                        {isDirty ? 'Save' : 'Saved ✓'}
                     </button>
                 </div>
             </div>

@@ -12,6 +12,9 @@ interface SongEditorHeaderProps {
     onTitleChange: (title: string) => void;
     onAuthorChange: (author: string) => void;
     onKeyChange: (key: Key) => void;
+    /** Content language (WP-173/DEC-151) — separate from UI locale. */
+    language: 'ro' | 'en';
+    onLanguageChange: (language: 'ro' | 'en') => void;
     /** Disabled with an explanatory tooltip (never silently ignored). */
     keyLocked?: boolean;
     onChordStyleChange: (style: ChordStyle) => void;
@@ -30,6 +33,8 @@ export function SongEditorHeader({
     onTitleChange,
     onAuthorChange,
     onKeyChange,
+    language,
+    onLanguageChange,
     onChordStyleChange,
     onModeChange,
 }: SongEditorHeaderProps) {
@@ -93,6 +98,17 @@ export function SongEditorHeader({
                     <option value="letters">Letters (C, Am)</option>
                     <option value="nashville">Nashville (1, 6m)</option>
                     <option value="roman">Roman (I, vi)</option>
+                </select>
+
+                <select
+                    className={styles.select}
+                    value={language}
+                    onChange={(e) => onLanguageChange(e.target.value === 'en' ? 'en' : 'ro')}
+                    title="Content language of the lyrics — separate from the app's UI language"
+                    data-testid="song-language-select"
+                >
+                    <option value="ro">🇷🇴 Română</option>
+                    <option value="en">🇬🇧 English</option>
                 </select>
             </div>
         </div>
